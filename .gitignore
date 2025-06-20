@@ -8,3 +8,4 @@ models/
 .env.local
 var/
 /dataset/
+.DS_Store
