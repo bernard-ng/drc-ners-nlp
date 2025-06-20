@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Optional
 
 # Paths
-ROOT_DIR = os.getcwd()
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(ROOT_DIR, 'dataset')
 
 MODELS_DIR = os.path.join(ROOT_DIR, 'models')
