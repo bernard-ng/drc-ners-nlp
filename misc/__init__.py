@@ -1,6 +1,7 @@
 import csv
 import json
 import os
+import pickle
 from datetime import datetime
 from typing import Optional
 
@@ -10,12 +11,10 @@ DATA_DIR = os.path.join(ROOT_DIR, 'dataset')
 
 MODELS_DIR = os.path.join(ROOT_DIR, 'models')
 GENDER_MODELS_DIR = os.path.join(MODELS_DIR, 'gender')
+GENDER_RESULT_DIR = os.path.join(ROOT_DIR, 'gender', 'results')
+
 NER_MODELS_DIR = os.path.join(MODELS_DIR, 'ner')
-
-# Training
-TRAINING_EPOCHS = 5
-MODEL_NAME = f"./models/ners-{datetime.now().strftime('%Y%m%d%H%M%S')}"
-
+NER_RESULT_DIR = os.path.join(ROOT_DIR, 'ner', 'results')
 
 def clean_spacing(filename: str) -> Optional[str]:
     try:
@@ -57,3 +56,13 @@ def save_json_dataset(data: list, path: str) -> None:
     print(f">> Saving JSON dataset to {path}")
     with open(os.path.join(DATA_DIR, path), "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, separators=(',', ':'))
+
+
+def save_pickle(obj, path):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "wb") as f:
+        pickle.dump(obj, f)
+
+def load_pickle(path: str):
+    with open(path, "rb") as f:
+        return pickle.load(f)
