@@ -4,7 +4,7 @@
 __pycache__/
 .ipynb_checkpoints/
 *.pyc
-models/
+/models/
 .env.local
 var/
 /dataset/
