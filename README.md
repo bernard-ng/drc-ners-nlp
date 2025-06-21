@@ -17,3 +17,26 @@ make download
 
 pip install -r requirements.txt
 ```
+
+## Gender Inference
+### 1. Training
+
+```bash
+python -m ners.gender.models.lstm --dataset names.csv --size 1000000 --save
+python -m ners.gender.models.logreg --dataset names.csv --size 1000000 --save
+python -m ners.gender.models.transformer --dataset names.csv --size 1000000 --save
+```
+
+### 2. Evaluation
+```bash
+python -m ners.gender.eval --dataset eval.csv --model logreg --threshold 0.5 --size 20000
+python -m ners.gender.eval --dataset eval.csv --model lstm 
+python -m ners.gender.eval --dataset eval.csv --model transformer
+```
+
+### 3. Inference
+```bash
+python -m ners.gender.predict --model logreg --name "Tshisekedi"
+python -m ners.gender.predict --model lstm --name "Ilunga" "Albert" "Ilunga Albert" --threshold 0.7
+python -m ners.gender.predict --model transformer --name "musenga wa musenga"
+```
