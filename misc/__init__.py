@@ -8,6 +8,10 @@ from typing import Optional
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(ROOT_DIR, 'dataset')
 
+MODELS_DIR = os.path.join(ROOT_DIR, 'models')
+GENDER_MODELS_DIR = os.path.join(MODELS_DIR, 'gender')
+NER_MODELS_DIR = os.path.join(MODELS_DIR, 'ner')
+
 # Training
 TRAINING_EPOCHS = 5
 MODEL_NAME = f"./models/ners-{datetime.now().strftime('%Y%m%d%H%M%S')}"
