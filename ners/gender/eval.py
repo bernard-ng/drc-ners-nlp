@@ -86,9 +86,9 @@ def evaluate_lstm(df, threshold, max_len=6):
              - encoder.classes_: An array of class names corresponding to the label encoding.
     :rtype: Tuple
     """
-    model = tf.keras.models.load_model(os.path.join(GENDER_MODELS_DIR, "BiLSTM_model.h5"))
-    tokenizer = load_pickle(os.path.join(GENDER_MODELS_DIR, "BiLSTM_tokenizer.pkl"))
-    encoder = load_pickle(os.path.join(GENDER_MODELS_DIR, "BiLSTM_label_encoder.pkl"))
+    model = tf.keras.models.load_model(os.path.join(GENDER_MODELS_DIR, "lstm_model.keras"))
+    tokenizer = load_pickle(os.path.join(GENDER_MODELS_DIR, "lstm_tokenizer.pkl"))
+    encoder = load_pickle(os.path.join(GENDER_MODELS_DIR, "lstm_label_encoder.pkl"))
 
     sequences = tokenizer.texts_to_sequences(df["name"])
     X = pad_sequences(sequences, maxlen=max_len, padding="post")
@@ -118,7 +118,7 @@ def evaluate_transformer(df, threshold, max_len=6):
         probabilities for the positive class, and a list of the label classes.
     :rtype: Tuple
     """
-    model = tf.keras.models.load_model(os.path.join(GENDER_MODELS_DIR, "transformer.h5"))
+    model = tf.keras.models.load_model(os.path.join(GENDER_MODELS_DIR, "transformer.keras"))
     tokenizer = load_pickle(os.path.join(GENDER_MODELS_DIR, "transformer_tokenizer.pkl"))
     encoder = load_pickle(os.path.join(GENDER_MODELS_DIR, "transformer_label_encoder.pkl"))
 
