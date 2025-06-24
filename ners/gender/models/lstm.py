@@ -1,7 +1,6 @@
 import argparse
 import logging
 import os
-import pickle
 from dataclasses import dataclass
 from typing import Tuple, Optional
 
@@ -18,7 +17,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.preprocessing.text import Tokenizer
 
-from misc import GENDER_MODELS_DIR, load_csv_dataset
+from misc import GENDER_MODELS_DIR, load_csv_dataset, save_pickle
 
 logging.basicConfig(level=logging.INFO, format=">> %(message)s")
 
@@ -214,15 +213,12 @@ def save_artifacts(model, tokenizer, encoder):
 
     :return: None
     """
-    model_path = os.path.join(GENDER_MODELS_DIR, "lstm_model.keras")
-    tokenizer_path = os.path.join(GENDER_MODELS_DIR, "lstm_tokenizer.pkl")
-    encoder_path = os.path.join(GENDER_MODELS_DIR, "lstm_label_encoder.pkl")
+    os.makedirs(GENDER_MODELS_DIR, exist_ok=True)
+    model.save(os.path.join(GENDER_MODELS_DIR, "lstm_model.keras"))
 
-    model.save(model_path)
-    with open(tokenizer_path, "wb") as f:
-        pickle.dump(tokenizer, f)
-    with open(encoder_path, "wb") as f:
-        pickle.dump(encoder, f)
+    save_pickle(tokenizer, os.path.join(GENDER_MODELS_DIR, "lstm_tokenizer.pkl"))
+    save_pickle(encoder, os.path.join(GENDER_MODELS_DIR, "lstm_label_encoder.pkl"))
+
     logging.info(f"Model and artifacts saved to {GENDER_MODELS_DIR}")
 
 
