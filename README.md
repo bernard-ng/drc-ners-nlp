@@ -13,28 +13,73 @@ cd drc-ners-nlp
 python3 -m venv .venv
 source .venv/bin/activate
 cp .env .env.local
-make download
 
 pip install -r requirements.txt
 ```
 
 ## Gender Inference
-### 1. Training
-
+### 1. Dataset Preparation
 ```bash
-python -m ners.gender.models.lstm --dataset names.csv --size 1000000 --save
-python -m ners.gender.models.logreg --dataset names.csv --size 1000000 --save
-python -m ners.gender.models.transformer --dataset names.csv --size 1000000 --save
+python -m processing.gender.prepare
 ```
 
-### 2. Evaluation
+### 2. Training
+Arguments: 
+
+| Name           | Description                                      | Default            |
+|----------------|--------------------------------------------------|--------------------|
+| --dataset_path | Path to the dataset file                         | names_featured.csv |
+| --size         | Number of samples to use (None for full dataset) | None               |
+| --threshold    | Probability threshold for gender classification  | 0.5                |
+| --cv           | Number of cross-validation folds                 | None               |
+| --save         | Whether to save the trained model                | False              |
+| --balanced     | Whether to balance the dataset                   | False              |
+| --epochs       | Number of training epochs                        | 10                 |
+| --test_size    | Proportion of data to use as test set            | 0.2                |
+| --random_state | Random seed for reproducibility                  | 42                 |
+
+
+Examples: 
+
+```bash
+python -m ners.gender.models.lstm --size 1000000 --save
+python -m ners.gender.models.logreg 1000000 --save
+python -m ners.gender.models.transformer --size 1000000 --save
+```
+
+### 3. Evaluation
+
+
+Arguments:
+
+| Name       | Description                                   | Default              |
+|------------|-----------------------------------------------|----------------------|
+| --model    | Model type: logreg, lstm, or transformer      | (required)           |
+| --dataset  | Path to the dataset CSV file                  | names_featured.csv   |
+| --size     | Number of rows to load from the dataset       | None                 |
+| --balanced | Load balanced dataset                         | False                |
+| --threshold| Probability threshold for classification      | 0.5                  |
+
+Examples:
+
 ```bash
 python -m ners.gender.eval --dataset eval.csv --model logreg --threshold 0.5 --size 20000
 python -m ners.gender.eval --dataset eval.csv --model lstm 
 python -m ners.gender.eval --dataset eval.csv --model transformer
 ```
 
-### 3. Inference
+### 4. Inference
+
+Arguments:
+
+| Name        | Description                              | Default   |
+|-------------|------------------------------------------|-----------|
+| --model     | Model type: logreg, lstm, or transformer | (required)|
+| --names     | One or more names                        | (required)|
+| --threshold | Threshold for classification             | 0.5       |
+
+Examples: 
+
 ```bash
 python -m ners.gender.predict --model logreg --name "Tshisekedi"
 python -m ners.gender.predict --model lstm --name "Ilunga" "Albert" "Ilunga Albert" --threshold 0.7
