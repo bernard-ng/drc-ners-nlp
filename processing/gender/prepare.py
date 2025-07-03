@@ -40,8 +40,13 @@ def main():
     cols = [c for c in df.columns if c != 'sex'] + ['sex']
     df = df[cols]
 
+    print(f">> Saving evaluation dataset")
+    df_evaluation = df.sample(frac=0.2, random_state=42)
+    df_evaluation.to_csv(os.path.join(DATA_DIR, 'names_evaluation.csv'), index=False)
+
     print(f">> Saving featured dataset")
-    df.to_csv(os.path.join(DATA_DIR, 'names_featured.csv'), index=False)
+    df_featured = df.drop(df_evaluation.index)
+    df_featured.to_csv(os.path.join(DATA_DIR, 'names_featured.csv'), index=False)
 
     print(f">> Splitting dataset by sex")
     df[df['sex'].str.lower() == 'm'].to_csv(os.path.join(DATA_DIR, 'names_males.csv'), index=False)

@@ -89,7 +89,7 @@ def compute_metrics(y_true, y_pred, y_proba, class_names):
 def main():
     parser = argparse.ArgumentParser(description="Evaluate gender prediction model")
     parser.add_argument("--model", choices=["logreg", "lstm", "transformer"], required=True)
-    parser.add_argument("--dataset", default="names_featured.csv", help="Path to the dataset CSV file")
+    parser.add_argument("--dataset", default="names_evaluation.csv", help="Path to the dataset CSV file")
     parser.add_argument("--size", type=int, help="Number of rows to load from the dataset")
     parser.add_argument("--balanced", action="store_true", help="Load balanced dataset")
     parser.add_argument("--threshold", type=float, default=0.5, help="Probability threshold for classification")
