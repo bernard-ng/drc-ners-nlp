@@ -28,6 +28,7 @@ pip install -r requirements.txt
 ### 1. Dataset Preparation
 ```bash
 python -m processing.gender.prepare
+python -m processing.annotation.prepare
 ```
 
 ### 2. Training

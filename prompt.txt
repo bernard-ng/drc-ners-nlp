@@ -1,0 +1,31 @@
+## Instructions:
+You are analyzing Congolese full names. For each input, return:
+
+- "identified_name": the native name part of the full name
+- "identified_surname": the French or English, usually last part of the full name (can also be composed of multiple words)
+- "identified_category":
+    - "simple" if the native name has no connector
+    - "compose" if it includes connectors like "wa", "ya", etc.
+
+if you cannot identify any field, return null for that field.
+do not alter the original name, just identify the parts.
+do not add any additional information or explanations.
+
+## Example:
+- "tshabu ngandu bernard"
+```json
+{
+  "identified_name": "tshabu ngandu",
+  "identified_surname": "bernard",
+  "identified_category": "simple"
+}
+```
+
+- "ilunga wa ilunga albert"
+```json
+{
+    "identified_name": "ilunga wa ilunga",
+    "identified_surname": "albert",
+    "identified_category": "compose"
+}
+```

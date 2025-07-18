@@ -3,7 +3,6 @@ import io
 import json
 import os
 import pickle
-from typing import Optional
 from typing import List, Dict
 
 # Paths
@@ -78,3 +77,8 @@ def save_pickle(obj, path):
 def load_pickle(path: str):
     with open(path, "rb") as f:
         return pickle.load(f)
+
+
+def load_prompt() -> str:
+    with open(os.path.join(ROOT_DIR, 'prompt.txt'), 'r') as f:
+        return f.read()
