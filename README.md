@@ -40,7 +40,7 @@ python -m processing.prepare --split_eval --split_by_sex
 ### Annotation
 | Name        | Description                                         | Default        |
 |-------------|-----------------------------------------------------|----------------|
-| --llm_model | Ollama model name to use                            | llama3.2:3b    |
+| --llm_model | Ollama model name to use                            | mistral:7b     |
 
 Example:
 
