@@ -40,7 +40,7 @@ def analyze_name(client: ollama.Client, model: str, prompt: str, name: str) -> d
 
 def save_checkpoint(df: pd.DataFrame):
     df.to_csv(os.path.join(DATA_DIR, "names_featured.csv"), index=False)
-    logging.cri(f"Checkpoint saved")
+    logging.critical(f"Checkpoint saved")
 
 
 def build_updates(llm_model: str, df: pd.DataFrame, entries: pd.DataFrame) -> pd.DataFrame:
