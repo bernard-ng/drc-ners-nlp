@@ -55,6 +55,7 @@ def process(df: pd.DataFrame) -> pd.DataFrame:
     logging.info("Preprocessing names")
     df['words'] = df['name'].str.count(' ') + 1
     df['length'] = df['name'].str.replace(' ', '', regex=False).str.len()
+    df['year'] = df['year'].astype(int)
 
     # Calculate probable_native and probable_surname
     name_split = df['name'].str.split()
@@ -64,6 +65,7 @@ def process(df: pd.DataFrame) -> pd.DataFrame:
     df['identified_name'] = None
     df['identified_surname'] = None
     df['annotated'] = 0
+    df['annotated'] = df['annotated'].astype('Int8')
 
     # We can assume that if a name has exactly 3 words, the first two are the native name and the last is the surname
     # This is a common pattern in Congolese names
