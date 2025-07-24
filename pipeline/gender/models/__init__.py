@@ -1,5 +1,4 @@
 import argparse
-import logging
 from dataclasses import dataclass
 from typing import Optional
 
@@ -8,8 +7,7 @@ from sklearn.metrics import (
     classification_report, confusion_matrix
 )
 
-logging.basicConfig(level=logging.INFO, format=">> %(message)s")
-
+from misc import logging
 
 def evaluate_proba(y_true, y_proba, threshold, class_names):
     y_pred = (y_proba[:, 1] >= threshold).astype(int)

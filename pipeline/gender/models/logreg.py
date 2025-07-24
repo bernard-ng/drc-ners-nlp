@@ -14,7 +14,7 @@ from sklearn.pipeline import make_pipeline, Pipeline
 from sklearn.preprocessing import LabelEncoder
 
 from misc import GENDER_MODELS_DIR, load_csv_dataset, save_pickle
-from ners.gender.models import BaseConfig, load_config, logging
+from pipeline.gender.models import BaseConfig, load_config, logging
 
 
 @dataclass

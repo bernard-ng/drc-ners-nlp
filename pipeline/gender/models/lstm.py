@@ -16,7 +16,7 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.preprocessing.text import Tokenizer
 
 from misc import GENDER_MODELS_DIR, load_csv_dataset, save_pickle
-from ners.gender.models import load_config, BaseConfig, evaluate_proba, logging
+from pipeline.gender.models import load_config, BaseConfig, evaluate_proba, logging
 
 
 @dataclass

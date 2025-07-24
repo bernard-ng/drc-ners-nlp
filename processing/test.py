@@ -7,7 +7,6 @@ from misc import load_prompt
 class NameAnalysis(BaseModel):
     identified_name: str | None
     identified_surname: str | None
-    identified_category: str | None
 
 
 name = input("Enter name: ")

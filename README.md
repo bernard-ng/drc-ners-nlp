@@ -12,28 +12,44 @@ Experiments conducted on custom evaluation sets, including multilingual and code
 This work demonstrates the importance of culturally grounded resources in reducing bias and improving performance in NLP systems applied to underrepresented regions. Our findings open new directions for inclusive language technologies in African contexts and contribute a valuable resource for future research in regional linguistics, onomastics, and identity-aware artificial intelligence.
 
 
-# Usage
+## Installation
 ```bash
 git clone https://github.com/bernard-ng/drc-ners-nlp.git
 cd drc-ners-nlp
 
 python3 -m venv .venv
 source .venv/bin/activate
-cp .env .env.local
 
 pip install -r requirements.txt
 ```
 
-## Gender Inference
-### 1. Dataset Preparation
+
+## Dataset
+### Preparation
+| Name             | Description                                                        | Default |
+|------------------|--------------------------------------------------------------------|---------|
+| --split_eval     | Split into evaluation and featured datasets                        | True    |
+| --no-split_eval  | Do not split into evaluation and featured datasets                 |         |
+| --split_by_sex   | Split by sex into male/female datasets                            | True    |
+| --no-split_by_sex| Do not split by sex into male/female datasets                     |         |
+
 ```bash
-python -m processing.gender.prepare
-python -m processing.annotation.prepare
+python -m processing.prepare --split_eval --split_by_sex
 ```
 
-### 2. Training
-Arguments: 
+### Annotation
+| Name        | Description                                         | Default        |
+|-------------|-----------------------------------------------------|----------------|
+| --llm_model | Ollama model name to use                            | llama3.2:3b    |
 
+Example:
+
+```bash
+python -m processing.annotate --llm_model=mistral7b
+``` 
+
+## Experiments
+### Training
 | Name           | Description                                      | Default            |
 |----------------|--------------------------------------------------|--------------------|
 | --dataset      | Path to the dataset file                         | names_featured.csv |
@@ -50,22 +66,18 @@ Arguments:
 Examples: 
 
 ```bash
-python -m ners.gender.models.lstm --size 1000000 --save
-python -m ners.gender.models.logreg --size 1000000 --save
-python -m ners.gender.models.transformer --size 1000000 --save
+python -m pipelilne.gender.models.lstm --size 1000000 --save
+python -m pipelilne.gender.models.logreg --size 1000000 --save
+python -m pipelilne.gender.models.transformer --size 1000000 --save
 ```
 
 ```bash
-python -m ners.gender.models.lstm --size 1000000 --balanced --save
-python -m ners.gender.models.logreg --size 1000000 --balanced --save
-python -m ners.gender.models.transformer --size 1000000 --balanced --save
+python -m pipelilne.gender.models.lstm --size 1000000 --balanced --save
+python -m pipelilne.gender.models.logreg --size 1000000 --balanced --save
+python -m pipelilne.gender.models.transformer --size 1000000 --balanced --save
 ```
 
-### 3. Evaluation
-
-
-Arguments:
-
+### Evaluation
 | Name       | Description                                   | Default              |
 |------------|-----------------------------------------------|----------------------|
 | --model    | Model type: logreg, lstm, or transformer      | (required)           |
@@ -77,15 +89,12 @@ Arguments:
 Examples:
 
 ```bash
-python -m ners.gender.eval --dataset names_evaluations.csv --model logreg
-python -m ners.gender.eval --dataset names_evaluations.csv --model lstm 
-python -m ners.gender.eval --dataset names_evaluations.csv --model transformer
+python -m pipelilne.gender.eval --dataset names_evaluations.csv --model logreg
+python -m pipelilne.gender.eval --dataset names_evaluations.csv --model lstm 
+python -m pipelilne.gender.eval --dataset names_evaluations.csv --model transformer
 ```
 
-### 4. Inference
-
-Arguments:
-
+### Inference
 | Name        | Description                              | Default   |
 |-------------|------------------------------------------|-----------|
 | --model     | Model type: logreg, lstm, or transformer | (required)|
@@ -95,7 +104,7 @@ Arguments:
 Examples: 
 
 ```bash
-python -m ners.gender.predict --model logreg --names "Tshisekedi"
-python -m ners.gender.predict --model lstm --names "Ilunga Ngandu"
-python -m ners.gender.predict --model transformer --names "musenga wa musenga"
+python -m pipelilne.gender.predict --model logreg --names "Tshisekedi"
+python -m pipelilne.gender.predict --model lstm --names "Ilunga Ngandu"
+python -m pipelilne.gender.predict --model transformer --names "musenga wa musenga"
 ```
