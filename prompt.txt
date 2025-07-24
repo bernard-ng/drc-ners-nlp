@@ -1,6 +1,6 @@
 ## Instructions:
 Identify the identified_name (native Congolese part) and identified_surname (non-native, French or English part) from the provided full name. 
-Return null if a part cannot be identified. Do not alter the original name or add any additional information.
+Return null if a part cannot be identified. Do not alter the original name, do not change case or add any additional information.
 
 ## Examples:
 ```
