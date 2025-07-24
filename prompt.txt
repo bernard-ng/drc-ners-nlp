@@ -4,16 +4,28 @@ Return null if a part cannot be identified. Do not alter the original name or ad
 
 ## Examples:
 ```
-"tshabu ngandu bernard"
+"tshabu ngandu"
 {
   "identified_name": "tshabu ngandu",
-  "identified_surname": "bernard"
+  "identified_surname": null
 }
 
-"tshisekedi wa mulumba"
+"bapite marie"
 {
-  "identified_name": "tshisekedi wa mulumba",
-  "identified_surname": null
+  "identified_name": "bapite",
+  "identified_surname": "marie"
+}
+
+"tshisekedi mulumba jean claude"
+{
+  "identified_name": "tshisekedi mulumba",
+  "identified_surname": "jean claude"
+}
+
+"ilunga wa makuta jean-marie"
+{
+  "identified_name": "ilunga wa makuta",
+  "identified_surname": "jean-marie"
 }
 
 "ntumba wasokadio marie france"

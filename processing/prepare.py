@@ -56,17 +56,25 @@ def process(df: pd.DataFrame) -> pd.DataFrame:
     df['words'] = df['name'].str.count(' ') + 1
     df['length'] = df['name'].str.replace(' ', '', regex=False).str.len()
 
+    # Calculate probable_native and probable_surname
     name_split = df['name'].str.split()
     df['probable_native'] = name_split.apply(lambda x: ' '.join(x[:-1]) if len(x) > 1 else '')
     df['probable_surname'] = name_split.apply(lambda x: x[-1] if x else '')
     df['identified_category'] = df['words'].apply(lambda x: 'compose' if x > 3 else 'simple')
     df['identified_name'] = None
     df['identified_surname'] = None
+    df['annotated'] = 0
+
+    # We can assume that if a name has exactly 3 words, the first two are the native name and the last is the surname
+    # This is a common pattern in Congolese names
+    three_word_mask = df['words'] == 3
+    df.loc[three_word_mask, 'identified_name'] = df.loc[three_word_mask, 'probable_native']
+    df.loc[three_word_mask, 'identified_surname'] = df.loc[three_word_mask, 'probable_surname']
+    df.loc[three_word_mask, 'annotated'] = 1
 
     logging.info("Mapping regions to provinces")
     df['province'] = df['region'].map(lambda r: REGION_MAPPING.get(r, ('AUTRES', 'AUTRES'))[1])
     df['province'] = df['province'].str.lower()
-    df['annotated'] = 0
 
     return df
 
