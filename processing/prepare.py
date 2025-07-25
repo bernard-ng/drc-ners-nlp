@@ -65,7 +65,6 @@ def process(df: pd.DataFrame) -> pd.DataFrame:
     df['identified_name'] = None
     df['identified_surname'] = None
     df['annotated'] = 0
-    df['annotated'] = df['annotated'].astype('Int8')
 
     # We can assume that if a name has exactly 3 words, the first two are the native name and the last is the surname
     # This is a common pattern in Congolese names

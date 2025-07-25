@@ -60,15 +60,14 @@ def build_updates(llm_model: str, df: pd.DataFrame, entries: pd.DataFrame) -> pd
             entry = analyze_name(client, llm_model, prompt, row["name"])
             entry["annotated"] = 1
             updates.append((row_idx, entry))
-            logging.info(f"Analyzed : {row['name']} - {entry}")
+            logging.info(f"Analyzed: {row['name']} - {entry}")
         except Exception as e:
             logging.warning(f"Failed to analyze '{row['name']}': {e}")
             continue
 
-
         if idx % BATCH_SIZE == 0 or idx == len(entries):
             update_df = pd.DataFrame.from_dict(dict(updates), orient="index")
-            update_df = update_df['annotated'].astype('Int8').fillna(0)
+            update_df["annotated"] = pd.to_numeric(update_df["annotated"], errors="coerce").fillna(0).astype("Int8")
 
             df.update(update_df)
             save_checkpoint(df)
@@ -80,7 +79,10 @@ def build_updates(llm_model: str, df: pd.DataFrame, entries: pd.DataFrame) -> pd
 def main(llm_model: str = "llama3.2:3b"):
     df = pd.DataFrame(load_csv_dataset(os.path.join(DATA_DIR, "names_featured.csv")))
 
-    entries = df[df["annotated"].astype("Int8") == 0]
+    # Safely cast 'annotated' column to Int8, handling float-like strings (e.g., '1.0')
+    df["annotated"] = pd.to_numeric(df["annotated"], errors="coerce").fillna(0).astype(float).astype("Int8")
+
+    entries = df[df["annotated"] == 0]
     if entries.empty:
         logging.info("No names to analyze.")
         return
