@@ -1,0 +1,128 @@
+# Research Experiment Configuration Templates
+# These configurations can be used as starting points for different types of experiments
+
+# Baseline Experiments Configuration
+baseline_experiments:
+  - name: "baseline_logistic_regression_fullname"
+    description: "Baseline logistic regression with full name"
+    model_type: "logistic_regression"
+    features: ["full_name"]
+    model_params:
+      ngram_range: [2, 5]
+      max_features: 10000
+      max_iter: 1000
+    tags: ["baseline", "fullname"]
+
+  - name: "baseline_logistic_regression_native"
+    description: "Logistic regression with native name only"
+    model_type: "logistic_regression"
+    features: ["native_name"]
+    model_params:
+      ngram_range: [2, 4]
+      max_features: 5000
+    tags: ["baseline", "native"]
+
+  - name: "baseline_rf_engineered"
+    description: "Random Forest with engineered features"
+    model_type: "random_forest"
+    features: ["name_length", "word_count", "province"]
+    model_params:
+      n_estimators: 100
+      max_depth: 10
+    tags: ["baseline", "engineered"]
+
+# Feature Study Configurations
+feature_studies:
+  - name: "native_vs_surname"
+    description: "Compare native name vs surname effectiveness"
+    experiments:
+      - model_type: "logistic_regression"
+        features: ["native_name"]
+        tags: ["feature_study", "native"]
+      - model_type: "logistic_regression"
+        features: ["surname"]
+        tags: ["feature_study", "surname"]
+
+  - name: "name_parts_analysis"
+    description: "Analyze effectiveness of different name parts"
+    experiments:
+      - features: ["first_word"]
+        tags: ["name_parts", "first"]
+      - features: ["last_word"]
+        tags: ["name_parts", "last"]
+      - features: ["name_beginnings"]
+        feature_params:
+          beginning_length: 3
+        tags: ["name_parts", "beginnings"]
+      - features: ["name_endings"]
+        feature_params:
+          ending_length: 3
+        tags: ["name_parts", "endings"]
+
+# Province-Specific Studies
+province_studies:
+  - name: "kinshasa_study"
+    description: "Gender prediction for Kinshasa province"
+    model_type: "logistic_regression"
+    features: ["full_name"]
+    train_data_filter:
+      province: "kinshasa"
+    tags: ["province_study", "kinshasa"]
+
+  - name: "cross_province_generalization"
+    description: "Train on one province, test on another"
+    experiments:
+      - train_filter: {"province": "kinshasa"}
+        test_filter: {"province": "bas-congo"}
+        tags: ["generalization", "kinshasa_to_bas-congo"]
+
+# Model Comparison Studies
+model_comparisons:
+  - name: "model_comparison_fullname"
+    description: "Compare different models with full name"
+    base_config:
+      features: ["full_name"]
+      tags: ["model_comparison"]
+    models:
+      - model_type: "logistic_regression"
+        model_params:
+          ngram_range: [2, 5]
+      - model_type: "random_forest"
+        # Note: RF will need different feature preparation
+        features: ["name_length", "word_count", "province"]
+
+# Advanced Feature Combinations
+advanced_features:
+  - name: "multi_feature_combination"
+    description: "Test various feature combinations"
+    experiments:
+      - features: ["full_name", "name_length"]
+        tags: ["combination", "name_plus_length"]
+      - features: ["native_name", "surname", "province"]
+        tags: ["combination", "semantic_features"]
+      - features: ["name_beginnings", "name_endings", "word_count"]
+        tags: ["combination", "structural_features"]
+
+# Hyperparameter Studies
+hyperparameter_studies:
+  - name: "ngram_range_study"
+    description: "Study effect of different n-gram ranges"
+    base_config:
+      model_type: "logistic_regression"
+      features: ["full_name"]
+      tags: ["hyperparameter", "ngram"]
+    variants:
+      - model_params: {"ngram_range": [1, 3]}
+      - model_params: {"ngram_range": [2, 4]}
+      - model_params: {"ngram_range": [2, 5]}
+      - model_params: {"ngram_range": [3, 6]}
+
+# Data Size Studies
+data_studies:
+  - name: "learning_curve_study"
+    description: "Study performance vs training data size"
+    base_config:
+      model_type: "logistic_regression"
+      features: ["full_name"]
+      tags: ["learning_curve"]
+    data_sizes: [0.1, 0.25, 0.5, 0.75, 1.0]  # Fractions of training data to use

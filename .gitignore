@@ -4,8 +4,9 @@
 __pycache__/
 .ipynb_checkpoints/
 *.pyc
-/models/
 .env.local
 var/
-/dataset/
+/data/dataset/
 .DS_Store
+/data/
+/backups

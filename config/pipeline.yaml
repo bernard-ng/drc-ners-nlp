@@ -1,0 +1,70 @@
+# DRC Names Processing Pipeline Configuration
+# Main configuration file with default settings
+
+name: "drc_names_pipeline"
+version: "1.0.0"
+description: "DRC Names NLP Processing Pipeline"
+environment: "development"
+debug: false
+
+# Project directory structure
+paths:
+  root_dir: "."
+  configs_dir: "./config"
+  data_dir: "./data/dataset"
+  models_dir: "./data/models"
+  outputs_dir: "./data/outputs"
+  logs_dir: "./data/logs"
+  checkpoints_dir: "./data/checkpoints"
+
+# Pipeline stages
+stages:
+  - "data_cleaning"
+  - "feature_extraction"
+  - "llm_annotation"
+  - "data_splitting"
+
+# Data processing configuration
+processing:
+  batch_size: 1_000
+  max_workers: 4
+  checkpoint_interval: 5
+  use_multiprocessing: false
+  encoding_options:
+    - "utf-8"
+    - "utf-16"
+    - "latin1"
+  chunk_size: 100_000
+
+# LLM annotation settings
+llm:
+  model_name: "mistral:7b"
+  requests_per_minute: 60
+  requests_per_second: 2
+  retry_attempts: 3
+  timeout_seconds: 600
+  max_concurrent_requests: 2
+  enable_rate_limiting: true
+
+# Data handling configuration
+data:
+  input_file: "names.csv"
+  output_files:
+    featured: "names_featured.csv"
+    evaluation: "names_evaluation.csv"
+    males: "names_males.csv"
+    females: "names_females.csv"
+  split_evaluation: true
+  split_by_gender: true
+  evaluation_fraction: 0.2
+  random_seed: 42
+
+# Logging configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file_logging: true
+  console_logging: true
+  log_file: "pipeline.log"
+  max_log_size: 10485760  # 10MB
+  backup_count: 5
