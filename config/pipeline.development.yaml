@@ -37,8 +37,8 @@ data:
   split_by_gender: true
   evaluation_fraction: 0.2
   random_seed: 42
-  max_dataset_size: 10_000  # Limit to 10k records for development/testing
-  balance_by_sex: true     # Balance male/female samples when limiting
+  max_dataset_size: ~  # Limit to 10k records for development/testing
+  balance_by_sex: false     # Balance male/female samples when limiting
 
 # Enhanced logging for development
 logging:

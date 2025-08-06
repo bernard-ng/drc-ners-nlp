@@ -50,8 +50,14 @@ class TraditionalModel(BaseModel):
             y_encoded = self.label_encoder.transform(y)
 
         # Train model
-        logging.info(f"Fitting model with {X_prepared.shape[0]} samples and {X_prepared.shape[1]} features")
-        self.model.fit(X_prepared, y_encoded, verbose=2)
+        if len(X_prepared.shape) == 1:
+            # For text-based features (like LogisticRegression with vectorization)
+            logging.info(f"Fitting model with {X_prepared.shape[0]} samples (text features)")
+        else:
+            # For numerical features
+            logging.info(f"Fitting model with {X_prepared.shape[0]} samples and {X_prepared.shape[1]} features")
+
+        self.model.fit(X_prepared, y_encoded)
         self.is_fitted = True
 
         return self

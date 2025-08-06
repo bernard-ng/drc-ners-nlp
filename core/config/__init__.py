@@ -2,9 +2,10 @@ import logging
 from pathlib import Path
 from typing import Optional, Union
 
-from core.config.config_manager import ConfigManager
-from core.config.logging_config import LoggingConfig
-from core.config.pipeline_config import PipelineConfig
+from core.utils import ensure_directories
+from .config_manager import ConfigManager
+from .logging_config import LoggingConfig
+from .pipeline_config import PipelineConfig
 
 config_manager = ConfigManager()
 
@@ -43,7 +44,6 @@ def setup_config(config_path: Optional[Path] = None, env: str = "development") -
     setup_logging(config)
 
     # Ensure required directories exist
-    from core.utils import ensure_directories
     ensure_directories(config)
 
     logging.info(f"Loaded configuration: {config.name} v{config.version}")

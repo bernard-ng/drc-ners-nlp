@@ -95,9 +95,15 @@ class NeuralNetworkModel(BaseModel):
         recalls = []
         f1_scores = []
 
+        # Get vocabulary size and model parameters
+        vocab_size = len(self.tokenizer.word_index) + 1 if self.tokenizer else 1000
+        max_len = self.config.model_params.get("max_len", 6)
+
         for fold, (train_idx, val_idx) in enumerate(cv.split(X_prepared, y_encoded)):
-            # Create fresh model for each fold
-            fold_model = self.build_model()
+            # Create fresh model for each fold using build_model_with_vocab
+            fold_model = self.build_model_with_vocab(
+                vocab_size=vocab_size, max_len=max_len, **self.config.model_params
+            )
 
             # Train on fold
             if hasattr(fold_model, "fit"):
@@ -127,13 +133,9 @@ class NeuralNetworkModel(BaseModel):
 
         return {
             "accuracy": np.mean(accuracies),
-            "accuracy_std": np.std(accuracies),
             "precision": np.mean(precisions),
-            "precision_std": np.std(precisions),
             "recall": np.mean(recalls),
-            "recall_std": np.std(recalls),
             "f1": np.mean(f1_scores),
-            "f1_std": np.std(f1_scores),
         }
 
     def generate_learning_curve(
@@ -150,9 +152,17 @@ class NeuralNetworkModel(BaseModel):
             "val_scores_std": [],
         }
 
+        # Prepare features and get vocabulary size
+        features_df = self.feature_extractor.extract_features(X)
+        X_prepared = self.prepare_features(features_df)
+        y_encoded = self.label_encoder.transform(y)
+
+        vocab_size = len(self.tokenizer.word_index) + 1 if self.tokenizer else 1000
+        max_len = self.config.model_params.get("max_len", 6)
+
         # Split data once for validation
         X_train_full, X_val, y_train_full, y_val = train_test_split(
-            X, y, test_size=0.2, random_state=self.config.random_seed, stratify=y
+            X_prepared, y_encoded, test_size=0.2, random_state=self.config.random_seed, stratify=y_encoded
         )
 
         for size in train_sizes:
@@ -170,8 +180,10 @@ class NeuralNetworkModel(BaseModel):
             val_scores = []
 
             for seed in range(3):  # 3 runs for variance
-                # Build fresh model
-                model = self.build_model()
+                # Build fresh model using build_model_with_vocab
+                model = self.build_model_with_vocab(
+                    vocab_size=vocab_size, max_len=max_len, **self.config.model_params
+                )
 
                 # Train model
                 if hasattr(model, "fit"):

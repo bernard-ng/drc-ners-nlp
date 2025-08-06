@@ -1,13 +1,17 @@
 import logging
 from contextlib import contextmanager
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from core.config import get_config, PipelineConfig
+if TYPE_CHECKING:
+    from core.config import PipelineConfig
 
 
 @contextmanager
 def temporary_config_override(**overrides):
     """Context manager for temporarily overriding configuration"""
+    from core.config import get_config
+
     config = get_config()
     original_values = {}
 
@@ -25,7 +29,7 @@ def temporary_config_override(**overrides):
             setattr(config, key, value)
 
 
-def ensure_directories(config: PipelineConfig) -> None:
+def ensure_directories(config: "PipelineConfig") -> None:
     """Ensure all required directories exist"""
     directories = [
         config.paths.data_dir,
@@ -42,16 +46,16 @@ def ensure_directories(config: PipelineConfig) -> None:
     logging.info("Ensured all required directories exist")
 
 
-def get_data_file_path(filename: str, config: PipelineConfig) -> Path:
+def get_data_file_path(filename: str, config: "PipelineConfig") -> Path:
     """Get full path for a data file"""
     return config.paths.data_dir / filename
 
 
-def get_model_file_path(filename: str, config: PipelineConfig) -> Path:
+def get_model_file_path(filename: str, config: "PipelineConfig") -> Path:
     """Get full path for a model file"""
     return config.paths.models_dir / filename
 
 
-def get_output_file_path(filename: str, config: PipelineConfig) -> Path:
+def get_output_file_path(filename: str, config: "PipelineConfig") -> Path:
     """Get full path for an output file"""
     return config.paths.outputs_dir / filename

@@ -3,6 +3,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Optional
 
+import joblib
 import numpy as np
 import pandas as pd
 from sklearn.metrics import confusion_matrix
@@ -207,13 +208,36 @@ class ExperimentRunner:
         experiment = self.tracker.get_experiment(experiment_id)
 
         if experiment and experiment.model_path:
-            return BaseModel.load(experiment.model_path)
+            try:
+                # Load the saved model data Recreate the model instance using the saved config
+                model_data = joblib.load(experiment.model_path)
+                config = ExperimentConfig.from_dict(model_data["config"])
+                model = create_model(config)
+
+                # Restore the saved state
+                model.model = model_data["model"]
+                model.feature_extractor = model_data["feature_extractor"]
+                model.label_encoder = model_data["label_encoder"]
+                model.tokenizer = model_data.get("tokenizer")
+                model.is_fitted = model_data["is_fitted"]
+                model.training_history = model_data.get("training_history", {})
+                model.learning_curve_data = model_data.get("learning_curve_data", {})
+
+                # Restore vectorizers and encoders for models that use them (like XGBoost)
+                if "vectorizers" in model_data and hasattr(model, 'vectorizers'):
+                    model.vectorizers = model_data["vectorizers"]
+                if "label_encoders" in model_data and hasattr(model, 'label_encoders'):
+                    model.label_encoders = model_data["label_encoders"]
+
+                return model
+
+            except Exception as e:
+                logging.error(f"Failed to load model for experiment {experiment_id}: {e}")
+                return None
 
         return None
 
-    def compare_experiments(
-        self, experiment_ids: List[str], metric: str = "accuracy"
-    ) -> pd.DataFrame:
+    def compare_experiments(self, experiment_ids: List[str], metric: str = "accuracy") -> pd.DataFrame:
         """Compare experiments and return analysis"""
         comparison_df = self.tracker.compare_experiments(experiment_ids)
 
