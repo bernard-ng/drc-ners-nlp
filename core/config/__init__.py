@@ -21,10 +21,7 @@ def load_config(config_path: Optional[Union[str, Path]] = None) -> PipelineConfi
     return config_manager.get_config()
 
 
-def setup_config_and_logging(
-    config_path: Optional[Path] = None,
-    env: str = "development"
-) -> PipelineConfig:
+def setup_config(config_path: Optional[Path] = None, env: str = "development") -> PipelineConfig:
     """
     Unified configuration loading and logging setup for all entrypoint scripts.
 

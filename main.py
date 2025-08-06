@@ -1,22 +1,21 @@
 #!.venv/bin/python3
-import sys
 import argparse
 import logging
-from pathlib import Path
+import sys
+import traceback
 
-from core.utils.data_loader import DataLoader
-from core.config import setup_config_and_logging
+from core.config import setup_config
 from core.utils import get_data_file_path
-
-from processing.pipeline import Pipeline
+from core.utils.data_loader import DataLoader
 from processing.batch.batch_config import BatchConfig
-from processing.steps.data_splitting_step import DataSplittingStep
-from processing.steps.llm_annotation_step import LLMAnnotationStep
-from processing.steps.feature_extraction_step import FeatureExtractionStep
+from processing.pipeline import Pipeline
 from processing.steps.data_cleaning_step import DataCleaningStep
+from processing.steps.data_splitting_step import DataSplittingStep
+from processing.steps.feature_extraction_step import FeatureExtractionStep
+from processing.steps.llm_annotation_step import LLMAnnotationStep
 
 
-def create_pipeline_from_config(config) -> Pipeline:
+def create_pipeline(config) -> Pipeline:
     """Create pipeline from configuration"""
     batch_config = BatchConfig(
         batch_size=config.processing.batch_size,
@@ -42,14 +41,13 @@ def create_pipeline_from_config(config) -> Pipeline:
     return pipeline
 
 
-def run_pipeline(config, resume: bool = False) -> int:
+def run_pipeline(config) -> int:
     """Run the complete pipeline"""
     try:
         logging.info(f"Starting pipeline: {config.name} v{config.version}")
 
         # Load input data
         input_file_path = get_data_file_path(config.data.input_file, config)
-
         if not input_file_path.exists():
             logging.error(f"Input file not found: {input_file_path}")
             return 1
@@ -60,7 +58,7 @@ def run_pipeline(config, resume: bool = False) -> int:
         logging.info(f"Loaded {len(df)} rows, {len(df.columns)} columns")
 
         # Create and run pipeline
-        pipeline = create_pipeline_from_config(config)
+        pipeline = create_pipeline(config)
 
         logging.info("Starting pipeline execution")
         result_df = pipeline.run(df)
@@ -94,46 +92,18 @@ def main():
     parser = argparse.ArgumentParser(
         description="DRC Names Processing Pipeline",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Configuration File Examples:
-  config/pipeline.yaml              - Main configuration
-  config/pipeline.development.yaml  - Development environment (default)
-  config/pipeline.production.yaml   - Production environment
-
-Usage Examples:
-  python main.py                                   # Use development config (default)
-  python main.py --config config/pipeline.yaml    # Use specific config
-  python main.py --env production                  # Use production environment
-  python main.py --resume                         # Resume from checkpoints
-        """,
     )
-
-    parser.add_argument("--config", type=Path, help="Path to configuration file")
-    parser.add_argument(
-        "--env", type=str, default="development",
-        help="Environment name (default: development)"
-    )
-    parser.add_argument(
-        "--resume", action="store_true", help="Resume pipeline from existing checkpoints"
-    )
-    parser.add_argument(
-        "--validate-config", action="store_true", help="Validate configuration file and exit"
-    )
+    parser.add_argument("--config", type=str, help="Path to configuration file")
+    parser.add_argument("--env", type=str, default="development", help="Environment name")
     args = parser.parse_args()
 
     try:
-        # Load configuration and setup logging
-        config = setup_config_and_logging(config_path=args.config, env=args.env)
-
-        if args.validate_config:
-            print(f"Configuration is valid: {config.name} v{config.version}")
-            return 0
-
-        # Run pipeline
-        return run_pipeline(config, args.resume)
+        config = setup_config(config_path=args.config, env=args.env)
+        return run_pipeline(config)
 
     except Exception as e:
-        print(f"Configuration or pipeline failed: {e}")
+        print(f"Pipeline failed: {e}")
+        traceback.print_exc()
         return 1
 
 

@@ -1,9 +1,10 @@
 #!.venv/bin/python3
 import argparse
 import sys
+import traceback
 from pathlib import Path
 
-from core.config import setup_config_and_logging
+from core.config import setup_config
 from processing.monitoring.data_analyzer import DatasetAnalyzer
 from processing.monitoring.pipeline_monitor import PipelineMonitor
 
@@ -71,7 +72,7 @@ def main():
 
     try:
         # Load configuration and setup logging
-        config = setup_config_and_logging(config_path=args.config, env=args.env)
+        config = setup_config(config_path=args.config, env=args.env)
 
         monitor = PipelineMonitor()
 
@@ -126,7 +127,8 @@ def main():
 
             print(f"\n=== Dataset Analysis: {args.file} ===")
             print(f"Total rows: {completion_stats['total_rows']:,}")
-            print(f"Annotated: {completion_stats['annotated_rows']:,} ({completion_stats['annotation_percentage']:.1f}%)")
+            print(
+                f"Annotated: {completion_stats['annotated_rows']:,} ({completion_stats['annotation_percentage']:.1f}%)")
             print(f"Unannotated: {completion_stats['unannotated_rows']:,}")
             print(
                 f"Complete names: {completion_stats['complete_names']:,} ({completion_stats['completeness_percentage']:.1f}%)"
@@ -149,7 +151,8 @@ def main():
         return 0
 
     except Exception as e:
-        print(f"Monitor command failed: {e}")
+        print(f"Monitoring failed: {e}")
+        traceback.print_exc()
         return 1
 
 

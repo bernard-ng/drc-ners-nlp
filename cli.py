@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from core.config import setup_config_and_logging
+from core.config import setup_config
 from research.experiment.experiment_runner import ExperimentRunner
 from research.experiment.experiment_tracker import ExperimentTracker
 
@@ -104,7 +104,7 @@ def show_experiment_details(args):
 def compare_experiments_cmd(args):
     """Compare multiple experiments"""
 
-    config = setup_config_and_logging(env="development")
+    config = setup_config(env="development")
     runner = ExperimentRunner(config)
     comparison = runner.compare_experiments(args.experiment_ids)
 
@@ -172,7 +172,7 @@ def main():
 
     try:
         # Load configuration and setup logging
-        config = setup_config_and_logging(config_path=args.config, env=args.env)
+        config = setup_config(config_path=args.config, env=args.env)
 
         # Override log level if verbose requested
         if args.verbose:
