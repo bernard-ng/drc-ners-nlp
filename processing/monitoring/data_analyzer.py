@@ -50,31 +50,3 @@ class DatasetAnalyzer:
             "complete_names": complete_names,
             "completeness_percentage": (complete_names / total_rows * 100) if total_rows > 0 else 0,
         }
-
-    def analyze_quality(self) -> Dict:
-        """Analyze data quality metrics"""
-        if self.df is None:
-            return {}
-
-        quality_metrics = {}
-
-        # Missing values
-        missing_data = self.df.isnull().sum()
-        quality_metrics["missing_values"] = missing_data.to_dict()
-
-        # Name length distribution
-        if "name" in self.df.columns:
-            name_lengths = self.df["name"].str.len()
-            quality_metrics["name_length"] = {
-                "mean": name_lengths.mean(),
-                "median": name_lengths.median(),
-                "min": name_lengths.min(),
-                "max": name_lengths.max(),
-            }
-
-        # Word count distribution
-        if "words" in self.df.columns:
-            word_counts = self.df["words"].value_counts().sort_index()
-            quality_metrics["word_distribution"] = word_counts.to_dict()
-
-        return quality_metrics

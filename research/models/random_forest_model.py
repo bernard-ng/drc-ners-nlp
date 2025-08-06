@@ -18,6 +18,7 @@ class RandomForestModel(TraditionalModel):
             n_estimators=params.get("n_estimators", 100),
             max_depth=params.get("max_depth", None),
             random_state=self.config.random_seed,
+            verbose=2
         )
 
     def prepare_features(self, X: pd.DataFrame) -> np.ndarray:

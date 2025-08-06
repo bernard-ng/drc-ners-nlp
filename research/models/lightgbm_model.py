@@ -22,7 +22,7 @@ class LightGBMModel(TraditionalModel):
             subsample=params.get("subsample", 0.8),
             colsample_bytree=params.get("colsample_bytree", 0.8),
             random_state=self.config.random_seed,
-            verbose=-1,
+            verbose=2,
         )
 
     def prepare_features(self, X: pd.DataFrame) -> np.ndarray:

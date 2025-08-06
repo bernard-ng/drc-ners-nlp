@@ -20,7 +20,9 @@ class LogisticRegressionModel(TraditionalModel):
         )
 
         classifier = LogisticRegression(
-            max_iter=params.get("max_iter", 1000), random_state=self.config.random_seed
+            max_iter=params.get("max_iter", 1000),
+            random_state=self.config.random_seed,
+            verbose=2
         )
 
         return Pipeline([("vectorizer", vectorizer), ("classifier", classifier)])

@@ -2,7 +2,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from web.log_reader import LogReader
+from interface.log_reader import LogReader
 
 
 def load_dataset(file_path: str) -> pd.DataFrame:

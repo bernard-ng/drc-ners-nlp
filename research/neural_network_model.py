@@ -49,6 +49,7 @@ class NeuralNetworkModel(BaseModel):
 
         # Now we can build the model with known vocab size
         vocab_size = len(self.tokenizer.word_index) + 1 if self.tokenizer else 1000
+        logging.info(f"Vocabulary size: {vocab_size}")
 
         # Get additional model parameters
         max_len = self.config.model_params.get("max_len", 6)
@@ -58,16 +59,18 @@ class NeuralNetworkModel(BaseModel):
         )
 
         # Train the neural network
+        logging.info(f"Fitting model with {X_prepared.shape[0]} samples and {X_prepared.shape[1]} features")
         history = self.model.fit(
             X_prepared,
             y_encoded,
             epochs=self.config.model_params.get("epochs", 10),
             batch_size=self.config.model_params.get("batch_size", 64),
             validation_split=0.1,
-            verbose=1,
+            verbose=2,
         )
 
         # Store training history
+
         self.training_history = {
             "accuracy": history.history["accuracy"],
             "loss": history.history["loss"],

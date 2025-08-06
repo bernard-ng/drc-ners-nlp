@@ -3,8 +3,8 @@ import argparse
 import sys
 
 from core.config.config_manager import ConfigManager
-from processing.monitoring.pipeline_monitor import PipelineMonitor
 from processing.monitoring.data_analyzer import DatasetAnalyzer
+from processing.monitoring.pipeline_monitor import PipelineMonitor
 
 
 def main():
@@ -112,28 +112,14 @@ def main():
             return 1
 
         completion_stats = analyzer.analyze_completion()
-        quality_stats = analyzer.analyze_quality()
 
         print(f"\n=== Dataset Analysis: {args.file} ===")
         print(f"Total rows: {completion_stats['total_rows']:,}")
-        print(
-            f"Annotated: {completion_stats['annotated_rows']:,} ({completion_stats['annotation_percentage']:.1f}%)"
-        )
+        print(f"Annotated: {completion_stats['annotated_rows']:,} ({completion_stats['annotation_percentage']:.1f}%)")
         print(f"Unannotated: {completion_stats['unannotated_rows']:,}")
         print(
             f"Complete names: {completion_stats['complete_names']:,} ({completion_stats['completeness_percentage']:.1f}%)"
         )
-
-        if "name_length" in quality_stats:
-            length_stats = quality_stats["name_length"]
-            print(f"\nName length statistics:")
-            print(f"  Average: {length_stats['mean']:.1f} characters")
-            print(f"  Range: {length_stats['min']}-{length_stats['max']} characters")
-
-        if "word_distribution" in quality_stats:
-            print(f"\nWord count distribution:")
-            for words, count in quality_stats["word_distribution"].items():
-                print(f"  {words} words: {count:,} names")
 
     elif args.command == "info":
         checkpoint_info = monitor.count_checkpoint_files()

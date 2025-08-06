@@ -39,7 +39,7 @@ class FeatureExtractionStep(PipelineStep):
     @classmethod
     def get_name_category(cls, word_count: int) -> NameCategory:
         """Determine name category based on word count"""
-        if word_count <= 3:
+        if word_count == 3:
             return NameCategory.SIMPLE
         else:
             return NameCategory.COMPOSE

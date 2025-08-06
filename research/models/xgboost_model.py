@@ -22,6 +22,7 @@ class XGBoostModel(TraditionalModel):
             colsample_bytree=params.get("colsample_bytree", 0.8),
             random_state=self.config.random_seed,
             eval_metric="logloss",
+            verbosity=2
         )
 
     def prepare_features(self, X: pd.DataFrame) -> np.ndarray:

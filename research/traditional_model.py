@@ -50,7 +50,8 @@ class TraditionalModel(BaseModel):
             y_encoded = self.label_encoder.transform(y)
 
         # Train model
-        self.model.fit(X_prepared, y_encoded)
+        logging.info(f"Fitting model with {X_prepared.shape[0]} samples and {X_prepared.shape[1]} features")
+        self.model.fit(X_prepared, y_encoded, verbose=2)
         self.is_fitted = True
 
         return self
