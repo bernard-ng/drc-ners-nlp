@@ -58,6 +58,8 @@ data:
   split_by_gender: true
   evaluation_fraction: 0.2
   random_seed: 42
+  max_dataset_size: null
+  balance_by_sex: false
 
 # Logging configuration
 logging:

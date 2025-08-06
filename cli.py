@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from core.config import get_config, setup_logging
+from core.config import setup_config_and_logging
 from research.experiment.experiment_runner import ExperimentRunner
 from research.experiment.experiment_tracker import ExperimentTracker
 
@@ -104,7 +104,8 @@ def show_experiment_details(args):
 def compare_experiments_cmd(args):
     """Compare multiple experiments"""
 
-    runner = ExperimentRunner(get_config())
+    config = setup_config_and_logging(env="development")
+    runner = ExperimentRunner(config)
     comparison = runner.compare_experiments(args.experiment_ids)
 
     if comparison.empty:
@@ -130,14 +131,20 @@ def export_results(args):
 
 
 def main():
-    """Main CLI entry point"""
+    """Main CLI entry point with unified configuration loading"""
     parser = argparse.ArgumentParser(
         description="DRC Names Research Experiment Manager",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
-    # Setup logging
+    # Global arguments
+    parser.add_argument("--config", type=Path, help="Path to configuration file")
+    parser.add_argument(
+        "--env", type=str, default="development",
+        help="Environment name (default: development)"
+    )
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose logging")
+
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # List experiments
@@ -163,14 +170,15 @@ def main():
         parser.print_help()
         return 1
 
-    # Setup logging
-    config = get_config()
-    if args.verbose:
-        config.logging.level = "DEBUG"
-    setup_logging(config)
-
-    # Execute command
     try:
+        # Load configuration and setup logging
+        config = setup_config_and_logging(config_path=args.config, env=args.env)
+
+        # Override log level if verbose requested
+        if args.verbose:
+            logging.getLogger().setLevel(logging.DEBUG)
+
+        # Execute command
         command_map = {
             "list": list_experiments,
             "show": show_experiment_details,

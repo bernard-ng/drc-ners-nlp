@@ -1,5 +1,5 @@
 from dataclasses import field
-from typing import Dict
+from typing import Dict, Optional
 
 from pydantic import BaseModel
 
@@ -20,3 +20,7 @@ class DataConfig(BaseModel):
     split_by_gender: bool = True
     evaluation_fraction: float = 0.2
     random_seed: int = 42
+
+    # Dataset size limiting options
+    max_dataset_size: Optional[int] = None
+    balance_by_sex: bool = False

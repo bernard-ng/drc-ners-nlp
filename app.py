@@ -1,7 +1,7 @@
 #!.venv/bin/python3
 import streamlit as st
 
-from core.config import get_config
+from core.config import setup_config_and_logging
 from core.utils.data_loader import DataLoader
 from interface.configuration import Configuration
 from interface.dashboard import Dashboard
@@ -25,8 +25,8 @@ st.set_page_config(
 
 @st.cache_data
 def load_config():
-    """Load application configuration"""
-    return get_config()
+    """Load application configuration with unified setup"""
+    return setup_config_and_logging(env="development")
 
 
 class StreamlitApp:

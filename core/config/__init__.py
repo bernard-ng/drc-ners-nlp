@@ -21,6 +21,41 @@ def load_config(config_path: Optional[Union[str, Path]] = None) -> PipelineConfi
     return config_manager.get_config()
 
 
+def setup_config_and_logging(
+    config_path: Optional[Path] = None,
+    env: str = "development"
+) -> PipelineConfig:
+    """
+    Unified configuration loading and logging setup for all entrypoint scripts.
+
+    Args:
+        config_path: Direct path to config file (takes precedence over env)
+        env: Environment name (defaults to "development")
+
+    Returns:
+        Loaded configuration object
+    """
+    # Determine config path
+    if config_path is None:
+        config_path = Path("config") / f"pipeline.{env}.yaml"
+
+    # Load configuration
+    config = ConfigManager(config_path).load_config()
+
+    # Setup logging
+    setup_logging(config)
+
+    # Ensure required directories exist
+    from core.utils import ensure_directories
+    ensure_directories(config)
+
+    logging.info(f"Loaded configuration: {config.name} v{config.version}")
+    logging.info(f"Environment: {config.environment}")
+    logging.info(f"Config file: {config_path}")
+
+    return config
+
+
 def setup_logging(config: PipelineConfig):
     """Setup logging based on configuration"""
 

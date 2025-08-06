@@ -3,11 +3,10 @@ import sys
 import argparse
 import logging
 from pathlib import Path
-from typing import Optional
 
 from core.utils.data_loader import DataLoader
-from core.config import ConfigManager, setup_logging
-from core.utils import ensure_directories, get_data_file_path
+from core.config import setup_config_and_logging
+from core.utils import get_data_file_path
 
 from processing.pipeline import Pipeline
 from processing.batch.batch_config import BatchConfig
@@ -17,13 +16,8 @@ from processing.steps.feature_extraction_step import FeatureExtractionStep
 from processing.steps.data_cleaning_step import DataCleaningStep
 
 
-def create_pipeline_from_config(config_path: Optional[Path] = None) -> Pipeline:
-    """Create pipeline from configuration file"""
-    config = ConfigManager(config_path).load_config()
-
-    # Setup logging
-    setup_logging(config)
-    ensure_directories(config)
+def create_pipeline_from_config(config) -> Pipeline:
+    """Create pipeline from configuration"""
     batch_config = BatchConfig(
         batch_size=config.processing.batch_size,
         max_workers=config.processing.max_workers,
@@ -48,13 +42,10 @@ def create_pipeline_from_config(config_path: Optional[Path] = None) -> Pipeline:
     return pipeline
 
 
-def run_pipeline(config_path: Optional[Path] = None, resume: bool = False) -> int:
+def run_pipeline(config, resume: bool = False) -> int:
     """Run the complete pipeline"""
     try:
-        config = ConfigManager(config_path).load_config()
-
         logging.info(f"Starting pipeline: {config.name} v{config.version}")
-        logging.info(f"Environment: {config.environment}")
 
         # Load input data
         input_file_path = get_data_file_path(config.data.input_file, config)
@@ -69,7 +60,7 @@ def run_pipeline(config_path: Optional[Path] = None, resume: bool = False) -> in
         logging.info(f"Loaded {len(df)} rows, {len(df.columns)} columns")
 
         # Create and run pipeline
-        pipeline = create_pipeline_from_config(config_path)
+        pipeline = create_pipeline_from_config(config)
 
         logging.info("Starting pipeline execution")
         result_df = pipeline.run(df)
@@ -99,27 +90,28 @@ def run_pipeline(config_path: Optional[Path] = None, resume: bool = False) -> in
 
 
 def main():
-    """Main entry point with minimal command-line interface"""
+    """Main entry point with unified configuration loading"""
     parser = argparse.ArgumentParser(
         description="DRC Names Processing Pipeline",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Configuration File Examples:
   config/pipeline.yaml              - Main configuration
-  config/pipeline.development.yaml  - Development environment
+  config/pipeline.development.yaml  - Development environment (default)
   config/pipeline.production.yaml   - Production environment
 
 Usage Examples:
-  python processing/main.py                                   # Use default config
-  python processing/main.py --config config/pipeline.yaml     # Use specific config
-  python processing/main.py --env development                 # Use environment config
-  python processing/main.py --resume                          # Resume from checkpoints
+  python main.py                                   # Use development config (default)
+  python main.py --config config/pipeline.yaml    # Use specific config
+  python main.py --env production                  # Use production environment
+  python main.py --resume                         # Resume from checkpoints
         """,
     )
 
     parser.add_argument("--config", type=Path, help="Path to configuration file")
     parser.add_argument(
-        "--env", type=str, help="Environment name (loads config/pipeline.{env}.yaml)"
+        "--env", type=str, default="development",
+        help="Environment name (default: development)"
     )
     parser.add_argument(
         "--resume", action="store_true", help="Resume pipeline from existing checkpoints"
@@ -129,24 +121,20 @@ Usage Examples:
     )
     args = parser.parse_args()
 
-    # Determine config path
-    config_path = None
-    if args.config:
-        config_path = args.config
-    elif args.env:
-        config_path = Path("config") / f"pipeline.{args.env}.yaml"
+    try:
+        # Load configuration and setup logging
+        config = setup_config_and_logging(config_path=args.config, env=args.env)
 
-    if args.validate_config:
-        try:
-            config = ConfigManager(config_path).load_config()
+        if args.validate_config:
             print(f"Configuration is valid: {config.name} v{config.version}")
             return 0
-        except Exception as e:
-            print(f"Configuration validation failed: {e}")
-            return 1
 
-    # Run pipeline
-    return run_pipeline(config_path, args.resume)
+        # Run pipeline
+        return run_pipeline(config, args.resume)
+
+    except Exception as e:
+        print(f"Configuration or pipeline failed: {e}")
+        return 1
 
 
 if __name__ == "__main__":

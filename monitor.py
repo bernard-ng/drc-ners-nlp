@@ -1,8 +1,9 @@
 #!.venv/bin/python3
 import argparse
 import sys
+from pathlib import Path
 
-from core.config.config_manager import ConfigManager
+from core.config import setup_config_and_logging
 from processing.monitoring.data_analyzer import DatasetAnalyzer
 from processing.monitoring.pipeline_monitor import PipelineMonitor
 
@@ -11,6 +12,12 @@ def main():
     parser = argparse.ArgumentParser(
         description="Monitor and manage the DRC names processing pipeline"
     )
+    parser.add_argument("--config", type=Path, help="Path to configuration file")
+    parser.add_argument(
+        "--env", type=str, default="development",
+        help="Environment name (default: development)"
+    )
+
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Status command
@@ -62,80 +69,88 @@ def main():
         parser.print_help()
         return 1
 
-    monitor = PipelineMonitor()
+    try:
+        # Load configuration and setup logging
+        config = setup_config_and_logging(config_path=args.config, env=args.env)
 
-    if args.command == "status":
-        monitor.print_status(detailed=args.detailed)
+        monitor = PipelineMonitor()
 
-    elif args.command == "clean":
-        checkpoint_info = monitor.count_checkpoint_files()
-        print(f"Current checkpoint storage: {checkpoint_info['total_size_mb']:.1f} MB")
+        if args.command == "status":
+            monitor.print_status(detailed=args.detailed)
 
-        if not args.force:
-            response = input("Are you sure you want to clean checkpoints? (y/N): ")
-            if response.lower() != "y":
-                print("Cancelled")
-                return 0
+        elif args.command == "clean":
+            checkpoint_info = monitor.count_checkpoint_files()
+            print(f"Current checkpoint storage: {checkpoint_info['total_size_mb']:.1f} MB")
 
-        if args.step:
-            monitor.clean_step_checkpoints(args.step, args.keep_last)
-        else:
-            for step in monitor.steps:
-                monitor.clean_step_checkpoints(step, args.keep_last)
+            if not args.force:
+                response = input("Are you sure you want to clean checkpoints? (y/N): ")
+                if response.lower() != "y":
+                    print("Cancelled")
+                    return 0
 
-        print("Checkpoint cleaning completed")
+            if args.step:
+                monitor.clean_step_checkpoints(args.step, args.keep_last)
+            else:
+                for step in monitor.steps:
+                    monitor.clean_step_checkpoints(step, args.keep_last)
 
-    elif args.command == "reset":
-        if not args.force:
-            response = input(
-                f"Are you sure you want to reset {args.step}? This will delete all checkpoints. (y/N): "
+            print("Checkpoint cleaning completed")
+
+        elif args.command == "reset":
+            if not args.force:
+                response = input(
+                    f"Are you sure you want to reset {args.step}? This will delete all checkpoints. (y/N): "
+                )
+                if response.lower() != "y":
+                    print("Cancelled")
+                    return 0
+
+            monitor.reset_step(args.step)
+            print(f"Reset completed for {args.step}")
+
+        elif args.command == "analyze":
+            # Use configured data directory
+            data_dir = config.paths.data_dir
+            filepath = data_dir / args.file
+
+            if not filepath.exists():
+                print(f"File not found: {filepath}")
+                return 1
+
+            analyzer = DatasetAnalyzer(str(filepath))
+
+            if not analyzer.load_data():
+                return 1
+
+            completion_stats = analyzer.analyze_completion()
+
+            print(f"\n=== Dataset Analysis: {args.file} ===")
+            print(f"Total rows: {completion_stats['total_rows']:,}")
+            print(f"Annotated: {completion_stats['annotated_rows']:,} ({completion_stats['annotation_percentage']:.1f}%)")
+            print(f"Unannotated: {completion_stats['unannotated_rows']:,}")
+            print(
+                f"Complete names: {completion_stats['complete_names']:,} ({completion_stats['completeness_percentage']:.1f}%)"
             )
-            if response.lower() != "y":
-                print("Cancelled")
-                return 0
 
-        monitor.reset_step(args.step)
-        print(f"Reset completed for {args.step}")
+        elif args.command == "info":
+            checkpoint_info = monitor.count_checkpoint_files()
 
-    elif args.command == "analyze":
-        # Use configured data directory instead of hardcoded DATA_DIR
-        data_dir = ConfigManager().default_paths.data_dir
-        filepath = data_dir / args.file
-
-        if not filepath.exists():
-            print(f"File not found: {filepath}")
-            return 1
-
-        analyzer = DatasetAnalyzer(str(filepath))
-
-        if not analyzer.load_data():
-            return 1
-
-        completion_stats = analyzer.analyze_completion()
-
-        print(f"\n=== Dataset Analysis: {args.file} ===")
-        print(f"Total rows: {completion_stats['total_rows']:,}")
-        print(f"Annotated: {completion_stats['annotated_rows']:,} ({completion_stats['annotation_percentage']:.1f}%)")
-        print(f"Unannotated: {completion_stats['unannotated_rows']:,}")
-        print(
-            f"Complete names: {completion_stats['complete_names']:,} ({completion_stats['completeness_percentage']:.1f}%)"
-        )
-
-    elif args.command == "info":
-        checkpoint_info = monitor.count_checkpoint_files()
-
-        print(f"\n=== Checkpoint Information ===")
-        print(f"Total storage: {checkpoint_info['total_size_mb']:.1f} MB")
-        print()
-
-        for step in monitor.steps:
-            step_info = checkpoint_info[step]
-            print(f"{step.replace('_', ' ').title()}:")
-            print(f"  Files: {step_info['files']}")
-            print(f"  Size: {step_info['size_mb']:.1f} MB")
+            print(f"\n=== Checkpoint Information ===")
+            print(f"Total storage: {checkpoint_info['total_size_mb']:.1f} MB")
             print()
 
-    return 0
+            for step in monitor.steps:
+                step_info = checkpoint_info[step]
+                print(f"{step.replace('_', ' ').title()}:")
+                print(f"  Files: {step_info['files']}")
+                print(f"  Size: {step_info['size_mb']:.1f} MB")
+                print()
+
+        return 0
+
+    except Exception as e:
+        print(f"Monitor command failed: {e}")
+        return 1
 
 
 if __name__ == "__main__":

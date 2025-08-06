@@ -31,12 +31,14 @@ llm:
   max_concurrent_requests: 4
   enable_rate_limiting: true
 
-# Production data settings
+# Development data settings - limited dataset for faster testing
 data:
   split_evaluation: true
   split_by_gender: true
   evaluation_fraction: 0.2
   random_seed: 42
+  max_dataset_size: 10_000  # Limit to 10k records for development/testing
+  balance_by_sex: true     # Balance male/female samples when limiting
 
 # Enhanced logging for development
 logging:
