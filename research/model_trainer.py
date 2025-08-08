@@ -33,6 +33,7 @@ class ModelTrainer:
             model_type: str = "logistic_regression",
             features: List[str] = None,
             model_params: Dict[str, Any] = None,
+            tags: List[str] = None,
             save_artifacts: bool = True,
     ) -> str:
         """
@@ -45,6 +46,10 @@ class ModelTrainer:
             features = ["full_name"]
         feature_types = [FeatureType(f) for f in features]
 
+        # Prepare tags - combine default tags with template tags
+        default_tags = ["training", model_type]
+        experiment_tags = default_tags + (tags or [])
+
         # Create experiment configuration
         config = ExperimentConfig(
             name=model_name,
@@ -52,7 +57,7 @@ class ModelTrainer:
             model_type=model_type,
             features=feature_types,
             model_params=model_params or {},
-            tags=["training", model_type],
+            tags=experiment_tags,
         )
 
         # Run experiment

@@ -1,128 +1,148 @@
-# Research Experiment Configuration Templates
-# These configurations can be used as starting points for different types of experiments
-
-# Baseline Experiments Configuration
 baseline_experiments:
-  - name: "baseline_logistic_regression_fullname"
+  - name: "bigru"
+    description: "Baseline BiGRU with full name features"
+    model_type: "bigru"
+    features: [ "full_name" ]
+    model_params:
+      max_len: 20
+      embedding_dim: 64
+      gru_units: 32
+      epochs: 10
+      batch_size: 32
+    tags: [ "baseline", "neural", "bigru" ]
+
+  - name: "cnn"
+    description: "Baseline CNN with character patterns"
+    model_type: "cnn"
+    features: [ "full_name" ]
+    model_params:
+      max_len: 20
+      embedding_dim: 64
+      filters: 64
+      kernel_size: 3
+      dropout: 0.5
+      epochs: 10
+      batch_size: 32
+    tags: [ "baseline", "neural", "cnn" ]
+
+  - name: "ensemble"
+    description: "Baseline Ensemble with multiple models"
+    model_type: "ensemble"
+    features: [ "full_name", "name_length", "word_count" ]
+    model_params:
+      base_models: [ "logistic_regression", "random_forest", "xgboost" ]
+      voting: "soft"
+      cv_folds: 5
+    tags: [ "baseline", "ensemble" ]
+
+  - name: "lightgbm"
+    description: "Baseline LightGBM with engineered features"
+    model_type: "lightgbm"
+    features: [ "full_name", "name_length", "word_count" ]
+    model_params:
+      n_estimators: 100
+      max_depth: -1
+      learning_rate: 0.1
+      num_leaves: 31
+      subsample: 0.8
+      colsample_bytree: 0.8
+    tags: [ "baseline", "lightgbm" ]
+
+  - name: "logistic_regression_fullname"
     description: "Baseline logistic regression with full name"
     model_type: "logistic_regression"
-    features: ["full_name"]
+    features: [ "full_name" ]
     model_params:
-      ngram_range: [2, 5]
       max_features: 10000
-      max_iter: 1000
-    tags: ["baseline", "fullname"]
+    tags: [ "baseline", "logistic_regression", "fullname" ]
 
-  - name: "baseline_logistic_regression_native"
+  - name: "logistic_regression_native"
     description: "Logistic regression with native name only"
     model_type: "logistic_regression"
-    features: ["native_name"]
+    features: [ "native_name" ]
     model_params:
-      ngram_range: [2, 4]
       max_features: 5000
-    tags: ["baseline", "native"]
+    tags: [ "baseline", "logistic_regression", "native" ]
 
-  - name: "baseline_rf_engineered"
-    description: "Random Forest with engineered features"
+  - name: "logistic_regression_surname"
+    description: "Logistic regression with surname name only"
+    model_type: "logistic_regression"
+    features: [ "surname" ]
+    model_params:
+      max_features: 5000
+    tags: [ "baseline", "logistic_regression", "surname" ]
+
+  - name: "lstm"
+    description: "Baseline LSTM with full name features"
+    model_type: "lstm"
+    features: [ "full_name" ]
+    model_params:
+      embedding_dim: 128
+      lstm_units: 64
+      epochs: 10
+      batch_size: 64
+    tags: [ "baseline", "neural", "lstm" ]
+
+  - name: "naive_bayes"
+    description: "Baseline Naive Bayes with full name features"
+    model_type: "naive_bayes"
+    features: [ "full_name" ]
+    model_params:
+      max_features: 5000
+    tags: [ "baseline", "naive_bayes" ]
+
+  - name: "random_forest"
+    description: "Baseline Random Forest with engineered features"
     model_type: "random_forest"
-    features: ["name_length", "word_count", "province"]
+    features: [ "name_length", "word_count", "province" ]
     model_params:
       n_estimators: 100
       max_depth: 10
-    tags: ["baseline", "engineered"]
+      min_samples_split: 2
+      min_samples_leaf: 1
+    tags: [ "baseline", "random_forest", "engineered" ]
+
+  - name: "svm"
+    description: "Baseline SVM with full name features"
+    model_type: "svm"
+    features: [ "full_name" ]
+    model_params:
+      C: 1.0
+      kernel: "rbf"
+      ngram_range: [ 2, 4 ]
+      max_features: 5000
+    tags: [ "baseline", "svm" ]
+
+  - name: "transformer"
+    description: "Baseline Transformer with attention mechanism"
+    model_type: "transformer"
+    features: [ "full_name" ]
+    model_params:
+      embedding_dim: 128
+      num_heads: 4
+      num_layers: 2
+      epochs: 10
+      batch_size: 64
+    tags: [ "baseline", "neural", "transformer" ]
+
+  - name: "xgboost"
+    description: "Baseline XGBoost with engineered features"
+    model_type: "xgboost"
+    features: [ "full_name", "name_length", "word_count" ]
+    model_params:
+      n_estimators: 100
+      max_depth: 6
+      learning_rate: 0.1
+      subsample: 0.8
+      colsample_bytree: 0.8
+    tags: [ "baseline", "xgboost" ]
+
+
+# Advanced Experiments Configuration
+advanced_experiments:
 
 # Feature Study Configurations
 feature_studies:
-  - name: "native_vs_surname"
-    description: "Compare native name vs surname effectiveness"
-    experiments:
-      - model_type: "logistic_regression"
-        features: ["native_name"]
-        tags: ["feature_study", "native"]
-      - model_type: "logistic_regression"
-        features: ["surname"]
-        tags: ["feature_study", "surname"]
 
-  - name: "name_parts_analysis"
-    description: "Analyze effectiveness of different name parts"
-    experiments:
-      - features: ["first_word"]
-        tags: ["name_parts", "first"]
-      - features: ["last_word"]
-        tags: ["name_parts", "last"]
-      - features: ["name_beginnings"]
-        feature_params:
-          beginning_length: 3
-        tags: ["name_parts", "beginnings"]
-      - features: ["name_endings"]
-        feature_params:
-          ending_length: 3
-        tags: ["name_parts", "endings"]
-
-# Province-Specific Studies
-province_studies:
-  - name: "kinshasa_study"
-    description: "Gender prediction for Kinshasa province"
-    model_type: "logistic_regression"
-    features: ["full_name"]
-    train_data_filter:
-      province: "kinshasa"
-    tags: ["province_study", "kinshasa"]
-
-  - name: "cross_province_generalization"
-    description: "Train on one province, test on another"
-    experiments:
-      - train_filter: {"province": "kinshasa"}
-        test_filter: {"province": "bas-congo"}
-        tags: ["generalization", "kinshasa_to_bas-congo"]
-
-# Model Comparison Studies
-model_comparisons:
-  - name: "model_comparison_fullname"
-    description: "Compare different models with full name"
-    base_config:
-      features: ["full_name"]
-      tags: ["model_comparison"]
-    models:
-      - model_type: "logistic_regression"
-        model_params:
-          ngram_range: [2, 5]
-      - model_type: "random_forest"
-        # Note: RF will need different feature preparation
-        features: ["name_length", "word_count", "province"]
-
-# Advanced Feature Combinations
-advanced_features:
-  - name: "multi_feature_combination"
-    description: "Test various feature combinations"
-    experiments:
-      - features: ["full_name", "name_length"]
-        tags: ["combination", "name_plus_length"]
-      - features: ["native_name", "surname", "province"]
-        tags: ["combination", "semantic_features"]
-      - features: ["name_beginnings", "name_endings", "word_count"]
-        tags: ["combination", "structural_features"]
-
-# Hyperparameter Studies
-hyperparameter_studies:
-  - name: "ngram_range_study"
-    description: "Study effect of different n-gram ranges"
-    base_config:
-      model_type: "logistic_regression"
-      features: ["full_name"]
-      tags: ["hyperparameter", "ngram"]
-    variants:
-      - model_params: {"ngram_range": [1, 3]}
-      - model_params: {"ngram_range": [2, 4]}
-      - model_params: {"ngram_range": [2, 5]}
-      - model_params: {"ngram_range": [3, 6]}
-
-# Data Size Studies
-data_studies:
-  - name: "learning_curve_study"
-    description: "Study performance vs training data size"
-    base_config:
-      model_type: "logistic_regression"
-      features: ["full_name"]
-      tags: ["learning_curve"]
-    data_sizes: [0.1, 0.25, 0.5, 0.75, 1.0]  # Fractions of training data to use
+# Hyperparameter Tuning Configurations
+hyperparameter_tuning:

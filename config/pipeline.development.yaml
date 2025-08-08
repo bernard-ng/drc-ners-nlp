@@ -1,17 +1,12 @@
-# Production Environment Configuration
-# Optimized settings for production deployment
-
-name: "drc_names_pipeline"
-version: "1.0.0"
 environment: "development"
 debug: true
 
 # Processing settings
 processing:
-  batch_size: 100_000
+  batch_size: 10_000
   max_workers: 8
   checkpoint_interval: 10
-  use_multiprocessing: true  # Enable multiprocessing for CPU-bound tasks
+  use_multiprocessing: true
 
 # Pipeline stages
 stages:
@@ -19,7 +14,6 @@ stages:
   - "feature_extraction"
   #- "llm_annotation"
   - "data_splitting"
-
 
 # Production LLM settings
 llm:
@@ -31,14 +25,10 @@ llm:
   max_concurrent_requests: 4
   enable_rate_limiting: true
 
-# Development data settings - limited dataset for faster testing
+# Data handling configuration
 data:
-  split_evaluation: true
-  split_by_gender: true
-  evaluation_fraction: 0.2
-  random_seed: 42
-  max_dataset_size: ~  # Limit to 10k records for development/testing
-  balance_by_sex: false     # Balance male/female samples when limiting
+  max_dataset_size: 100_000
+  balance_by_sex: true
 
 # Enhanced logging for development
 logging:

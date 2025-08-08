@@ -1,17 +1,12 @@
-# Production Environment Configuration
-# Optimized settings for production deployment
-
-name: "drc_names_pipeline"
-version: "1.0.0"
 environment: "production"
 debug: false
 
-# Production processing settings (optimized for performance)
+# Processing settings
 processing:
   batch_size: 10_000
   max_workers: 8
   checkpoint_interval: 10
-  use_multiprocessing: true  # Enable multiprocessing for CPU-bound tasks
+  use_multiprocessing: true
 
 # Pipeline stages
 stages:
@@ -19,7 +14,6 @@ stages:
   - "feature_extraction"
   - "llm_annotation"
   - "data_splitting"
-
 
 # Production LLM settings
 llm:
@@ -31,19 +25,15 @@ llm:
   max_concurrent_requests: 4
   enable_rate_limiting: true
 
-# Production data settings
+# Data handling configuration
 data:
-  split_evaluation: true
-  split_by_gender: true
-  evaluation_fraction: 0.2
-  random_seed: 42
   max_dataset_size: null
   balance_by_sex: false
 
 # Production logging (less verbose)
 logging:
   level: "INFO"
-  console_logging: false  # Disable console in production
+  console_logging: false
   file_logging: true
   log_file: "pipeline.production.log"
   max_log_size: 52428800  # 50MB
