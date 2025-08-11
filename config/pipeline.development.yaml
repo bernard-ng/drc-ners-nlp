@@ -12,6 +12,7 @@ processing:
 stages:
   - "data_cleaning"
   - "feature_extraction"
+  #- "ner_annotation"
   #- "llm_annotation"
   - "data_splitting"
 
@@ -27,7 +28,8 @@ llm:
 
 # Data handling configuration
 data:
-  max_dataset_size: 100_000
+  split_evaluation: false
+  max_dataset_size: null
   balance_by_sex: true
 
 # Enhanced logging for development

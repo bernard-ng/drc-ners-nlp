@@ -14,10 +14,13 @@ class DataConfig(BaseModel):
             "evaluation": "names_evaluation.csv",
             "males": "names_males.csv",
             "females": "names_females.csv",
+            "ner_data": "names_ner.json",
+            "ner_spacy": "names_ner.spacy"
         }
     )
-    split_evaluation: bool = True
+    split_evaluation: bool = False
     split_by_gender: bool = True
+    split_ner_data: bool = True
     evaluation_fraction: float = 0.2
     random_seed: int = 42
 

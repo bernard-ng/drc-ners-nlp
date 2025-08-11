@@ -8,11 +8,13 @@ from core.config import setup_config
 from core.utils import get_data_file_path
 from core.utils.data_loader import DataLoader
 from processing.batch.batch_config import BatchConfig
+from processing.ner.ner_data_builder import NERDataBuilder
 from processing.pipeline import Pipeline
 from processing.steps.data_cleaning_step import DataCleaningStep
 from processing.steps.data_splitting_step import DataSplittingStep
 from processing.steps.feature_extraction_step import FeatureExtractionStep
 from processing.steps.llm_annotation_step import LLMAnnotationStep
+from processing.steps.ner_annotation_step import NERAnnotationStep
 
 
 def create_pipeline(config) -> Pipeline:
@@ -29,6 +31,7 @@ def create_pipeline(config) -> Pipeline:
     steps = [
         DataCleaningStep(config),
         FeatureExtractionStep(config),
+        NERAnnotationStep(config),
         LLMAnnotationStep(config),
         DataSplittingStep(config),
     ]
@@ -67,6 +70,7 @@ def run_pipeline(config) -> int:
         splitting_step = pipeline.steps[-1]
         if isinstance(splitting_step, DataSplittingStep):
             splitting_step.save_splits(result_df)
+            NERDataBuilder(config).build(result_df)
 
         # Show completion statistics
         progress = pipeline.get_progress()

@@ -65,7 +65,7 @@ class ConfigManager:
 
             # Ensure paths are properly set
             if "paths" not in config_data:
-                config_data["paths"] = self.default_paths.dict()
+                config_data["paths"] = self.default_paths.model_dump()
 
             self._config = PipelineConfig(**config_data)
             return self._config

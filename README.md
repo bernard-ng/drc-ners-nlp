@@ -56,6 +56,7 @@ the `drc-ners-nlp/config/pipeline.yaml` file.
 stages:
   - "data_cleaning"
   - "feature_extraction"
+  - "ner_annotation"
   - "llm_annotation"
   - "data_splitting"
 ```

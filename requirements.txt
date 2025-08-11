@@ -176,3 +176,4 @@ altair==5.1.2
 PyYAML~=6.0.2
 xgboost~=3.0.3
 lightgbm~=4.6.0
+spacy~=3.8.7

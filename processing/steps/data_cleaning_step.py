@@ -25,4 +25,7 @@ class DataCleaningStep(PipelineStep):
         # Apply text cleaning
         batch = self.text_cleaner.clean_dataframe_text_columns(batch)
 
+        # Remove duplicates
+        batch = batch.drop_duplicates(subset=self.required_columns)
+
         return batch

@@ -1,8 +1,8 @@
 from pydantic import BaseModel
 
-from core.config.logging_config import LoggingConfig
+from core.config.annotation_config import AnnotationConfig
 from core.config.data_config import DataConfig
-from core.config.llm_config import LLMConfig
+from core.config.logging_config import LoggingConfig
 from core.config.processing_config import ProcessingConfig
 from core.config.project_paths import ProjectPaths
 
@@ -17,7 +17,7 @@ class PipelineConfig(BaseModel):
     paths: ProjectPaths
     stages: list[str] = []
     processing: ProcessingConfig = ProcessingConfig()
-    llm: LLMConfig = LLMConfig()
+    annotation: AnnotationConfig = AnnotationConfig()
     data: DataConfig = DataConfig()
     logging: LoggingConfig = LoggingConfig()
 

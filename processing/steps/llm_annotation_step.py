@@ -1,25 +1,18 @@
 import logging
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Dict, Optional
+from typing import Dict
 
 import ollama
 import pandas as pd
-from pydantic import ValidationError, BaseModel
+from pydantic import ValidationError
 
 from core.config.pipeline_config import PipelineConfig
 from core.utils.prompt_manager import PromptManager
-from core.utils.rate_limiter import RateLimiter
 from core.utils.rate_limiter import RateLimitConfig
+from core.utils.rate_limiter import RateLimiter
 from processing.batch.batch_config import BatchConfig
-from processing.steps import PipelineStep
-
-
-class NameAnnotation(BaseModel):
-    """Model for name annotation results"""
-
-    identified_name: Optional[str]
-    identified_surname: Optional[str]
+from processing.steps import PipelineStep, NameAnnotation
 
 
 class LLMAnnotationStep(PipelineStep):
@@ -27,10 +20,12 @@ class LLMAnnotationStep(PipelineStep):
 
     def __init__(self, pipeline_config: PipelineConfig):
         # Create custom batch config for LLM processing
+        self.llm_config = pipeline_config.annotation.llm
         batch_config = BatchConfig(
             batch_size=pipeline_config.processing.batch_size,
             max_workers=min(
-                pipeline_config.llm.max_concurrent_requests, pipeline_config.processing.max_workers
+                self.llm_config.max_concurrent_requests,
+                pipeline_config.processing.max_workers
             ),
             checkpoint_interval=pipeline_config.processing.checkpoint_interval,
             use_multiprocessing=pipeline_config.processing.use_multiprocessing,
@@ -39,7 +34,7 @@ class LLMAnnotationStep(PipelineStep):
 
         self.prompt = PromptManager(pipeline_config).load_prompt()
         self.rate_limiter = (
-            self._create_rate_limiter() if pipeline_config.llm.enable_rate_limiting else None
+            self._create_rate_limiter() if self.llm_config.enable_rate_limiting else None
         )
 
         # Statistics
@@ -53,14 +48,14 @@ class LLMAnnotationStep(PipelineStep):
     def _create_rate_limiter(self):
         """Create rate limiter based on configuration"""
         rate_config = RateLimitConfig(
-            requests_per_minute=self.pipeline_config.llm.requests_per_minute,
-            requests_per_second=self.pipeline_config.llm.requests_per_second,
+            requests_per_minute=self.llm_config.requests_per_minute,
+            requests_per_second=self.llm_config.requests_per_second,
         )
         return RateLimiter(rate_config)
 
-    def analyze_name_with_retry(self, client: ollama.Client, name: str, row_id: int) -> Dict:
+    def analyze_name(self, client: ollama.Client, name: str) -> Dict:
         """Analyze a name with retry logic and rate limiting"""
-        for attempt in range(self.pipeline_config.llm.retry_attempts):
+        for attempt in range(self.llm_config.retry_attempts):
             try:
                 # Apply rate limiting if enabled
                 if self.rate_limiter:
@@ -68,7 +63,7 @@ class LLMAnnotationStep(PipelineStep):
 
                 start_time = time.time()
                 response = client.chat(
-                    model=self.pipeline_config.llm.model_name,
+                    model=self.llm_config.model_name,
                     messages=[
                         {"role": "system", "content": self.prompt},
                         {"role": "user", "content": name},
@@ -77,9 +72,9 @@ class LLMAnnotationStep(PipelineStep):
                 )
                 elapsed_time = time.time() - start_time
 
-                if elapsed_time > self.pipeline_config.llm.timeout_seconds:
+                if elapsed_time > self.llm_config.timeout_seconds:
                     raise TimeoutError(
-                        f"Request took {elapsed_time:.2f}s, exceeding {self.pipeline_config.llm.timeout_seconds}s timeout"
+                        f"Request took {elapsed_time:.2f}s, exceeding {self.llm_config.timeout_seconds}s timeout"
                     )
 
                 annotation = NameAnnotation.model_validate_json(response.message.content)
@@ -98,12 +93,12 @@ class LLMAnnotationStep(PipelineStep):
 
             except (ValidationError, TimeoutError, Exception) as e:
                 logging.warning(
-                    f"Error analyzing '{name}' (attempt {attempt + 1}/{self.pipeline_config.llm.retry_attempts}): {e}"
+                    f"Error analyzing '{name}' (attempt {attempt + 1}/{self.llm_config.retry_attempts}): {e}"
                 )
 
                 # Exponential backoff with jitter
-                if attempt < self.pipeline_config.llm.retry_attempts - 1:
-                    wait_time = (2**attempt) + (time.time() % 1)
+                if attempt < self.llm_config.retry_attempts - 1:
+                    wait_time = (2 ** attempt) + (time.time() % 1)
                     time.sleep(min(wait_time, 10))
 
         self.failed_requests += 1
@@ -112,7 +107,7 @@ class LLMAnnotationStep(PipelineStep):
             "identified_surname": None,
             "annotated": 0,
             "processing_time": 0,
-            "attempts": self.pipeline_config.llm.retry_attempts,
+            "attempts": self.llm_config.retry_attempts,
             "failed": True,
         }
 
@@ -125,18 +120,18 @@ class LLMAnnotationStep(PipelineStep):
             logging.info(f"Batch {batch_id}: No entries to annotate")
             return batch
 
-        logging.info(f"Batch {batch_id}: Annotating {len(unannotated_entries)} entries")
+        logging.info(f"Batch {batch_id}: Annotating {len(unannotated_entries)} entries with LLM")
 
         batch = batch.copy()
         client = ollama.Client()
 
         # Process with controlled concurrency
-        max_workers = self.pipeline_config.llm.max_concurrent_requests
+        max_workers = self.llm_config.max_concurrent_requests
 
         if len(unannotated_entries) == 1 or max_workers == 1:
             # Sequential processing
             for idx, row in unannotated_entries.iterrows():
-                result = self.analyze_name_with_retry(client, row["name"], idx)
+                result = self.analyze_name(client, row["name"])
                 for field, value in result.items():
                     if field not in ["failed"]:
                         batch.loc[idx, field] = value
@@ -146,7 +141,7 @@ class LLMAnnotationStep(PipelineStep):
                 future_to_idx = {}
 
                 for idx, row in unannotated_entries.iterrows():
-                    future = executor.submit(self.analyze_name_with_retry, client, row["name"], idx)
+                    future = executor.submit(self.analyze_name, client, row["name"])
                     future_to_idx[future] = idx
 
                 for future in as_completed(future_to_idx):
@@ -161,8 +156,6 @@ class LLMAnnotationStep(PipelineStep):
                         batch.loc[idx, "annotated"] = 0
 
         # Ensure proper data types
-        batch["annotated"] = (
-            pd.to_numeric(batch["annotated"], errors="coerce").fillna(0).astype("Int8")
-        )
+        batch["annotated"] = pd.to_numeric(batch["annotated"], errors="coerce").fillna(0).astype("Int8")
 
         return batch

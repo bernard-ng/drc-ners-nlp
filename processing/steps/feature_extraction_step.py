@@ -5,6 +5,7 @@ import pandas as pd
 
 from core.config.pipeline_config import PipelineConfig
 from core.utils.region_mapper import RegionMapper
+from processing.ner.ner_name_tagger import NERNameTagger
 from processing.steps import PipelineStep
 
 
@@ -24,6 +25,7 @@ class FeatureExtractionStep(PipelineStep):
     def __init__(self, pipeline_config: PipelineConfig):
         super().__init__("feature_extraction", pipeline_config)
         self.region_mapper = RegionMapper()
+        self.name_tagger = NERNameTagger()
 
     @classmethod
     def validate_gender(cls, gender: str) -> Gender:
@@ -52,7 +54,7 @@ class FeatureExtractionStep(PipelineStep):
 
         # Basic features
         batch["words"] = batch["name"].str.count(" ") + 1
-        batch["length"] = batch["name"].str.replace(" ", "", regex=False).str.len()
+        batch["length"] = batch["name"].str.len()
 
         # Handle year column
         if "year" in batch.columns:
@@ -63,6 +65,8 @@ class FeatureExtractionStep(PipelineStep):
         batch["probable_surname"] = None
         batch["identified_name"] = None
         batch["identified_surname"] = None
+        batch["ner_entities"] = None
+        batch["ner_tagged"] = 0
         batch["annotated"] = 0
 
         # Vectorized category assignment
@@ -81,13 +85,18 @@ class FeatureExtractionStep(PipelineStep):
 
         # Auto-assign for 3-word names
         three_word_mask = batch["words"] == 3
-        batch.loc[three_word_mask, "identified_name"] = batch.loc[
-            three_word_mask, "probable_native"
-        ]
-        batch.loc[three_word_mask, "identified_surname"] = batch.loc[
-            three_word_mask, "probable_surname"
-        ]
+        batch.loc[three_word_mask, "identified_name"] = batch.loc[three_word_mask, "probable_native"]
+        batch.loc[three_word_mask, "identified_surname"] = batch.loc[three_word_mask, "probable_surname"]
         batch.loc[three_word_mask, "annotated"] = 1
+
+        # Tag names with NER entities
+        three_word_rows = batch[three_word_mask]
+        for idx, row in three_word_rows.iterrows():
+            entity = self.name_tagger.tag_name(row['name'], row['identified_name'], row['identified_surname'])
+
+            if entity:
+                batch.at[idx, "ner_entities"] = entity["entities"]
+                batch.at[idx, "ner_tagged"] = 1
 
         # Map regions to provinces
         batch["province"] = self.region_mapper.map_regions_vectorized(batch["region"])

@@ -6,9 +6,10 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 import pandas as pd
+from pydantic import BaseModel
 
-from processing.batch.batch_config import BatchConfig
 from core.config.pipeline_config import PipelineConfig
+from processing.batch.batch_config import BatchConfig
 
 
 @dataclass
@@ -25,11 +26,18 @@ class PipelineState:
             self.failed_batches = []
 
 
+class NameAnnotation(BaseModel):
+    """Model for name annotation results"""
+
+    identified_name: Optional[str]
+    identified_surname: Optional[str]
+
+
 class PipelineStep(ABC):
     """Abstract base class for pipeline steps"""
 
     def __init__(
-        self, name: str, pipeline_config: PipelineConfig, batch_config: Optional[BatchConfig] = None
+            self, name: str, pipeline_config: PipelineConfig, batch_config: Optional[BatchConfig] = None
     ):
         self.name = name
         self.pipeline_config = pipeline_config

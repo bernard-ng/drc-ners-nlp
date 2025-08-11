@@ -18,9 +18,10 @@ paths:
   checkpoints_dir: "./data/checkpoints"   # Directory for model checkpoints
 
 # Pipeline stages
-stages:                                    # List of stages in the processing pipeline
+stages: # List of stages in the processing pipeline
   - "data_cleaning"                        # Data cleaning stage
   - "feature_extraction"                   # Feature extraction stage
+  - "ner_annotation"                       # NER-based annotation stage
   - "llm_annotation"                       # LLM annotation stage (computational intensive)
   - "data_splitting"                       # Data splitting stage
 
@@ -36,15 +37,20 @@ processing:
     - "latin1"
   chunk_size: 100_000                      # Size of data chunks to process in parallel
 
-# LLM annotation settings
-llm:
-  model_name: "mistral:7b"                 # Name of the LLM model to use
-  requests_per_minute: 60                  # Requests per minute to the LLM service
-  requests_per_second: 2                   # Requests per second to the LLM service
-  retry_attempts: 3                        # Number of retry attempts for LLM requests
-  timeout_seconds: 600                     # Timeout for LLM requests
-  max_concurrent_requests: 2               # Maximum concurrent requests to the LLM service
-  enable_rate_limiting: true               # Enable rate limiting to avoid overloading the LLM service
+# Annotation settings
+annotation:
+  llm:
+    model_name: "mistral:7b"                 # Name of the LLM model to use
+    requests_per_minute: 60                  # Requests per minute to the LLM service
+    requests_per_second: 2                   # Requests per second to the LLM service
+    retry_attempts: 3                        # Number of retry attempts for LLM requests
+    timeout_seconds: 600                     # Timeout for LLM requests
+    max_concurrent_requests: 2               # Maximum concurrent requests to the LLM service
+    enable_rate_limiting: true               # Enable rate limiting to avoid overloading the LLM service
+
+  ner:
+    model_name: "drc_names_ner"             # Name of the NER model to use
+    retry_attempts: 3                       # Number of retry attempts for NER requests
 
 # Data handling configuration
 data:
@@ -54,8 +60,11 @@ data:
     evaluation: "names_evaluation.csv"      # Output file for evaluation set
     males: "names_males.csv"                # Output files for male names
     females: "names_females.csv"            # Output files for female names
-  split_evaluation: true                    # Should the dataset be split into training and evaluation sets ?
+    ner_data: "names_ner.json"              # Output file for NER annotated data
+    ner_spacy: "names_ner.spacy"            # Output file for NER annotated data using spaCy format
+  split_evaluation: false                   # Should the dataset be split into training and evaluation sets ?
   split_by_gender: true                     # Should the dataset be split by gender ?
+  split_ner_data: true                      # Should the NER data be extracted and saved?
   evaluation_fraction: 0.2                  # Fraction of data to use for evaluation
   random_seed: 42                           # Random seed for reproducibility
   max_dataset_size: null                    # Maximum size of the dataset to process, set to null for no
