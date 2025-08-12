@@ -12,6 +12,7 @@ class ConnectorFormatter(BaseNameFormatter):
         surname = row['probable_surname'] if pd.notna(row['probable_surname']) else ''
         connector = random.choice(self.connectors)
 
+        # Connect native parts with a random connector
         if len(native_parts) > 1:
             connected_native = f" {connector} ".join(native_parts)
             full_name = f"{connected_native} {surname}".strip()

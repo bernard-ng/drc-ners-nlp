@@ -3,10 +3,10 @@ debug: true
 
 # Processing settings
 processing:
-  batch_size: 10_000
-  max_workers: 8
+  batch_size: 100_000
+  max_workers: 1
   checkpoint_interval: 10
-  use_multiprocessing: true
+  use_multiprocessing: false
 
 # Pipeline stages
 stages:
