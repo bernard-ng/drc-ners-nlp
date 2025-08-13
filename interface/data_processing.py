@@ -2,12 +2,13 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
+from core.utils.data_loader import OPTIMIZED_DTYPES
 from interface.log_reader import LogReader
 
 
 def load_dataset(file_path: str) -> pd.DataFrame:
     try:
-        return pd.read_csv(file_path)
+        return pd.read_csv(file_path, dtype=OPTIMIZED_DTYPES)
     except Exception as e:
         st.error(f"Error loading dataset: {e}")
         return pd.DataFrame()
@@ -56,16 +57,12 @@ class DataProcessing:
                 log_level_filter = st.selectbox(
                     "Filter by Level",
                     ["All", "INFO", "WARNING", "ERROR", "DEBUG", "CRITICAL"],
-                    key="log_level_filter"
+                    key="log_level_filter",
                 )
 
             with col2:
                 num_entries = st.number_input(
-                    "Number of entries",
-                    min_value=5,
-                    max_value=50,
-                    value=10,
-                    key="num_log_entries"
+                    "Number of entries", min_value=5, max_value=50, value=10, key="num_log_entries"
                 )
 
             # Get log entries based on filter
@@ -77,13 +74,21 @@ class DataProcessing:
             if log_entries:
                 for entry in log_entries:
                     if entry.level == "ERROR":
-                        st.error(f"[{entry.timestamp.strftime('%Y-%m-%d %H:%M:%S')}] {entry.level}: {entry.message}")
+                        st.error(
+                            f"[{entry.timestamp.strftime('%Y-%m-%d %H:%M:%S')}] {entry.level}: {entry.message}"
+                        )
                     elif entry.level == "WARNING":
-                        st.warning(f"[{entry.timestamp.strftime('%Y-%m-%d %H:%M:%S')}] {entry.level}: {entry.message}")
+                        st.warning(
+                            f"[{entry.timestamp.strftime('%Y-%m-%d %H:%M:%S')}] {entry.level}: {entry.message}"
+                        )
                     elif entry.level == "INFO":
-                        st.info(f"[{entry.timestamp.strftime('%Y-%m-%d %H:%M:%S')}] {entry.level}: {entry.message}")
+                        st.info(
+                            f"[{entry.timestamp.strftime('%Y-%m-%d %H:%M:%S')}] {entry.level}: {entry.message}"
+                        )
                     else:
-                        st.text(f"[{entry.timestamp.strftime('%Y-%m-%d %H:%M:%S')}] {entry.level}: {entry.message}")
+                        st.text(
+                            f"[{entry.timestamp.strftime('%Y-%m-%d %H:%M:%S')}] {entry.level}: {entry.message}"
+                        )
 
                 # Show log statistics
                 st.subheader("Log Statistics")
@@ -93,16 +98,16 @@ class DataProcessing:
                     col1, col2, col3, col4 = st.columns(4)
 
                     with col1:
-                        st.metric("Total Lines", log_stats.get('total_lines', 0))
+                        st.metric("Total Lines", log_stats.get("total_lines", 0))
                     with col2:
-                        st.metric("INFO", log_stats.get('INFO', 0))
+                        st.metric("INFO", log_stats.get("INFO", 0))
                     with col3:
-                        st.metric("WARNING", log_stats.get('WARNING', 0))
+                        st.metric("WARNING", log_stats.get("WARNING", 0))
                     with col4:
-                        st.metric("ERROR", log_stats.get('ERROR', 0))
+                        st.metric("ERROR", log_stats.get("ERROR", 0))
 
                     # Log level distribution chart
-                    levels = ['INFO', 'WARNING', 'ERROR', 'DEBUG', 'CRITICAL']
+                    levels = ["INFO", "WARNING", "ERROR", "DEBUG", "CRITICAL"]
                     counts = [log_stats.get(level, 0) for level in levels]
 
                     if sum(counts) > 0:
@@ -112,12 +117,12 @@ class DataProcessing:
                             title="Log Entries by Level",
                             color=levels,
                             color_discrete_map={
-                                'INFO': 'blue',
-                                'WARNING': 'orange',
-                                'ERROR': 'red',
-                                'DEBUG': 'gray',
-                                'CRITICAL': 'darkred'
-                            }
+                                "INFO": "blue",
+                                "WARNING": "orange",
+                                "ERROR": "red",
+                                "DEBUG": "gray",
+                                "CRITICAL": "darkred",
+                            },
                         )
                         st.plotly_chart(fig, use_container_width=True)
             else:

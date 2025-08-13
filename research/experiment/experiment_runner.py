@@ -224,9 +224,9 @@ class ExperimentRunner:
                 model.learning_curve_data = model_data.get("learning_curve_data", {})
 
                 # Restore vectorizers and encoders for models that use them (like XGBoost)
-                if "vectorizers" in model_data and hasattr(model, 'vectorizers'):
+                if "vectorizers" in model_data and hasattr(model, "vectorizers"):
                     model.vectorizers = model_data["vectorizers"]
-                if "label_encoders" in model_data and hasattr(model, 'label_encoders'):
+                if "label_encoders" in model_data and hasattr(model, "label_encoders"):
                     model.label_encoders = model_data["label_encoders"]
 
                 return model
@@ -237,7 +237,9 @@ class ExperimentRunner:
 
         return None
 
-    def compare_experiments(self, experiment_ids: List[str], metric: str = "accuracy") -> pd.DataFrame:
+    def compare_experiments(
+        self, experiment_ids: List[str], metric: str = "accuracy"
+    ) -> pd.DataFrame:
         """Compare experiments and return analysis"""
         comparison_df = self.tracker.compare_experiments(experiment_ids)
 

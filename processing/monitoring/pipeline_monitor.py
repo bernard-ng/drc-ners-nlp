@@ -19,7 +19,13 @@ class PipelineMonitor:
 
         self.paths = paths
         self.checkpoint_dir = paths.checkpoints_dir
-        self.steps = ["data_cleaning", "feature_extraction", "ner_annotation", "llm_annotation", "data_splitting"]
+        self.steps = [
+            "data_cleaning",
+            "feature_extraction",
+            "ner_annotation",
+            "llm_annotation",
+            "data_splitting",
+        ]
 
     def get_step_status(self, step_name: str) -> Dict:
         """Get status of a specific pipeline step"""

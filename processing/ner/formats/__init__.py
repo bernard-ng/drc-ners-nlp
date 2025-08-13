@@ -13,10 +13,17 @@ class BaseNameFormatter(ABC):
     """
 
     def __init__(self, connectors: List[str] = None, additional_surnames: List[str] = None):
-        self.connectors = connectors or ['wa', 'ya', 'ka', 'ba']
+        self.connectors = connectors or ["wa", "ya", "ka", "ba"]
         self.additional_surnames = additional_surnames or [
-            'jean', 'paul', 'marie', 'joseph', 'pierre', 'claude',
-            'andre', 'michel', 'robert'
+            "jean",
+            "paul",
+            "marie",
+            "joseph",
+            "pierre",
+            "claude",
+            "andre",
+            "michel",
+            "robert",
         ]
 
     @classmethod
@@ -26,7 +33,9 @@ class BaseNameFormatter(ABC):
             return []
         return native_str.strip().split()
 
-    def create_ner_tags(self, text: str, native_parts: List[str], surname: str) -> List[Tuple[int, int, str]]:
+    def create_ner_tags(
+        self, text: str, native_parts: List[str], surname: str
+    ) -> List[Tuple[int, int, str]]:
         """Create NER entity tags for transformed text"""
         entities = []
         current_pos = 0
@@ -38,15 +47,15 @@ class BaseNameFormatter(ABC):
 
             # Determine tag based on word content
             if word in native_parts or any(connector in word for connector in self.connectors):
-                tag = 'NATIVE'
+                tag = "NATIVE"
             elif word == surname or word in self.additional_surnames:
-                tag = 'SURNAME'
+                tag = "SURNAME"
             else:
                 # Check if it's a compound native word or new surname
                 if any(part in word for part in native_parts):
-                    tag = 'NATIVE'
+                    tag = "NATIVE"
                 else:
-                    tag = 'SURNAME'
+                    tag = "SURNAME"
 
             entities.append((start_pos, end_pos, tag))
             current_pos = end_pos + 1  # +1 for space
@@ -54,15 +63,17 @@ class BaseNameFormatter(ABC):
         return entities
 
     @classmethod
-    def compute_derived_attributes(cls, name: str) -> Dict:
+    def compute_numeric_features(cls, name: str) -> Dict:
         """Compute all derived attributes for the transformed name"""
         words_count = len(name.split()) if name else 0
         length = len(name) if name else 0
 
         return {
-            'words': words_count,
-            'length': length,
-            'identified_category': NameCategory.SIMPLE if words_count == 3 else NameCategory.COMPOSE,
+            "words": words_count,
+            "length": length,
+            "identified_category": (
+                NameCategory.SIMPLE.value if words_count == 3 else NameCategory.COMPOSE.value
+            ),
         }
 
     @abstractmethod

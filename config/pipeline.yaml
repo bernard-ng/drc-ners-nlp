@@ -64,6 +64,7 @@ data:
     ner_spacy: "names_ner.spacy"            # Output file for NER annotated data using spaCy format
   split_evaluation: false                   # Should the dataset be split into training and evaluation sets ?
   split_by_gender: true                     # Should the dataset be split by gender ?
+  split_by_province: true                   # Should the dataset be split by province ?
   split_ner_data: true                      # Should the NER data be extracted and saved?
   evaluation_fraction: 0.2                  # Fraction of data to use for evaluation
   random_seed: 42                           # Random seed for reproducibility

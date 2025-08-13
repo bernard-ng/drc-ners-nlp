@@ -6,8 +6,8 @@ from typing import Dict
 import pandas as pd
 
 from core.config.pipeline_config import PipelineConfig
-from processing.steps import PipelineStep, NameAnnotation
 from processing.ner.ner_name_model import NERNameModel
+from processing.steps import PipelineStep, NameAnnotation
 
 
 class NERAnnotationStep(PipelineStep):
@@ -63,7 +63,7 @@ class NERAnnotationStep(PipelineStep):
 
                 # Get NER predictions
                 prediction = self.ner_trainer.predict(name.lower())
-                entities = prediction.get('entities', [])
+                entities = prediction.get("entities", [])
 
                 elapsed_time = time.time() - start_time
 
@@ -72,15 +72,15 @@ class NERAnnotationStep(PipelineStep):
                 surname_parts = []
 
                 for entity in entities:
-                    if entity['label'] == 'NATIVE':
-                        native_parts.append(entity['text'])
-                    elif entity['label'] == 'SURNAME':
-                        surname_parts.append(entity['text'])
+                    if entity["label"] == "NATIVE":
+                        native_parts.append(entity["text"])
+                    elif entity["label"] == "SURNAME":
+                        surname_parts.append(entity["text"])
 
                 # Create annotation result in same format as LLM step
                 annotation = NameAnnotation(
                     identified_name=" ".join(native_parts) if native_parts else None,
-                    identified_surname=" ".join(surname_parts) if surname_parts else None
+                    identified_surname=" ".join(surname_parts) if surname_parts else None,
                 )
 
                 result = {
@@ -159,6 +159,8 @@ class NERAnnotationStep(PipelineStep):
                         batch.loc[idx, "annotated"] = 0
 
         # Ensure proper data types
-        batch["annotated"] = pd.to_numeric(batch["annotated"], errors="coerce").fillna(0).astype("Int8")
+        batch["annotated"] = (
+            pd.to_numeric(batch["annotated"], errors="coerce").fillna(0).astype("Int8")
+        )
 
         return batch

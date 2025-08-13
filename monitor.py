@@ -9,39 +9,40 @@ from processing.monitoring.pipeline_monitor import PipelineMonitor
 
 
 def main():
-    choices = ["data_cleaning", "feature_extraction", "ner_annotation", "llm_annotation", "data_splitting"]
+    choices = [
+        "data_cleaning",
+        "feature_extraction",
+        "ner_annotation",
+        "llm_annotation",
+        "data_splitting",
+    ]
 
-    parser = argparse.ArgumentParser(description="Monitor and manage the DRC names processing pipeline")
+    parser = argparse.ArgumentParser(description="DRC NERS Processing Monitoring")
     parser.add_argument("--config", type=Path, help="Path to configuration file")
     parser.add_argument("--env", type=str, default="development", help="Environment")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
-    # Status command
-    subparsers.add_parser("status", help="Show pipeline status")
-
     # Clean command
     clean_parser = subparsers.add_parser("clean", help="Clean checkpoint files")
-    clean_parser.add_argument("--step", type=str, choices=choices, help="Specific step (default: all)")
-    clean_parser.add_argument("--keep-last", type=int, default=1, help="Checkpoints to keep (default: 1)")
+    clean_parser.add_argument("--step", type=str, choices=choices, help="default: all")
+    clean_parser.add_argument("--keep-last", type=int, default=1, help="(default: 1)")
     clean_parser.add_argument("--force", action="store_true", help="Clean without confirmation")
 
     # Reset command
     reset_parser = subparsers.add_parser("reset", help="Reset pipeline step")
-    reset_parser.add_argument("--step", type=str, choices=choices, help="Specific step (default: all)")
+    reset_parser.add_argument("--step", type=str, choices=choices, help="(default: all)")
     reset_parser.add_argument("--all", action="store_true", help="Reset all steps")
     reset_parser.add_argument("--force", action="store_true", help="Reset without confirmation")
     args = parser.parse_args()
-
-    if not args.command:
-        parser.print_help()
-        return 1
 
     try:
         setup_config(config_path=args.config, env=args.env)
         monitor = PipelineMonitor()
 
-        if args.command == "status":
+        if not args.command:
+            parser.print_help()
             monitor.print_status(detailed=True)
+            return 1
 
         elif args.command == "clean":
             checkpoint_info = monitor.count_checkpoint_files()

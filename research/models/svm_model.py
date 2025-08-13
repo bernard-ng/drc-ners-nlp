@@ -25,7 +25,7 @@ class SVMModel(TraditionalModel):
             gamma=params.get("gamma", "scale"),
             probability=True,  # Enable probability prediction
             random_state=self.config.random_seed,
-            verbose=2
+            verbose=2,
         )
 
         return Pipeline([("vectorizer", vectorizer), ("classifier", classifier)])

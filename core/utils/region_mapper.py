@@ -9,14 +9,9 @@ class RegionMapper:
     def __init__(self, mapping: Optional[Dict] = None):
         self.mapping = mapping or REGION_MAPPING
 
-    def map_region_to_province(self, region: str) -> str:
-        """Map a region to its province"""
-        region_lower = str(region).lower().strip()
-        return self.mapping.get(region_lower, ("AUTRES", "AUTRES"))[1].lower()
-
-    def map_regions_vectorized(self, regions: pd.Series) -> pd.Series:
+    def map(self, series: pd.Series) -> pd.Series:
         """Vectorized region to province mapping"""
-        return regions.str.lower().map(
+        return series.str.lower().map(
             lambda r: self.mapping.get(r, ("AUTRES", "AUTRES"))[1].lower()
         )
 
@@ -34,6 +29,7 @@ class RegionMapper:
             "sud-kivu",
             "kasai-occidental",
             "kasai-oriental",
+            "autres",
         ]
 
 

@@ -24,8 +24,7 @@ class LLMAnnotationStep(PipelineStep):
         batch_config = BatchConfig(
             batch_size=pipeline_config.processing.batch_size,
             max_workers=min(
-                self.llm_config.max_concurrent_requests,
-                pipeline_config.processing.max_workers
+                self.llm_config.max_concurrent_requests, pipeline_config.processing.max_workers
             ),
             checkpoint_interval=pipeline_config.processing.checkpoint_interval,
             use_multiprocessing=pipeline_config.processing.use_multiprocessing,
@@ -98,7 +97,7 @@ class LLMAnnotationStep(PipelineStep):
 
                 # Exponential backoff with jitter
                 if attempt < self.llm_config.retry_attempts - 1:
-                    wait_time = (2 ** attempt) + (time.time() % 1)
+                    wait_time = (2**attempt) + (time.time() % 1)
                     time.sleep(min(wait_time, 10))
 
         self.failed_requests += 1
@@ -156,6 +155,8 @@ class LLMAnnotationStep(PipelineStep):
                         batch.loc[idx, "annotated"] = 0
 
         # Ensure proper data types
-        batch["annotated"] = pd.to_numeric(batch["annotated"], errors="coerce").fillna(0).astype("Int8")
+        batch["annotated"] = (
+            pd.to_numeric(batch["annotated"], errors="coerce").fillna(0).astype("Int8")
+        )
 
         return batch

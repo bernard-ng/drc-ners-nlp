@@ -3,8 +3,8 @@ import argparse
 import logging
 import sys
 import traceback
+
 import yaml
-from pathlib import Path
 
 from core.config import setup_config
 from research.model_trainer import ModelTrainer
@@ -13,7 +13,7 @@ from research.model_trainer import ModelTrainer
 def load_research_templates(templates_path: str = "config/research_templates.yaml") -> dict:
     """Load research templates from YAML file"""
     try:
-        with open(templates_path, 'r') as file:
+        with open(templates_path, "r") as file:
             return yaml.safe_load(file)
     except FileNotFoundError:
         logging.error(f"Templates file not found: {templates_path}")
@@ -30,13 +30,15 @@ def find_experiment_config(templates: dict, name: str, experiment_type: str) -> 
         "baseline": "baseline_experiments",
         "advanced": "advanced_experiments",
         "feature_study": "feature_studies",
-        "tuning": "hyperparameter_tuning"
+        "tuning": "hyperparameter_tuning",
     }
 
     section_name = type_mapping.get(experiment_type)
     if not section_name:
         available_types = list(type_mapping.keys())
-        raise ValueError(f"Unknown experiment type '{experiment_type}'. Available types: {available_types}")
+        raise ValueError(
+            f"Unknown experiment type '{experiment_type}'. Available types: {available_types}"
+        )
 
     if section_name not in templates:
         raise ValueError(f"Section '{section_name}' not found in templates")
@@ -47,16 +49,22 @@ def find_experiment_config(templates: dict, name: str, experiment_type: str) -> 
     for experiment in experiments:
         # Check if this is the experiment we're looking for
         # Look for experiments that match the model type or contain the name
-        if (experiment.get("model_type") == name or
-            name.lower() in experiment.get("name", "").lower() or
-            f"baseline_{name}" == experiment.get("name") or
-            f"advanced_{name}" == experiment.get("name")):
+        if (
+            experiment.get("model_type") == name
+            or name.lower() in experiment.get("name", "").lower()
+            or f"baseline_{name}" == experiment.get("name")
+            or f"advanced_{name}" == experiment.get("name")
+        ):
             return experiment
 
     # If not found, list available experiments
-    available_experiments = [exp.get("name", exp.get("model_type", "unknown")) for exp in experiments]
-    raise ValueError(f"Experiment '{name}' not found in '{experiment_type}' section. "
-                    f"Available experiments: {available_experiments}")
+    available_experiments = [
+        exp.get("name", exp.get("model_type", "unknown")) for exp in experiments
+    ]
+    raise ValueError(
+        f"Experiment '{name}' not found in '{experiment_type}' section. "
+        f"Available experiments: {available_experiments}"
+    )
 
 
 def main():
@@ -91,7 +99,7 @@ def main():
             model_type=experiment_config.get("model_type"),
             features=experiment_config.get("features"),
             model_params=experiment_config.get("model_params", {}),
-            tags=experiment_config.get("tags", [])
+            tags=experiment_config.get("tags", []),
         )
 
         logging.info("Training completed successfully!")

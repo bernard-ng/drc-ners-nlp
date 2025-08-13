@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class NERConfig(BaseModel):
     """NER annotation configuration"""
 

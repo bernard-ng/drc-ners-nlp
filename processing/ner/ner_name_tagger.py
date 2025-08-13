@@ -3,7 +3,9 @@ import logging
 
 
 class NERNameTagger:
-    def tag_name(self, name: str, probable_native: str, probable_surname: str) -> Union[Dict[str, Any], None]:
+    def tag_name(
+        self, name: str, probable_native: str, probable_surname: str
+    ) -> Union[Dict[str, Any], None]:
         """Create a single NER training example using probable_native and probable_surname"""
         if not name or not probable_native or not probable_surname:
             return None
@@ -56,9 +58,10 @@ class NERNameTagger:
                     continue
 
                 # Check if this is a word boundary match and doesn't overlap
-                if (self._is_word_boundary_match(name, pos, end_pos) and
-                    not has_overlap(pos, end_pos)):
-                    entities.append((pos, end_pos, 'NATIVE'))
+                if self._is_word_boundary_match(name, pos, end_pos) and not has_overlap(
+                    pos, end_pos
+                ):
+                    entities.append((pos, end_pos, "NATIVE"))
                     used_spans.append((pos, end_pos))
                     break  # Only take the first non-overlapping occurrence
 
@@ -84,16 +87,19 @@ class NERNameTagger:
                     start_pos = pos + 1
                     continue
 
-                if (self._is_word_boundary_match(name, pos, end_pos) and
-                    not has_overlap(pos, end_pos)):
-                    entities.append((pos, end_pos, 'SURNAME'))
+                if self._is_word_boundary_match(name, pos, end_pos) and not has_overlap(
+                    pos, end_pos
+                ):
+                    entities.append((pos, end_pos, "SURNAME"))
                     used_spans.append((pos, end_pos))
                     break
 
                 start_pos = pos + 1
 
         if not entities:
-            logging.warning(f"No valid entities found for name: '{name}' with native: '{probable_native}' and surname: '{probable_surname}'")
+            logging.warning(
+                f"No valid entities found for name: '{name}' with native: '{probable_native}' and surname: '{probable_surname}'"
+            )
             return None
 
         # Sort entities by position and validate
@@ -104,7 +110,9 @@ class NERNameTagger:
         for start, end, label in entities:
             # Check bounds
             if not (0 <= start < end <= len(name)):
-                logging.warning(f"Invalid span bounds ({start}, {end}) for text length {len(name)}: '{name}'")
+                logging.warning(
+                    f"Invalid span bounds ({start}, {end}) for text length {len(name)}: '{name}'"
+                )
                 continue
 
             # Check for overlaps with already validated entities
@@ -114,8 +122,10 @@ class NERNameTagger:
 
             # CRITICAL VALIDATION: Check that the span contains only the expected word (no spaces)
             span_text = name[start:end]
-            if not span_text or span_text != span_text.strip() or ' ' in span_text:
-                logging.warning(f"Span contains spaces or is empty ({start}, {end}) in '{name}': '{span_text}'")
+            if not span_text or span_text != span_text.strip() or " " in span_text:
+                logging.warning(
+                    f"Span contains spaces or is empty ({start}, {end}) in '{name}': '{span_text}'"
+                )
                 continue
 
             validated_entities.append((start, end, label))
@@ -129,7 +139,7 @@ class NERNameTagger:
 
         return {
             "entities": entities_str,
-            "spans": validated_entities  # Keep the original tuples for internal use
+            "spans": validated_entities,  # Keep the original tuples for internal use
         }
 
     @classmethod
@@ -154,6 +164,7 @@ class NERNameTagger:
         """Validate that entity annotations are correct for a given name"""
         try:
             import ast
+
             entities = ast.literal_eval(entities_str)
 
             # Check for overlaps and valid bounds
@@ -182,10 +193,11 @@ class NERNameTagger:
     @classmethod
     def extract_entity_text(cls, name: str, entities_str: str) -> Dict[str, List[str]]:
         """Extract the actual text for each entity type"""
-        result = {'NATIVE': [], 'SURNAME': []}
+        result = {"NATIVE": [], "SURNAME": []}
 
         try:
             import ast
+
             entities = ast.literal_eval(entities_str)
 
             for start, end, label in entities:

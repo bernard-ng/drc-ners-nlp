@@ -59,7 +59,9 @@ class NeuralNetworkModel(BaseModel):
         )
 
         # Train the neural network
-        logging.info(f"Fitting model with {X_prepared.shape[0]} samples and {X_prepared.shape[1]} features")
+        logging.info(
+            f"Fitting model with {X_prepared.shape[0]} samples and {X_prepared.shape[1]} features"
+        )
         history = self.model.fit(
             X_prepared,
             y_encoded,
@@ -162,7 +164,11 @@ class NeuralNetworkModel(BaseModel):
 
         # Split data once for validation
         X_train_full, X_val, y_train_full, y_val = train_test_split(
-            X_prepared, y_encoded, test_size=0.2, random_state=self.config.random_seed, stratify=y_encoded
+            X_prepared,
+            y_encoded,
+            test_size=0.2,
+            random_state=self.config.random_seed,
+            stratify=y_encoded,
         )
 
         for size in train_sizes:

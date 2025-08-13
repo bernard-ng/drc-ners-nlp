@@ -8,6 +8,7 @@ from typing import List, Dict, Optional
 @dataclass
 class LogEntry:
     """Represents a single log entry."""
+
     timestamp: datetime
     logger: str
     level: str
@@ -23,7 +24,7 @@ class LogReader:
         self.log_file_path = Path(log_file_path)
         # Pattern to match Python logging format: timestamp - logger - level - message
         self.log_pattern = re.compile(
-            r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) - (.+?) - (\w+) - (.+)'
+            r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) - (.+?) - (\w+) - (.+)"
         )
 
     def read_last_entries(self, count: int = 10) -> List[LogEntry]:
@@ -32,12 +33,12 @@ class LogReader:
             return []
 
         try:
-            with open(self.log_file_path, 'r', encoding='utf-8') as file:
+            with open(self.log_file_path, "r", encoding="utf-8") as file:
                 lines = file.readlines()
 
             # Parse log entries from the end
             entries = []
-            for line in reversed(lines[-count * 2:]):  # Read more lines in case some don't match
+            for line in reversed(lines[-count * 2 :]):  # Read more lines in case some don't match
                 entry = self._parse_log_line(line.strip())
                 if entry:
                     entries.append(entry)
@@ -57,7 +58,7 @@ class LogReader:
             return []
 
         try:
-            with open(self.log_file_path, 'r', encoding='utf-8') as file:
+            with open(self.log_file_path, "r", encoding="utf-8") as file:
                 lines = file.readlines()
 
             entries = []
@@ -80,7 +81,7 @@ class LogReader:
             return []
 
         try:
-            with open(self.log_file_path, 'r', encoding='utf-8') as file:
+            with open(self.log_file_path, "r", encoding="utf-8") as file:
                 lines = file.readlines()
 
             entries = []
@@ -107,16 +108,16 @@ class LogReader:
             return {}
 
         try:
-            with open(self.log_file_path, 'r', encoding='utf-8') as file:
+            with open(self.log_file_path, "r", encoding="utf-8") as file:
                 lines = file.readlines()
 
             stats = {
-                'total_lines': len(lines),
-                'INFO': 0,
-                'WARNING': 0,
-                'ERROR': 0,
-                'DEBUG': 0,
-                'CRITICAL': 0
+                "total_lines": len(lines),
+                "INFO": 0,
+                "WARNING": 0,
+                "ERROR": 0,
+                "DEBUG": 0,
+                "CRITICAL": 0,
             }
 
             for line in lines:
@@ -143,14 +144,10 @@ class LogReader:
 
         try:
             timestamp_str, logger, level, message = match.groups()
-            timestamp = datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S,%f')
+            timestamp = datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S,%f")
 
             return LogEntry(
-                timestamp=timestamp,
-                logger=logger,
-                level=level,
-                message=message,
-                raw_line=line
+                timestamp=timestamp, logger=logger, level=level, message=message, raw_line=line
             )
         except ValueError:
             return None
@@ -168,7 +165,7 @@ class MultiLogReader:
         if not self.log_directory.exists():
             return []
 
-        return list(self.log_directory.glob('*.log'))
+        return list(self.log_directory.glob("*.log"))
 
     def read_from_all_files(self, count: int = 10) -> List[LogEntry]:
         """Read entries from all log files and merge them chronologically."""

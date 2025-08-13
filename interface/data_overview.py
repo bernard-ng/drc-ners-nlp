@@ -5,11 +5,12 @@ import plotly.express as px
 import streamlit as st
 
 from core.utils import get_data_file_path
+from core.utils.data_loader import OPTIMIZED_DTYPES
 
 
 def load_dataset(file_path: str) -> pd.DataFrame:
     try:
-        return pd.read_csv(file_path)
+        return pd.read_csv(file_path, dtype=OPTIMIZED_DTYPES)
     except Exception as e:
         st.error(f"Error loading dataset: {e}")
         return pd.DataFrame()

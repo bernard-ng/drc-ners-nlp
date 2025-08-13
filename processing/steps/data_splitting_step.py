@@ -2,11 +2,10 @@ import numpy as np
 import pandas as pd
 
 from core.config.pipeline_config import PipelineConfig
-from processing.steps.feature_extraction_step import Gender
-from core.utils.data_loader import DataLoader
-
+from core.utils.region_mapper import RegionMapper
 from processing.batch.batch_config import BatchConfig
 from processing.steps import PipelineStep
+from processing.steps.feature_extraction_step import Gender
 
 
 class DataSplittingStep(PipelineStep):
@@ -20,7 +19,6 @@ class DataSplittingStep(PipelineStep):
             use_multiprocessing=False,
         )
         super().__init__("data_splitting", pipeline_config, batch_config)
-        self.data_loader = DataLoader(pipeline_config)
         self.eval_indices = None
 
     def determine_eval_indices(self, total_size: int) -> set:
@@ -33,9 +31,9 @@ class DataSplittingStep(PipelineStep):
 
     def process_batch(self, batch: pd.DataFrame, batch_id: int) -> pd.DataFrame:
         """Process batch for data splitting - no modification needed"""
-        return batch.copy()
+        return batch
 
-    def save_splits(self, df: pd.DataFrame) -> None:
+    def split(self, df: pd.DataFrame) -> None:
         """Save the split datasets based on configuration"""
         output_files = self.pipeline_config.data.output_files
         data_dir = self.pipeline_config.paths.data_dir
@@ -52,9 +50,14 @@ class DataSplittingStep(PipelineStep):
         else:
             self.data_loader.save_csv(df, data_dir / output_files["featured"])
 
+        if self.pipeline_config.data.split_by_province:
+            for province in RegionMapper.get_provinces():
+                df_region = df[df.province == province]
+                self.data_loader.save_csv(df_region, data_dir / "provinces" / f"{province}.csv")
+
         if self.pipeline_config.data.split_by_gender:
-            df_males = df[df["sex"] == Gender.MALE.value]
-            df_females = df[df["sex"] == Gender.FEMALE.value]
+            df_males = df[df.sex == Gender.MALE.value]
+            df_females = df[df.sex == Gender.FEMALE.value]
 
             self.data_loader.save_csv(df_males, data_dir / output_files["males"])
             self.data_loader.save_csv(df_females, data_dir / output_files["females"])

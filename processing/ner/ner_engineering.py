@@ -1,9 +1,14 @@
 import random
 from typing import List
+import logging
 
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
 
+from core.config import PipelineConfig
+from core.utils import get_data_file_path
+from core.utils.data_loader import OPTIMIZED_DTYPES, DataLoader
 from processing.ner.formats.connectors_format import ConnectorFormatter
 from processing.ner.formats.extended_surname_format import ExtendedSurnameFormatter
 from processing.ner.formats.native_only_format import NativeOnlyFormatter
@@ -18,50 +23,64 @@ class NEREngineering:
     and encourage sequence characteristic learning.
     """
 
-    def __init__(self, connectors: List[str] = None, additional_surnames: List[str] = None):
-        self.connectors = connectors or ['wa', 'ya', 'ka', 'ba', 'la']
-        self.additional_surnames = additional_surnames or [
-            'jean', 'paul', 'marie', 'joseph', 'pierre', 'claude',
-            'andre', 'michel', 'robert'
+    def __init__(self, config: PipelineConfig):
+        self.config = config
+        self.data_loader = DataLoader(config)
+        self.connectors = ["wa", "ya", "ka", "ba", "la"]
+        self.additional_surnames = [
+            "jean",
+            "paul",
+            "marie",
+            "joseph",
+            "pierre",
+            "claude",
+            "andre",
+            "michel",
+            "robert",
         ]
+
+        random.seed(self.config.data.random_seed)
+        np.random.seed(self.config.data.random_seed)
 
         # Initialize format classes
         self.formatters = {
-            'original': OriginalFormatter(self.connectors, self.additional_surnames),
-            'native_only': NativeOnlyFormatter(self.connectors, self.additional_surnames),
-            'position_flipped': PositionFlippedFormatter(self.connectors, self.additional_surnames),
-            'reduced_native': ReducedNativeFormatter(self.connectors, self.additional_surnames),
-            'connector_added': ConnectorFormatter(self.connectors, self.additional_surnames),
-            'extended_surname': ExtendedSurnameFormatter(self.connectors, self.additional_surnames)
+            "original": OriginalFormatter(self.connectors, self.additional_surnames),
+            "native_only": NativeOnlyFormatter(self.connectors, self.additional_surnames),
+            "position_flipped": PositionFlippedFormatter(self.connectors, self.additional_surnames),
+            "reduced_native": ReducedNativeFormatter(self.connectors, self.additional_surnames),
+            "connector_added": ConnectorFormatter(self.connectors, self.additional_surnames),
+            "extended_surname": ExtendedSurnameFormatter(self.connectors, self.additional_surnames),
         }
 
-    @classmethod
-    def load_ner_data(cls, filepath: str) -> pd.DataFrame:
+    def load_data(self) -> pd.DataFrame:
         """Load and filter NER-tagged data from CSV file"""
-        df = pd.read_csv(filepath)
+
+        filepath = get_data_file_path(self.config.data.output_files["featured"], self.config)
+        df = self.data_loader.load_csv_complete(filepath)
 
         # Filter only NER-tagged rows
-        ner_data = df[df['ner_tagged'] == 1].copy()
-        print(f"Loaded {len(ner_data)} NER-tagged records from {len(df)} total records")
+        ner_data = df[df["ner_tagged"] == 1].copy()
+        logging.info(f"Loaded {len(ner_data)} NER-tagged records from {len(df)} total records")
 
         return ner_data
 
-    def engineer_dataset(self, df: pd.DataFrame, random_seed: int = 42) -> pd.DataFrame:
-        """
-        Apply feature engineering transformations according to the specified rules:
-        - First 25%: original format
-        - Second 25%: remove surname
-        - Third 25%: flip positions
-        - Fourth 10%: reduce native components
-        - Fifth 10%: add connectors
-        - Last 5%: extend surnames
-        """
-        random.seed(random_seed)
-        np.random.seed(random_seed)
+    def compute(self) -> None:
+        logging.info("Applying feature engineering transformations...")
+        input_filepath = get_data_file_path(self.config.data.output_files["featured"], self.config)
+        output_filepath = get_data_file_path(
+            self.config.data.output_files["engineered"], self.config
+        )
 
-        # Shuffle the dataset
-        df_shuffled = df.sample(frac=1, random_state=random_seed).reset_index(drop=True)
-        total_rows = len(df_shuffled)
+        df = self.data_loader.load_csv_complete(input_filepath)
+        ner_df = df[df["ner_tagged"] == 1].copy()
+        logging.info(f"Loaded {len(ner_df)} NER-tagged records from {len(df)} total records")
+
+        del df  # No need to keep in memory
+
+        ner_df = ner_df.sample(frac=1, random_state=self.config.data.random_seed).reset_index(
+            drop=True
+        )
+        total_rows = len(ner_df)
 
         # Calculate split points
         split_25_1 = int(total_rows * 0.25)
@@ -71,37 +90,31 @@ class NEREngineering:
         split_10_2 = int(total_rows * 0.95)
 
         # Define transformation groups
-        transformation_groups = [
-            (0, split_25_1, 'original'),
-            (split_25_1, split_25_2, 'native_only'),
-            (split_25_2, split_25_3, 'position_flipped'),
-            (split_25_3, split_10_1, 'reduced_native'),
-            (split_10_1, split_10_2, 'connector_added'),
-            (split_10_2, total_rows, 'extended_surname')
+        groups = [
+            (0, split_25_1, "original"),  # First 25%: original format
+            (split_25_1, split_25_2, "native_only"),  # Second 25%: remove surname
+            (split_25_2, split_25_3, "position_flipped"),  # Third 25%: flip positions
+            (split_25_3, split_10_1, "reduced_native"),  # Fourth 10%: reduce native components
+            (split_10_1, split_10_2, "connector_added"),  # Fifth 10%: add connectors
+            (split_10_2, total_rows, "extended_surname"),  # Last 5%: extend surnames
         ]
 
-        print("Dataset splits:")
-        for start, end, trans_type in transformation_groups:
-            print(f"Group {trans_type}: {start} to {end} ({end - start} rows)")
+        for start, end, trans_type in groups:
+            logging.info(f"Group {trans_type}: {start} to {end} ({end - start} rows)")
 
         # Process each group
-        engineered_rows = []
-        for start, end, formatter_key in transformation_groups:
+        rows = []
+        for start, end, formatter_key in groups:
             formatter = self.formatters[formatter_key]
 
-            for idx in range(start, end):
-                row = df_shuffled.iloc[idx]
+            for idx in tqdm(range(start, end), desc=f"Processing {formatter_key}"):
+                row = ner_df.iloc[idx]
                 transformed = formatter.transform(row)
 
                 # Keep original columns and add transformed ones
                 new_row = row.to_dict()
                 new_row.update(transformed)
-                engineered_rows.append(new_row)
+                rows.append(new_row)
 
-        return pd.DataFrame(engineered_rows)
-
-    @classmethod
-    def save_engineered_dataset(cls, df: pd.DataFrame, output_path: str):
-        """Save the engineered dataset to CSV file"""
-        df.to_csv(output_path, index=False)
-        print(f"Engineered dataset saved to {output_path}")
+        self.data_loader.save_csv(pd.DataFrame(rows), output_filepath)
+        logging.info(f"Engineered dataset saved to {output_filepath}")

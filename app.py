@@ -1,7 +1,9 @@
 #!.venv/bin/python3
+import argparse
+
 import streamlit as st
 
-from core.config import get_config
+from core.config import get_config, setup_config, PipelineConfig
 from core.utils.data_loader import DataLoader
 from interface.configuration import Configuration
 from interface.dashboard import Dashboard
@@ -23,17 +25,11 @@ st.set_page_config(
 )
 
 
-@st.cache_data
-def load_config():
-    """Load application configuration with unified setup"""
-    return get_config()
-
-
 class StreamlitApp:
     """Main Streamlit application class"""
 
-    def __init__(self):
-        self.config = load_config()
+    def __init__(self, config: PipelineConfig):
+        self.config = config
         self.data_loader = DataLoader(self.config)
         self.experiment_tracker = ExperimentTracker(self.config)
         self.experiment_runner = ExperimentRunner(self.config)
@@ -44,7 +40,9 @@ class StreamlitApp:
         self.data_overview = DataOverview(self.config)
         self.data_processing = DataProcessing(self.config, self.pipeline_monitor)
         self.experiments = Experiments(self.config, self.experiment_tracker, self.experiment_runner)
-        self.results_analysis = ResultsAnalysis(self.config, self.experiment_tracker, self.experiment_runner)
+        self.results_analysis = ResultsAnalysis(
+            self.config, self.experiment_tracker, self.experiment_runner
+        )
         self.predictions = Predictions(self.config, self.experiment_tracker, self.experiment_runner)
         self.configuration = Configuration(self.config)
 
@@ -86,8 +84,16 @@ class StreamlitApp:
 
 
 def main():
-    """Main application entry point"""
-    app = StreamlitApp()
+    parser = argparse.ArgumentParser(
+        description="DRC NERS Platform",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument("--config", type=str, help="Path to configuration file")
+    parser.add_argument("--env", type=str, default="development", help="Environment name")
+    args = parser.parse_args()
+
+    config = setup_config(args.config, env=args.env)
+    app = StreamlitApp(config)
     app.run()
 
 

@@ -55,7 +55,9 @@ class TraditionalModel(BaseModel):
             logging.info(f"Fitting model with {X_prepared.shape[0]} samples (text features)")
         else:
             # For numerical features
-            logging.info(f"Fitting model with {X_prepared.shape[0]} samples and {X_prepared.shape[1]} features")
+            logging.info(
+                f"Fitting model with {X_prepared.shape[0]} samples and {X_prepared.shape[1]} features"
+            )
 
         self.model.fit(X_prepared, y_encoded)
         self.is_fitted = True

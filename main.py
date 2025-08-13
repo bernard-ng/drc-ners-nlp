@@ -8,13 +8,11 @@ from core.config import setup_config
 from core.utils import get_data_file_path
 from core.utils.data_loader import DataLoader
 from processing.batch.batch_config import BatchConfig
-from processing.ner.ner_data_builder import NERDataBuilder
 from processing.pipeline import Pipeline
 from processing.steps.data_cleaning_step import DataCleaningStep
 from processing.steps.data_splitting_step import DataSplittingStep
 from processing.steps.feature_extraction_step import FeatureExtractionStep
 from processing.steps.llm_annotation_step import LLMAnnotationStep
-from processing.steps.ner_annotation_step import NERAnnotationStep
 
 
 def create_pipeline(config) -> Pipeline:
@@ -31,9 +29,8 @@ def create_pipeline(config) -> Pipeline:
     steps = [
         DataCleaningStep(config),
         FeatureExtractionStep(config),
-        NERAnnotationStep(config),
+        # NERAnnotationStep(config),
         LLMAnnotationStep(config),
-        DataSplittingStep(config),
     ]
 
     for stage in config.stages:
@@ -56,6 +53,7 @@ def run_pipeline(config) -> int:
             return 1
 
         data_loader = DataLoader(config)
+        data_splitter = DataSplittingStep(config)
         logging.info(f"Loading data from {input_file_path}")
         df = data_loader.load_csv_complete(input_file_path)
         logging.info(f"Loaded {len(df)} rows, {len(df.columns)} columns")
@@ -64,13 +62,7 @@ def run_pipeline(config) -> int:
         pipeline = create_pipeline(config)
 
         logging.info("Starting pipeline execution")
-        result_df = pipeline.run(df)
-
-        # Save results using the splitting step
-        splitting_step = pipeline.steps[-1]
-        if isinstance(splitting_step, DataSplittingStep):
-            splitting_step.save_splits(result_df)
-            NERDataBuilder(config).build(result_df)
+        data_splitter.split(pipeline.run(df))
 
         # Show completion statistics
         progress = pipeline.get_progress()
@@ -94,7 +86,7 @@ def run_pipeline(config) -> int:
 def main():
     """Main entry point with unified configuration loading"""
     parser = argparse.ArgumentParser(
-        description="DRC Names Processing Pipeline",
+        description="DRC NERS Processing Pipeline",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--config", type=str, help="Path to configuration file")

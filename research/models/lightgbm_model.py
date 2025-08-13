@@ -50,14 +50,18 @@ class LightGBMModel(TraditionalModel):
                         self.vectorizers[feature_key] = CountVectorizer(
                             analyzer="char", ngram_range=(2, 3), max_features=50
                         )
-                        char_features = self.vectorizers[feature_key].fit_transform(
-                            column.fillna("").astype(str)
-                        ).toarray()
+                        char_features = (
+                            self.vectorizers[feature_key]
+                            .fit_transform(column.fillna("").astype(str))
+                            .toarray()
+                        )
                     else:
                         # Subsequent times - use existing vectorizer
-                        char_features = self.vectorizers[feature_key].transform(
-                            column.fillna("").astype(str)
-                        ).toarray()
+                        char_features = (
+                            self.vectorizers[feature_key]
+                            .transform(column.fillna("").astype(str))
+                            .toarray()
+                        )
 
                     features.append(char_features)
                 else:

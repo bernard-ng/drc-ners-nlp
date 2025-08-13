@@ -9,6 +9,7 @@ import pandas as pd
 from pydantic import BaseModel
 
 from core.config.pipeline_config import PipelineConfig
+from core.utils.data_loader import OPTIMIZED_DTYPES, DataLoader
 from processing.batch.batch_config import BatchConfig
 
 
@@ -37,10 +38,11 @@ class PipelineStep(ABC):
     """Abstract base class for pipeline steps"""
 
     def __init__(
-            self, name: str, pipeline_config: PipelineConfig, batch_config: Optional[BatchConfig] = None
+        self, name: str, pipeline_config: PipelineConfig, batch_config: Optional[BatchConfig] = None
     ):
         self.name = name
         self.pipeline_config = pipeline_config
+        self.data_loader = DataLoader(pipeline_config)
 
         # Use provided batch_config or create default from pipeline config
         if batch_config is None:
@@ -52,6 +54,11 @@ class PipelineStep(ABC):
             )
         self.batch_config = batch_config
         self.state = PipelineState()
+
+    @property
+    def requires_batch_mutation(self) -> bool:
+        """Indicates if this step modifies the batch data"""
+        return False
 
     @abstractmethod
     def process_batch(self, batch: pd.DataFrame, batch_id: int) -> pd.DataFrame:
@@ -108,12 +115,12 @@ class PipelineStep(ABC):
     def save_batch(self, batch: pd.DataFrame, batch_id: int):
         """Save processed batch to checkpoint"""
         checkpoint_path = self.get_checkpoint_path(batch_id)
-        batch.to_csv(checkpoint_path, index=False)
+        self.data_loader.save_csv(batch, checkpoint_path)
         logging.info(f"Saved batch {batch_id} to {checkpoint_path}")
 
     def load_batch(self, batch_id: int) -> Optional[pd.DataFrame]:
         """Load processed batch from checkpoint"""
         checkpoint_path = self.get_checkpoint_path(batch_id)
         if os.path.exists(checkpoint_path):
-            return pd.read_csv(checkpoint_path)
+            return self.data_loader.load_csv_complete(checkpoint_path)
         return None

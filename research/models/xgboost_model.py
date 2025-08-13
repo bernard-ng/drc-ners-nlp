@@ -28,7 +28,7 @@ class XGBoostModel(TraditionalModel):
             colsample_bytree=params.get("colsample_bytree", 0.8),
             random_state=self.config.random_seed,
             eval_metric="logloss",
-            verbosity=2
+            verbosity=2,
         )
 
     def prepare_features(self, X: pd.DataFrame) -> np.ndarray:
@@ -50,14 +50,18 @@ class XGBoostModel(TraditionalModel):
                         self.vectorizers[feature_key] = CountVectorizer(
                             analyzer="char", ngram_range=(2, 3), max_features=100
                         )
-                        char_features = self.vectorizers[feature_key].fit_transform(
-                            column.fillna("").astype(str)
-                        ).toarray()
+                        char_features = (
+                            self.vectorizers[feature_key]
+                            .fit_transform(column.fillna("").astype(str))
+                            .toarray()
+                        )
                     else:
                         # Subsequent times - use existing vectorizer
-                        char_features = self.vectorizers[feature_key].transform(
-                            column.fillna("").astype(str)
-                        ).toarray()
+                        char_features = (
+                            self.vectorizers[feature_key]
+                            .transform(column.fillna("").astype(str))
+                            .toarray()
+                        )
 
                     features.append(char_features)
                 else:

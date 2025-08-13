@@ -14,7 +14,9 @@ from research.model_registry import list_available_models
 class Experiments:
     """Handles experiment management interface"""
 
-    def __init__(self, config, experiment_tracker: ExperimentTracker, experiment_runner: ExperimentRunner):
+    def __init__(
+        self, config, experiment_tracker: ExperimentTracker, experiment_runner: ExperimentRunner
+    ):
         self.config = config
         self.experiment_tracker = experiment_tracker
         self.experiment_runner = experiment_runner
@@ -41,13 +43,19 @@ class Experiments:
             col1, col2 = st.columns(2)
 
             with col1:
-                exp_name = st.text_input("Experiment Name", placeholder="e.g., native_name_gender_prediction")
-                description = st.text_area("Description", placeholder="Brief description of the experiment")
+                exp_name = st.text_input(
+                    "Experiment Name", placeholder="e.g., native_name_gender_prediction"
+                )
+                description = st.text_area(
+                    "Description", placeholder="Brief description of the experiment"
+                )
                 model_type = st.selectbox("Model Type", list_available_models())
 
                 # Feature selection
                 feature_options = [f.value for f in FeatureType]
-                selected_features = st.multiselect("Features to Use", feature_options, default=["full_name"])
+                selected_features = st.multiselect(
+                    "Features to Use", feature_options, default=["full_name"]
+                )
 
             with col2:
                 # Model parameters
@@ -74,7 +82,9 @@ class Experiments:
                 test_size = st.slider("Test Set Size", 0.1, 0.5, 0.2)
                 cv_folds = st.number_input("Cross-Validation Folds", 3, 10, 5)
 
-                tags = st.text_input("Tags (comma-separated)", placeholder="e.g., baseline, feature_study")
+                tags = st.text_input(
+                    "Tags (comma-separated)", placeholder="e.g., baseline, feature_study"
+                )
 
             # Advanced options
             with st.expander("Advanced Options"):
@@ -92,14 +102,33 @@ class Experiments:
 
             if submitted:
                 self._handle_experiment_submission(
-                    exp_name, description, model_type, selected_features, model_params,
-                    test_size, cv_folds, tags, filter_province, min_words, max_words
+                    exp_name,
+                    description,
+                    model_type,
+                    selected_features,
+                    model_params,
+                    test_size,
+                    cv_folds,
+                    tags,
+                    filter_province,
+                    min_words,
+                    max_words,
                 )
 
-    def _handle_experiment_submission(self, exp_name: str, description: str, model_type: str,
-                                      selected_features: List[str], model_params: Dict[str, Any],
-                                      test_size: float, cv_folds: int, tags: str,
-                                      filter_province: str, min_words: int, max_words: int):
+    def _handle_experiment_submission(
+        self,
+        exp_name: str,
+        description: str,
+        model_type: str,
+        selected_features: List[str],
+        model_params: Dict[str, Any],
+        test_size: float,
+        cv_folds: int,
+        tags: str,
+        filter_province: str,
+        min_words: int,
+        max_words: int,
+    ):
         """Handle experiment form submission"""
         if not exp_name:
             st.error("Please provide an experiment name")
@@ -183,7 +212,7 @@ class Experiments:
         # Display experiments
         for i, exp in enumerate(experiments):
             with st.expander(
-                    f"{exp.config.name} - {exp.status.value} - {exp.start_time.strftime('%Y-%m-%d %H:%M')}"
+                f"{exp.config.name} - {exp.status.value} - {exp.start_time.strftime('%Y-%m-%d %H:%M')}"
             ):
                 self._display_experiment_details(exp, i)
 
@@ -268,8 +297,15 @@ class Experiments:
                     base_name, model_types, ngram_ranges, feature_combinations, test_sizes, tags
                 )
 
-    def run_batch_experiments(self, base_name: str, model_types: List[str], ngram_ranges: str,
-                              feature_combinations: List[str], test_sizes: str, tags: str):
+    def run_batch_experiments(
+        self,
+        base_name: str,
+        model_types: List[str],
+        ngram_ranges: str,
+        feature_combinations: List[str],
+        test_sizes: str,
+        tags: str,
+    ):
         """Run batch experiments with parameter combinations"""
         with st.spinner("Running batch experiments..."):
             try:
