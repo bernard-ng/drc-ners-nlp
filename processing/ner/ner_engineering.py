@@ -7,7 +7,6 @@ import pandas as pd
 from tqdm import tqdm
 
 from core.config import PipelineConfig
-from core.utils import get_data_file_path
 from core.utils.data_loader import OPTIMIZED_DTYPES, DataLoader
 from processing.ner.formats.connectors_format import ConnectorFormatter
 from processing.ner.formats.extended_surname_format import ExtendedSurnameFormatter
@@ -55,7 +54,7 @@ class NEREngineering:
     def load_data(self) -> pd.DataFrame:
         """Load and filter NER-tagged data from CSV file"""
 
-        filepath = get_data_file_path(self.config.data.output_files["featured"], self.config)
+        filepath = self.config.paths.get_data_path(self.config.data.output_files["featured"])
         df = self.data_loader.load_csv_complete(filepath)
 
         # Filter only NER-tagged rows
@@ -66,10 +65,8 @@ class NEREngineering:
 
     def compute(self) -> None:
         logging.info("Applying feature engineering transformations...")
-        input_filepath = get_data_file_path(self.config.data.output_files["featured"], self.config)
-        output_filepath = get_data_file_path(
-            self.config.data.output_files["engineered"], self.config
-        )
+        input_filepath = self.config.paths.get_data_path(self.config.data.output_files["featured"])
+        output_filepath = self.config.paths.get_data_path(self.config.data.output_files["engineered"])
 
         df = self.data_loader.load_csv_complete(input_filepath)
         ner_df = df[df["ner_tagged"] == 1].copy()

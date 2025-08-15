@@ -9,7 +9,6 @@ from spacy.tokens import DocBin
 from spacy.util import filter_spans
 
 from core.config import PipelineConfig
-from core.utils import get_data_file_path
 from core.utils.data_loader import DataLoader
 
 
@@ -98,10 +97,8 @@ class NERDataBuilder:
         return docs
 
     def build(self) -> int:
-        input_filepath = get_data_file_path(
-            self.config.data.output_files["engineered"], self.config
-        )
-        df = self.data_loader.load_csv_complete(input_filepath)
+        filepath = self.config.paths.get_data_path(self.config.data.output_files["engineered"])
+        df = self.data_loader.load_csv_complete(filepath)
         df = df[["name", "ner_tagged", "ner_entities"]]
 
         # Filter early
@@ -139,8 +136,8 @@ class NERDataBuilder:
         doc_bin = DocBin(docs=docs)
 
         # Save
-        json_path = Path(self.config.paths.data_dir) / self.config.data.output_files["ner_data"]
-        spacy_path = Path(self.config.paths.data_dir) / self.config.data.output_files["ner_spacy"]
+        json_path = self.config.paths.get_data_path(self.config.data.output_files["ner_data"])
+        spacy_path = self.config.paths.get_data_path(self.config.data.output_files["ner_spacy"])
 
         with open(json_path, "w", encoding="utf-8") as f:
             json.dump(training_data, f, ensure_ascii=False, separators=(",", ":"))

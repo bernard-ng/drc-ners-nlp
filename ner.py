@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import argparse
 import logging
-import sys
 import os
+import sys
 import traceback
 from pathlib import Path
 
@@ -48,21 +48,18 @@ def train(config: PipelineConfig):
 
 
 def run_pipeline(config: PipelineConfig, reset: bool = False):
-    # Step 1: Feature engineering
-    if not reset and os.path.exists(config.paths.data_dir / config.data.output_files["engineered"]):
+    if not reset and os.path.exists(config.paths.get_data_path(config.data.output_files["engineered"])):
         logging.info("Step 1: Feature engineering already done.")
     else:
         logging.info("Step 1: Running feature engineering")
         feature(config)
 
-    # Step 2: Build dataset
-    if not reset and os.path.exists(config.paths.data_dir / config.data.output_files["ner_data"]):
+    if not reset and os.path.exists(config.paths.get_data_path(config.data.output_files["ner_data"])):
         logging.info("Step 2: NER dataset already built.")
     else:
         logging.info("Step 2: Building NER dataset")
         build(config)
 
-    # Step 3: Train model
     logging.info("Step 3: Training NER Model")
     train(config)
 

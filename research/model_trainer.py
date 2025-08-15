@@ -6,7 +6,6 @@ from typing import List, Dict, Any
 import pandas as pd
 
 from core.config import get_config
-from core.utils import get_data_file_path
 from core.utils.data_loader import DataLoader
 from research.experiment import FeatureType, ExperimentConfig
 from research.experiment.experiment_runner import ExperimentRunner
@@ -145,7 +144,7 @@ class ModelTrainer:
 
         try:
             # Load data for learning curve generation
-            data_path = get_data_file_path(self.config.data.output_files["featured"], self.config)
+            data_path = self.config.paths.get_data_path(self.config.data.output_files["featured"])
             if data_path.exists():
                 df = self.data_loader.load_csv_complete(data_path)
 

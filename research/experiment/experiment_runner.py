@@ -10,7 +10,6 @@ from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 
 from core.config import PipelineConfig
-from core.utils import get_data_file_path
 from core.utils.data_loader import DataLoader
 from research.base_model import BaseModel
 from research.experiment import ExperimentConfig, ExperimentStatus, calculate_metrics
@@ -36,8 +35,8 @@ class ExperimentRunner:
             self.tracker.update_experiment(experiment_id, status=ExperimentStatus.RUNNING)
 
             # Load data
-            data_path = get_data_file_path(self.config.data.output_files["featured"], self.config)
-            df = self.data_loader.load_csv_complete(data_path)
+            filepath = self.config.paths.get_data_path(self.config.data.output_files["featured"])
+            df = self.data_loader.load_csv_complete(filepath)
 
             # Apply data filters if specified
             df = self._apply_data_filters(df, experiment_config)

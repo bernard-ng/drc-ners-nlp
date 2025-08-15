@@ -21,3 +21,6 @@ class ProjectPaths(BaseModel):
     @field_validator("*", mode="before")
     def convert_to_path(cls, v):
         return Path(v) if not isinstance(v, Path) else v
+
+    def get_data_path(self, filename: str) -> Path:
+        return self.data_dir / filename

@@ -6,6 +6,7 @@ from core.utils.data_loader import OPTIMIZED_DTYPES
 from interface.log_reader import LogReader
 
 
+@st.cache_data
 def load_dataset(file_path: str) -> pd.DataFrame:
     try:
         return pd.read_csv(file_path, dtype=OPTIMIZED_DTYPES)

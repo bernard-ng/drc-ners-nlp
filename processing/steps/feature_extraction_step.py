@@ -127,7 +127,7 @@ class FeatureExtractionStep(PipelineStep):
 
     def _process_simple_names(self, df: pd.DataFrame) -> None:
         """Process 3-word names efficiently with vectorized operations"""
-        mask = df["words"] == 3
+        mask = pd.Series(df["words"] == 3)
 
         if not mask.any():
             return

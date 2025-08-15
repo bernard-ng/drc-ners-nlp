@@ -5,7 +5,6 @@ import sys
 import traceback
 
 from core.config import setup_config
-from core.utils import get_data_file_path
 from core.utils.data_loader import DataLoader
 from processing.batch.batch_config import BatchConfig
 from processing.pipeline import Pipeline
@@ -47,7 +46,7 @@ def run_pipeline(config) -> int:
         logging.info(f"Starting pipeline: {config.name} v{config.version}")
 
         # Load input data
-        input_file_path = get_data_file_path(config.data.input_file, config)
+        input_file_path = config.paths.get_data_path(config.data.input_file)
         if not input_file_path.exists():
             logging.error(f"Input file not found: {input_file_path}")
             return 1
@@ -60,8 +59,6 @@ def run_pipeline(config) -> int:
 
         # Create and run pipeline
         pipeline = create_pipeline(config)
-
-        logging.info("Starting pipeline execution")
         data_splitter.split(pipeline.run(df))
 
         # Show completion statistics
@@ -104,5 +101,4 @@ def main():
 
 
 if __name__ == "__main__":
-    exit_code = main()
-    sys.exit(exit_code)
+    sys.exit(main())

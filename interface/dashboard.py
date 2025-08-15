@@ -1,10 +1,10 @@
 import pandas as pd
 import streamlit as st
 
-from core.utils import get_data_file_path
 from core.utils.data_loader import OPTIMIZED_DTYPES
 
 
+@st.cache_data
 def load_dataset(file_path: str) -> pd.DataFrame:
     try:
         return pd.read_csv(file_path, dtype=OPTIMIZED_DTYPES)
@@ -25,7 +25,7 @@ class Dashboard:
 
         # Load basic statistics
         try:
-            data_path = get_data_file_path(self.config.data.output_files["featured"], self.config)
+            data_path = self.config.paths.get_data_path(self.config.data.output_files["featured"])
             if data_path.exists():
                 df = load_dataset(str(data_path))
 

@@ -72,7 +72,6 @@ class NeuralNetworkModel(BaseModel):
         )
 
         # Store training history
-
         self.training_history = {
             "accuracy": history.history["accuracy"],
             "loss": history.history["loss"],

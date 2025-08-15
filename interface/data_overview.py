@@ -4,10 +4,10 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from core.utils import get_data_file_path
 from core.utils.data_loader import OPTIMIZED_DTYPES
 
 
+@st.cache_data
 def load_dataset(file_path: str) -> pd.DataFrame:
     try:
         return pd.read_csv(file_path, dtype=OPTIMIZED_DTYPES)
@@ -31,7 +31,7 @@ class DataOverview:
         }
 
         selected_file = st.selectbox("Select Dataset", list(data_files.keys()))
-        file_path = get_data_file_path(data_files[selected_file], self.config)
+        file_path = self.config.paths.get_data_path(data_files[selected_file])
 
         if not file_path.exists():
             st.warning(f"Dataset not found: {file_path}")

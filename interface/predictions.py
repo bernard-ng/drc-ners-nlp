@@ -1,5 +1,3 @@
-"""Predictions interface for the Streamlit app"""
-
 from datetime import datetime
 from typing import Optional
 
@@ -8,7 +6,6 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from core.utils import get_data_file_path
 from core.utils.data_loader import OPTIMIZED_DTYPES
 from research.experiment.experiment_runner import ExperimentRunner
 from research.experiment.experiment_tracker import ExperimentTracker
@@ -268,7 +265,7 @@ class Predictions:
         }
 
         selected_dataset = st.selectbox("Select Dataset", list(dataset_options.keys()))
-        file_path = get_data_file_path(dataset_options[selected_dataset], self.config)
+        file_path = self.config.paths.get_data_path(dataset_options[selected_dataset])
 
         if not file_path.exists():
             st.warning(f"Dataset not found: {file_path}")

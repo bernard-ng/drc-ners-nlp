@@ -44,18 +44,3 @@ def ensure_directories(config: "PipelineConfig") -> None:
         Path(directory).mkdir(parents=True, exist_ok=True)
 
     logging.info("Ensured all required directories exist")
-
-
-def get_data_file_path(filename: str, config: "PipelineConfig") -> Path:
-    """Get full path for a data file"""
-    return config.paths.data_dir / filename
-
-
-def get_model_file_path(filename: str, config: "PipelineConfig") -> Path:
-    """Get full path for a model file"""
-    return config.paths.models_dir / filename
-
-
-def get_output_file_path(filename: str, config: "PipelineConfig") -> Path:
-    """Get full path for an output file"""
-    return config.paths.outputs_dir / filename

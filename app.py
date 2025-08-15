@@ -3,7 +3,7 @@ import argparse
 
 import streamlit as st
 
-from core.config import get_config, setup_config, PipelineConfig
+from core.config import setup_config, PipelineConfig
 from core.utils.data_loader import DataLoader
 from interface.configuration import Configuration
 from interface.dashboard import Dashboard
