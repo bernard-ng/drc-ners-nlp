@@ -1,8 +1,8 @@
 import logging
+import time
+from typing import Dict, Any
 
 import pandas as pd
-from typing import Dict, Any
-import time
 
 from processing.batch.batch_config import BatchConfig
 from processing.batch.batch_processor import BatchProcessor
@@ -49,9 +49,6 @@ class Pipeline:
                 "processed_batches": step.state.processed_batches,
                 "total_batches": step.state.total_batches,
                 "failed_batches": len(step.state.failed_batches),
-                "completion_percentage": (
-                    step.state.processed_batches / max(1, step.state.total_batches)
-                )
-                * 100,
+                "completion_percentage": (step.state.processed_batches / max(1, step.state.total_batches)) * 100,
             }
         return progress

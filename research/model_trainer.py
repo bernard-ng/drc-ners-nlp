@@ -27,13 +27,13 @@ class ModelTrainer:
         self.models_dir.mkdir(parents=True, exist_ok=True)
 
     def train_single_model(
-        self,
-        model_name: str,
-        model_type: str = "logistic_regression",
-        features: List[str] = None,
-        model_params: Dict[str, Any] = None,
-        tags: List[str] = None,
-        save_artifacts: bool = True,
+            self,
+            model_name: str,
+            model_type: str = "logistic_regression",
+            features: List[str] = None,
+            model_params: Dict[str, Any] = None,
+            tags: List[str] = None,
+            save_artifacts: bool = True,
     ) -> str:
         """
         Train a single model and save its artifacts.
@@ -75,7 +75,7 @@ class ModelTrainer:
         return experiment_id
 
     def train_multiple_models(
-        self, base_name: str, model_configs: List[Dict[str, Any]], save_all: bool = True
+            self, base_name: str, model_configs: List[Dict[str, Any]], save_all: bool = True
     ) -> List[str]:
         """
         Train multiple models with different configurations.

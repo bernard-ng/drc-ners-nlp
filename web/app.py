@@ -2,6 +2,7 @@
 import argparse
 import sys
 from pathlib import Path
+
 import streamlit as st
 
 # Add parent directory to Python path to access core modules
@@ -13,13 +14,6 @@ from core.utils.data_loader import DataLoader
 from processing.monitoring.pipeline_monitor import PipelineMonitor
 from research.experiment.experiment_runner import ExperimentRunner
 from research.experiment.experiment_tracker import ExperimentTracker
-from web.interfaces.configuration import Configuration
-from web.interfaces.dashboard import Dashboard
-from web.interfaces.data_overview import DataOverview
-from web.interfaces.data_processing import DataProcessing
-from web.interfaces.experiments import Experiments
-from web.interfaces.predictions import Predictions
-from web.interfaces.results_analysis import ResultsAnalysis
 
 # Page configuration
 st.set_page_config(
@@ -53,12 +47,10 @@ class StreamlitApp:
         self.config = config
         initialize_session_state(config)
 
-    def run(self):
-        st.title("🇨🇩 DRC NERS Pipeline")
-        st.markdown(
-            "A Culturally-Aware NLP System for Congolese Name Analysis and Gender Inference"
-        )
-
+    @classmethod
+    def run(cls):
+        st.title("🇨🇩 DRC NERS Platform")
+        st.markdown("A Culturally-Aware NLP System for Congolese Name Analysis and Gender Inference")
         st.markdown(
             """
             ## Overview
@@ -67,7 +59,7 @@ class StreamlitApp:
             data.
             This project introduces a comprehensive pipeline for Congolese name analysis with a large-scale dataset of over 5
             million names from the Democratic Republic of Congo (DRC) annotated with gender and demographic metadata.
-        """
+            """
         )
 
 

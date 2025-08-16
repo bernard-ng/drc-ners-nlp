@@ -6,7 +6,7 @@ from typing import Dict
 import pandas as pd
 
 from core.config.pipeline_config import PipelineConfig
-from processing.ner.ner_name_model import NERNameModel
+from processing.ner.name_model import NameModel
 from processing.steps import PipelineStep, NameAnnotation
 
 
@@ -19,7 +19,7 @@ class NERAnnotationStep(PipelineStep):
 
         self.model_name = "drc_ner_model"
         self.model_path = pipeline_config.paths.models_dir / "drc_ner_model"
-        self.ner_trainer = NERNameModel(pipeline_config)
+        self.name_model = NameModel(pipeline_config)
         self.ner_config = pipeline_config.annotation.ner
 
         # Statistics
@@ -35,19 +35,19 @@ class NERAnnotationStep(PipelineStep):
         try:
             if self.model_path.exists():
                 logging.info(f"Loading NER model from {self.model_path}")
-                self.ner_trainer.load(str(self.model_path))
+                self.name_model.load(str(self.model_path))
                 logging.info("NER model loaded successfully")
             else:
                 logging.warning(f"NER model not found at {self.model_path}")
                 logging.warning("NER annotation will be skipped. Train the model first.")
-                self.ner_trainer.nlp = None
+                self.name_model.nlp = None
         except Exception as e:
             logging.error(f"Failed to load NER model: {e}")
-            self.ner_trainer.nlp = None
+            self.name_model.nlp = None
 
     def analyze_name(self, name: str) -> Dict:
         """Analyze a name with retry logic"""
-        if self.ner_trainer.nlp is None:
+        if self.name_model.nlp is None:
             return {
                 "identified_name": None,
                 "identified_surname": None,
@@ -62,7 +62,7 @@ class NERAnnotationStep(PipelineStep):
                 start_time = time.time()
 
                 # Get NER predictions
-                prediction = self.ner_trainer.predict(name.lower())
+                prediction = self.name_model.predict(name.lower())
                 entities = prediction.get("entities", [])
 
                 elapsed_time = time.time() - start_time

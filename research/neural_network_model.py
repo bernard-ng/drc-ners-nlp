@@ -83,7 +83,7 @@ class NeuralNetworkModel(BaseModel):
         return self
 
     def cross_validate(
-        self, X: pd.DataFrame, y: pd.Series, cv_folds: int = 5
+            self, X: pd.DataFrame, y: pd.Series, cv_folds: int = 5
     ) -> dict[str, np.floating[Any]]:
         features_df = self.feature_extractor.extract_features(X)
         X_prepared = self.prepare_features(features_df)
@@ -140,7 +140,7 @@ class NeuralNetworkModel(BaseModel):
         }
 
     def generate_learning_curve(
-        self, X: pd.DataFrame, y: pd.Series, train_sizes: List[float] = None
+            self, X: pd.DataFrame, y: pd.Series, train_sizes: List[float] = None
     ) -> Dict[str, Any]:
         """Generate learning curve data for the model"""
         logging.info(f"Generating learning curve for {self.__class__.__name__}")

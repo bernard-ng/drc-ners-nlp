@@ -13,7 +13,7 @@ from research.model_registry import list_available_models
 
 class Experiments:
     def __init__(
-        self, config, experiment_tracker: ExperimentTracker, experiment_runner: ExperimentRunner
+            self, config, experiment_tracker: ExperimentTracker, experiment_runner: ExperimentRunner
     ):
         self.config = config
         self.experiment_tracker = experiment_tracker
@@ -113,18 +113,18 @@ class Experiments:
                 )
 
     def _handle_experiment_submission(
-        self,
-        exp_name: str,
-        description: str,
-        model_type: str,
-        selected_features: List[str],
-        model_params: Dict[str, Any],
-        test_size: float,
-        cv_folds: int,
-        tags: str,
-        filter_province: str,
-        min_words: int,
-        max_words: int,
+            self,
+            exp_name: str,
+            description: str,
+            model_type: str,
+            selected_features: List[str],
+            model_params: Dict[str, Any],
+            test_size: float,
+            cv_folds: int,
+            tags: str,
+            filter_province: str,
+            min_words: int,
+            max_words: int,
     ):
         """Handle experiment form submission"""
         if not exp_name:
@@ -209,7 +209,7 @@ class Experiments:
         # Display experiments
         for i, exp in enumerate(experiments):
             with st.expander(
-                f"{exp.config.name} - {exp.status.value} - {exp.start_time.strftime('%Y-%m-%d %H:%M')}"
+                    f"{exp.config.name} - {exp.status.value} - {exp.start_time.strftime('%Y-%m-%d %H:%M')}"
             ):
                 self._display_experiment_details(exp, i)
 
@@ -230,7 +230,8 @@ class Experiments:
 
         return experiments
 
-    def _display_experiment_details(self, exp, index: int):
+    @classmethod
+    def _display_experiment_details(cls, exp, index: int):
         """Display details for a single experiment"""
         col1, col2, col3 = st.columns(3)
 
@@ -295,13 +296,13 @@ class Experiments:
                 )
 
     def run_batch_experiments(
-        self,
-        base_name: str,
-        model_types: List[str],
-        ngram_ranges: str,
-        feature_combinations: List[str],
-        test_sizes: str,
-        tags: str,
+            self,
+            base_name: str,
+            model_types: List[str],
+            ngram_ranges: str,
+            feature_combinations: List[str],
+            test_sizes: str,
+            tags: str,
     ):
         """Run batch experiments with parameter combinations"""
         with st.spinner("Running batch experiments..."):
@@ -368,64 +369,3 @@ class Experiments:
 
             except Exception as e:
                 st.error(f"Error running batch experiments: {e}")
-
-    def run_baseline_experiments(self):
-        """Run baseline experiments"""
-        with st.spinner("Running baseline experiments..."):
-            try:
-                builder = ExperimentBuilder()
-                experiments = builder.create_baseline_experiments()
-                experiment_ids = self.experiment_runner.run_experiment_batch(experiments)
-
-                st.success(f"Completed {len(experiment_ids)} baseline experiments")
-
-                # Show quick comparison
-                if experiment_ids:
-                    comparison = self.experiment_runner.compare_experiments(experiment_ids)
-                    st.write("**Results Summary:**")
-                    st.dataframe(
-                        comparison[["name", "model_type", "test_accuracy"]],
-                        use_container_width=True,
-                    )
-
-            except Exception as e:
-                st.error(f"Error running baseline experiments: {e}")
-
-    def run_ablation_study(self):
-        """Run feature ablation study"""
-        with st.spinner("Running ablation study..."):
-            try:
-                builder = ExperimentBuilder()
-                experiments = builder.create_feature_ablation_study()
-                experiment_ids = self.experiment_runner.run_experiment_batch(experiments)
-
-                st.success(f"Completed {len(experiment_ids)} ablation experiments")
-
-            except Exception as e:
-                st.error(f"Error running ablation study: {e}")
-
-    def run_component_study(self):
-        """Run name component study"""
-        with st.spinner("Running component study..."):
-            try:
-                builder = ExperimentBuilder()
-                experiments = builder.create_name_component_study()
-                experiment_ids = self.experiment_runner.run_experiment_batch(experiments)
-
-                st.success(f"Completed {len(experiment_ids)} component experiments")
-
-            except Exception as e:
-                st.error(f"Error running component study: {e}")
-
-    def run_province_study(self):
-        """Run province-specific study"""
-        with st.spinner("Running province study..."):
-            try:
-                builder = ExperimentBuilder()
-                experiments = builder.create_province_specific_study()
-                experiment_ids = self.experiment_runner.run_experiment_batch(experiments)
-
-                st.success(f"Completed {len(experiment_ids)} province experiments")
-
-            except Exception as e:
-                st.error(f"Error running province study: {e}")

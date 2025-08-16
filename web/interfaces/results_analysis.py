@@ -12,7 +12,7 @@ from research.experiment.experiment_tracker import ExperimentTracker
 
 class ResultsAnalysis:
     def __init__(
-        self, config, experiment_tracker: ExperimentTracker, experiment_runner: ExperimentRunner
+            self, config, experiment_tracker: ExperimentTracker, experiment_runner: ExperimentRunner
     ):
         self.config = config
         self.experiment_tracker = experiment_tracker

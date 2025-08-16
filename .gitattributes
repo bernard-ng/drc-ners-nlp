@@ -1,0 +1,8 @@
+notebooks/* linguist-vendored
+
+linguist-detectable=false
+
+*.ipynb linguist-detectable=false
+
+# Enforce Unix newlines
+*.py   text eol=lf

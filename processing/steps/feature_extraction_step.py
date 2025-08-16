@@ -7,7 +7,7 @@ import pandas as pd
 
 from core.config.pipeline_config import PipelineConfig
 from core.utils.region_mapper import RegionMapper
-from processing.ner.ner_name_tagger import NERNameTagger
+from processing.ner.name_tagger import NameTagger
 from processing.steps import PipelineStep
 
 
@@ -27,7 +27,7 @@ class FeatureExtractionStep(PipelineStep):
     def __init__(self, pipeline_config: PipelineConfig):
         super().__init__("feature_extraction", pipeline_config)
         self.region_mapper = RegionMapper()
-        self.name_tagger = NERNameTagger()
+        self.name_tagger = NameTagger()
 
     @classmethod
     def requires_batch_mutation(cls) -> bool:

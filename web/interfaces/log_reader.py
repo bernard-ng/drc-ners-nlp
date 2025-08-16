@@ -38,7 +38,7 @@ class LogReader:
 
             # Parse log entries from the end
             entries = []
-            for line in reversed(lines[-count * 2 :]):  # Read more lines in case some don't match
+            for line in reversed(lines[-count * 2:]):  # Read more lines in case some don't match
                 entry = self._parse_log_line(line.strip())
                 if entry:
                     entries.append(entry)

@@ -158,12 +158,12 @@ class ExperimentRunner:
 
     @classmethod
     def _create_prediction_examples(
-        cls,
-        X_test: pd.DataFrame,
-        y_test: pd.Series,
-        predictions: np.ndarray,
-        model: BaseModel,
-        n_examples: int = 10,
+            cls,
+            X_test: pd.DataFrame,
+            y_test: pd.Series,
+            predictions: np.ndarray,
+            model: BaseModel,
+            n_examples: int = 10,
     ) -> List[Dict]:
         """Create prediction examples for analysis"""
         examples = []
@@ -237,7 +237,7 @@ class ExperimentRunner:
         return None
 
     def compare_experiments(
-        self, experiment_ids: List[str], metric: str = "accuracy"
+            self, experiment_ids: List[str], metric: str = "accuracy"
     ) -> pd.DataFrame:
         """Compare experiments and return analysis"""
         comparison_df = self.tracker.compare_experiments(experiment_ids)

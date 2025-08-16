@@ -7,7 +7,6 @@ from typing import Optional, Dict, List
 import pandas as pd
 
 from core.config import PipelineConfig, get_config
-
 from research.experiment import ExperimentConfig, ExperimentStatus
 from research.experiment.experiement_result import ExperimentResult
 
@@ -78,10 +77,10 @@ class ExperimentTracker:
         return self._results.get(experiment_id)
 
     def list_experiments(
-        self,
-        status: Optional[ExperimentStatus] = None,
-        tags: Optional[List[str]] = None,
-        model_type: Optional[str] = None,
+            self,
+            status: Optional[ExperimentStatus] = None,
+            tags: Optional[List[str]] = None,
+            model_type: Optional[str] = None,
     ) -> List[ExperimentResult]:
         """List experiments with optional filtering"""
         results = list(self._results.values())
@@ -98,7 +97,7 @@ class ExperimentTracker:
         return sorted(results, key=lambda x: x.start_time, reverse=True)
 
     def get_best_experiment(
-        self, metric: str = "accuracy", dataset: str = "test", filters: Optional[Dict] = None
+            self, metric: str = "accuracy", dataset: str = "test", filters: Optional[Dict] = None
     ) -> Optional[ExperimentResult]:
         """Get the best experiment based on a metric"""
         experiments = self.list_experiments()
@@ -160,8 +159,8 @@ class ExperimentTracker:
         """Export all results to CSV"""
         if output_path is None:
             output_path = (
-                self.experiments_dir
-                / f"experiments_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+                    self.experiments_dir
+                    / f"experiments_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
             )
 
         rows = []

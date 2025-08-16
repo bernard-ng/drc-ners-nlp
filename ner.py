@@ -24,29 +24,29 @@ def build(config: PipelineConfig):
 
 def train(config: PipelineConfig):
     """Train the NER model."""
-    trainer = NameModel(config)
+    name_model = NameModel(config)
 
     data_path = Path(config.paths.data_dir) / config.data.output_files["ner_data"]
     if not data_path.exists():
         logging.info("NER data not found. Building dataset first...")
         build(config)
 
-    trainer.create_blank_model("fr")
-    data = trainer.load_data(str(data_path))
+    name_model.create_blank_model("fr")
+    data = name_model.load_data(str(data_path))
 
     split_idx = int(len(data) * 0.9)
     train_data, eval_data = data[:split_idx], data[split_idx:]
 
     logging.info(f"Training with {len(train_data)} examples, evaluating on {len(eval_data)}")
-    trainer.train(
+    name_model.train(
         data=train_data,
         epochs=config.processing.epochs,
         batch_size=config.processing.batch_size,
         dropout_rate=0.3,
     )
-    trainer.evaluate(eval_data)
+    name_model.evaluate(eval_data)
 
-    model_path = trainer.save()
+    model_path = name_model.save()
     logging.info(f"Model saved to: {model_path}")
 
 
