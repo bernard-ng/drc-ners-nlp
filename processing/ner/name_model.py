@@ -1,3 +1,4 @@
+import ast
 import json
 import logging
 import os
@@ -11,7 +12,7 @@ from spacy.util import minibatch
 from core.config.pipeline_config import PipelineConfig
 
 
-class NERNameModel:
+class NameModel:
     """NER model trainer using spaCy for DRC names entity recognition"""
 
     def __init__(self, config: PipelineConfig):
@@ -84,8 +85,6 @@ class NERNameModel:
                 if isinstance(entities_raw, str):
                     # String format from tagger: "[(0, 6, 'NATIVE'), ...]"
                     try:
-                        import ast
-
                         entities = ast.literal_eval(entities_raw)
                         if not isinstance(entities, list):
                             logging.warning(
@@ -175,9 +174,9 @@ class NERNameModel:
     def train(
         self,
         data: List[Tuple[str, Dict]],
-        epochs: int = 5,
-        batch_size: int = 16,
-        dropout_rate: float = 0.2,
+        epochs: int = 1,
+        batch_size: int = 10_000,
+        dropout_rate: float = 0.3,
     ) -> None:
         """Train the NER model"""
         logging.info(f"Starting NER training with {len(data)} examples")
@@ -204,7 +203,7 @@ class NERNameModel:
                 example = Example.from_dict(doc, annotations)
                 examples.append(example)
                 logging.info(
-                    f"Training example: {text[:30]}... with entities {annotations.get('entities', [])}"
+                    f"Training example: {text[:30]} with entities {annotations.get('entities', [])}"
                 )
 
             # Train in batches
@@ -215,6 +214,7 @@ class NERNameModel:
                 )
                 logging.info(f"Training batch with {len(batch)} examples, current losses: {losses}")
 
+            del batches  # free memory
             epoch_loss = losses.get("ner", 0)
             losses_history.append(epoch_loss)
             logging.info(f"Epoch {epoch + 1}/{epochs}, Loss: {epoch_loss:.4f}")

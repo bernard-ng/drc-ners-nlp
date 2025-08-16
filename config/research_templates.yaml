@@ -7,7 +7,7 @@ baseline_experiments:
       max_len: 20
       embedding_dim: 64
       gru_units: 32
-      epochs: 10
+      epochs: 2
       batch_size: 32
     tags: [ "baseline", "neural", "bigru" ]
 
@@ -21,7 +21,7 @@ baseline_experiments:
       filters: 64
       kernel_size: 3
       dropout: 0.5
-      epochs: 10
+      epochs: 2
       batch_size: 32
     tags: [ "baseline", "neural", "cnn" ]
 
@@ -79,7 +79,7 @@ baseline_experiments:
     model_params:
       embedding_dim: 128
       lstm_units: 64
-      epochs: 10
+      epochs: 2
       batch_size: 64
     tags: [ "baseline", "neural", "lstm" ]
 
@@ -121,7 +121,7 @@ baseline_experiments:
       embedding_dim: 128
       num_heads: 4
       num_layers: 2
-      epochs: 10
+      epochs: 2
       batch_size: 64
     tags: [ "baseline", "neural", "transformer" ]
 

@@ -12,8 +12,6 @@ from research.experiment.experiment_tracker import ExperimentTracker
 
 
 class Predictions:
-    """Handles prediction interface"""
-
     def __init__(
         self, config, experiment_tracker: ExperimentTracker, experiment_runner: ExperimentRunner
     ):
@@ -22,8 +20,7 @@ class Predictions:
         self.experiment_runner = experiment_runner
 
     def index(self):
-        """Main predictions page"""
-        st.header("Make Predictions")
+        st.title("Predictions")
 
         # Load available models
         experiments = self.experiment_tracker.list_experiments()

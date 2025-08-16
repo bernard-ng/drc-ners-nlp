@@ -3,7 +3,7 @@ import plotly.express as px
 import streamlit as st
 
 from core.utils.data_loader import OPTIMIZED_DTYPES
-from interface.log_reader import LogReader
+from web.interfaces.log_reader import LogReader
 
 
 @st.cache_data
@@ -21,7 +21,7 @@ class DataProcessing:
         self.pipeline_monitor = pipeline_monitor
 
     def index(self):
-        st.header("Data Processing Pipeline")
+        st.title("Data Processing")
         status = self.pipeline_monitor.get_pipeline_status()
 
         # Overall progress

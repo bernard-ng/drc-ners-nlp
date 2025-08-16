@@ -12,8 +12,6 @@ from research.model_registry import list_available_models
 
 
 class Experiments:
-    """Handles experiment management interface"""
-
     def __init__(
         self, config, experiment_tracker: ExperimentTracker, experiment_runner: ExperimentRunner
     ):
@@ -22,8 +20,7 @@ class Experiments:
         self.experiment_runner = experiment_runner
 
     def index(self):
-        """Main experiments page"""
-        st.header("Experiment Management")
+        st.title("Experiments")
         tab1, tab2, tab3 = st.tabs(["New Experiment", "Experiment List", "Batch Experiments"])
 
         with tab1:

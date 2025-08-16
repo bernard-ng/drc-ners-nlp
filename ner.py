@@ -7,24 +7,24 @@ import traceback
 from pathlib import Path
 
 from core.config import setup_config, PipelineConfig
-from processing.ner.ner_data_builder import NERDataBuilder
-from processing.ner.ner_engineering import NEREngineering
-from processing.ner.ner_name_model import NERNameModel
+from processing.ner.name_builder import NameBuilder
+from processing.ner.name_engineering import NameEngineering
+from processing.ner.name_model import NameModel
 
 
 def feature(config: PipelineConfig):
     """Apply feature engineering to create position-independent NER dataset."""
-    NEREngineering(config).compute()
+    NameEngineering(config).compute()
 
 
 def build(config: PipelineConfig):
     """Build NER dataset using NERDataBuilder."""
-    NERDataBuilder(config).build()
+    NameBuilder(config).build()
 
 
 def train(config: PipelineConfig):
     """Train the NER model."""
-    trainer = NERNameModel(config)
+    trainer = NameModel(config)
 
     data_path = Path(config.paths.data_dir) / config.data.output_files["ner_data"]
     if not data_path.exists():
@@ -39,7 +39,10 @@ def train(config: PipelineConfig):
 
     logging.info(f"Training with {len(train_data)} examples, evaluating on {len(eval_data)}")
     trainer.train(
-        data=train_data, epochs=1, batch_size=config.processing.batch_size, dropout_rate=0.3
+        data=train_data,
+        epochs=config.processing.epochs,
+        batch_size=config.processing.batch_size,
+        dropout_rate=0.3,
     )
     trainer.evaluate(eval_data)
 
@@ -48,13 +51,17 @@ def train(config: PipelineConfig):
 
 
 def run_pipeline(config: PipelineConfig, reset: bool = False):
-    if not reset and os.path.exists(config.paths.get_data_path(config.data.output_files["engineered"])):
+    if not reset and os.path.exists(
+        config.paths.get_data_path(config.data.output_files["engineered"])
+    ):
         logging.info("Step 1: Feature engineering already done.")
     else:
         logging.info("Step 1: Running feature engineering")
         feature(config)
 
-    if not reset and os.path.exists(config.paths.get_data_path(config.data.output_files["ner_data"])):
+    if not reset and os.path.exists(
+        config.paths.get_data_path(config.data.output_files["ner_data"])
+    ):
         logging.info("Step 2: NER dataset already built.")
     else:
         logging.info("Step 2: Building NER dataset")

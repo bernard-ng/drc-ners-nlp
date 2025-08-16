@@ -18,7 +18,8 @@ paths:
   checkpoints_dir: "./data/checkpoints"   # Directory for model checkpoints
 
 # Pipeline stages
-stages: # List of stages in the processing pipeline
+# List of stages in the processing pipeline
+stages:
   - "data_cleaning"                        # Data cleaning stage
   - "feature_extraction"                   # Feature extraction stage
   - "ner_annotation"                       # NER-based annotation stage
@@ -36,6 +37,7 @@ processing:
     - "utf-16"
     - "latin1"
   chunk_size: 100_000                      # Size of data chunks to process in parallel
+  epochs: 2                                # Number of Epochs for training
 
 # Annotation settings
 annotation:
@@ -72,8 +74,9 @@ data:
   balance_by_sex: false                     # Should the dataset be balanced by sex when limiting the dataset size?
 
 # Logging configuration
+# Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
 logging:
-  level: "INFO"                            # Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+  level: "INFO"
   format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
   file_logging: true                       # Enable logging to file
   console_logging: true                    # Enable logging to console

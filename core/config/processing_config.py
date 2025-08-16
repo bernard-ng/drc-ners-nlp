@@ -12,3 +12,4 @@ class ProcessingConfig(BaseModel):
     use_multiprocessing: bool = False
     encoding_options: list = field(default_factory=lambda: ["utf-8", "utf-16", "latin1"])
     chunk_size: int = 100_000
+    epochs: int = 2

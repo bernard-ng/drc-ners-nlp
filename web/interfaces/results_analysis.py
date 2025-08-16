@@ -11,8 +11,6 @@ from research.experiment.experiment_tracker import ExperimentTracker
 
 
 class ResultsAnalysis:
-    """Handles experiment results and analysis interface"""
-
     def __init__(
         self, config, experiment_tracker: ExperimentTracker, experiment_runner: ExperimentRunner
     ):
@@ -21,8 +19,7 @@ class ResultsAnalysis:
         self.experiment_runner = experiment_runner
 
     def index(self):
-        """Main results analysis page"""
-        st.header("Results & Analysis")
+        st.title("Results & Analysis")
         tab1, tab2, tab3 = st.tabs(
             ["Experiment Comparison", "Performance Analysis", "Model Analysis"]
         )

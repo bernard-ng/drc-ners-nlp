@@ -1,5 +1,5 @@
+import gc
 import random
-from typing import List
 import logging
 
 import numpy as np
@@ -7,7 +7,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from core.config import PipelineConfig
-from core.utils.data_loader import OPTIMIZED_DTYPES, DataLoader
+from core.utils.data_loader import DataLoader
 from processing.ner.formats.connectors_format import ConnectorFormatter
 from processing.ner.formats.extended_surname_format import ExtendedSurnameFormatter
 from processing.ner.formats.native_only_format import NativeOnlyFormatter
@@ -16,7 +16,7 @@ from processing.ner.formats.position_flipped_format import PositionFlippedFormat
 from processing.ner.formats.reduced_native_format import ReducedNativeFormatter
 
 
-class NEREngineering:
+class NameEngineering:
     """
     Feature engineering for NER dataset to prevent position-based learning
     and encourage sequence characteristic learning.
@@ -66,13 +66,16 @@ class NEREngineering:
     def compute(self) -> None:
         logging.info("Applying feature engineering transformations...")
         input_filepath = self.config.paths.get_data_path(self.config.data.output_files["featured"])
-        output_filepath = self.config.paths.get_data_path(self.config.data.output_files["engineered"])
+        output_filepath = self.config.paths.get_data_path(
+            self.config.data.output_files["engineered"]
+        )
 
         df = self.data_loader.load_csv_complete(input_filepath)
         ner_df = df[df["ner_tagged"] == 1].copy()
         logging.info(f"Loaded {len(ner_df)} NER-tagged records from {len(df)} total records")
 
         del df  # No need to keep in memory
+        gc.collect()
 
         ner_df = ner_df.sample(frac=1, random_state=self.config.data.random_seed).reset_index(
             drop=True

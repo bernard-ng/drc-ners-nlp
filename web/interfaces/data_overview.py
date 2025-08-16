@@ -21,7 +21,7 @@ class DataOverview:
         self.config = config
 
     def index(self):
-        st.header("Data Overview")
+        st.title("Data Overview")
         data_files = {
             "Names": self.config.data.input_file,
             "Featured Dataset": self.config.data.output_files["featured"],

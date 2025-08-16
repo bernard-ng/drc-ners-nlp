@@ -20,7 +20,7 @@ class Dashboard:
         self.experiment_runner = experiment_runner
 
     def index(self):
-        st.header("Dashboard")
+        st.title("Dashboard")
         col1, col2, col3, col4 = st.columns(4)
 
         # Load basic statistics
