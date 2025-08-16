@@ -56,8 +56,6 @@ the `drc-ners-nlp/config/pipeline.yaml` file.
 stages:
   - "data_cleaning"
   - "feature_extraction"
-  - "ner_annotation"
-  - "llm_annotation"
   - "data_splitting"
 ```
 
@@ -65,6 +63,36 @@ stages:
 
 ```bash
 python main.py --env development
+```
+
+## NER Processing
+
+This project implements a custom named entity recognition (NER) pipeline tailored for Congolese names. 
+Its main objective is to accurately identify and tag the different components of a Congolese name, 
+specifically distinguishing between the native part and the surname.
+
+```bash
+python ner.py --env development
+```
+
+Once you've built and train the NER model you can use it to annotate **CoMPOSE** name in the original dataset 
+
+**Running the Pipeline with NER Annotation**
+```yaml
+stages:
+  - "data_cleaning"
+  - "feature_extraction"
+  - "ner_annotation"
+  - "data_splitting"
+```
+
+**Running the Pipeline with LLM Annotation**
+```yaml
+stages:
+  - "data_cleaning"
+  - "feature_extraction"
+  - "llm_annotation"
+  - "data_splitting"
 ```
 
 ## Experiments
@@ -100,7 +128,7 @@ experiments and make predictions without needing to understand the underlying co
 ### Running the Web Interface
 
 ```bash
-streamlit run app.py
+streamlit run web/app.py
 ```
 
 ## Contributors
