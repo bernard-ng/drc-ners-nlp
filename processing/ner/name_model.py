@@ -2,6 +2,7 @@ import ast
 import json
 import logging
 import os
+import random
 from pathlib import Path
 from typing import Dict, Any, List, Tuple
 
@@ -190,32 +191,34 @@ class NameModel:
 
         # Initialize the model
         self.nlp.initialize()
-
-        # Training loop
+        optimizer = self.nlp.resume_training()
         losses_history = []
 
         for epoch in range(epochs):
             losses = {}
-
-            # Create training examples
             examples = []
-            for text, annotations in tqdm(data, description="Create training examples"):
+
+            for text, annotations in tqdm(data, desc="Create training examples"):
                 doc = self.nlp.make_doc(text)
-                example = Example.from_dict(doc, annotations)
-                examples.append(example)
+                examples.append(Example.from_dict(doc, annotations))
+
+            # Shuffle examples each epoch (important!)
+            random.shuffle(examples)
 
             # Train in batches
             batches = minibatch(examples, size=batch_size)
             for batch in batches:
-                self.nlp.update(
-                    batch, losses=losses, drop=dropout_rate, sgd=self.nlp.create_optimizer()
-                )
-                logging.info(f"Training batch with {len(batch)} examples, current losses: {losses}")
+                batch_losses = {}
+                self.nlp.update(batch, losses=batch_losses, drop=dropout_rate, sgd=optimizer)
+                logging.info(f"Training batch with {len(batch)} examples, current losses: {batch_losses}")
+
+                # Accumulate into total losses dict
+                for k, v in batch_losses.items():
+                    losses[k] = losses.get(k, 0.0) + v
 
             del batches  # free memory
-            epoch_loss = losses.get("ner", 0)
-            losses_history.append(epoch_loss)
-            logging.info(f"Epoch {epoch + 1}/{epochs}, Loss: {epoch_loss:.4f}")
+            losses_history.append(losses.get("ner", 0))
+            logging.info(f"Epoch {epoch+1}/{epochs}, Total Loss: {losses['ner']:.4f}")
 
         # Store training statistics
         self.training_stats = {
