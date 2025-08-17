@@ -8,6 +8,7 @@ from typing import Dict, Any, List, Tuple
 import spacy
 from spacy.training import Example
 from spacy.util import minibatch
+from tqdm import tqdm
 
 from core.config.pipeline_config import PipelineConfig
 
@@ -198,13 +199,10 @@ class NameModel:
 
             # Create training examples
             examples = []
-            for text, annotations in data:
+            for text, annotations in tqdm(data, description="Create training examples"):
                 doc = self.nlp.make_doc(text)
                 example = Example.from_dict(doc, annotations)
                 examples.append(example)
-                logging.info(
-                    f"Training example: {text[:30]} with entities {annotations.get('entities', [])}"
-                )
 
             # Train in batches
             batches = minibatch(examples, size=batch_size)

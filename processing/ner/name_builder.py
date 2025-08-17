@@ -11,6 +11,10 @@ from .name_tagger import NameTagger
 
 class NameBuilder:
     def __init__(self, config: PipelineConfig):
+        config = config.model_copy(deep=True)
+        config.data.max_dataset_size = 1_000_000
+        config.data.balance_by_sex = True
+
         self.config = config
         self.data_loader = DataLoader(config)
         self.tagger = NameTagger()
@@ -33,8 +37,8 @@ class NameBuilder:
         nlp = spacy.blank("fr")
 
         # Use NERNameTagger for parsing and validation
-        parsed_entities = NameTagger.parse_entities(ner_df["ner_entities"])
-        validated_entities = NameTagger.validate_entities(ner_df["name"], parsed_entities)
+        parsed_entities = self.tagger.parse_entities(ner_df["ner_entities"])
+        validated_entities = self.tagger.validate_entities(ner_df["name"], parsed_entities)
 
         # Drop rows with no valid entities
         mask = validated_entities.map(bool)
@@ -51,7 +55,7 @@ class NameBuilder:
         )
 
         # Use NERNameTagger to create spaCy DocBin
-        docs = NameTagger.create_docs(nlp, ner_df["name"].tolist(), validated_entities.tolist())
+        docs = self.tagger.create_docs(nlp, ner_df["name"].tolist(), validated_entities.tolist())
         doc_bin = DocBin(docs=docs)
 
         # Save

@@ -164,5 +164,5 @@ class DataLoader:
         if create_dirs:
             filepath.parent.mkdir(parents=True, exist_ok=True)
 
-        df.to_csv(filepath, index=False, encoding="utf-8")
+        df.to_csv(filepath, index=False, encoding="utf-8", sep=",", quoting=1)
         logging.info(f"Saved {len(df)} rows to {filepath}")

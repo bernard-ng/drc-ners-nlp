@@ -13,7 +13,10 @@ from research.model_registry import list_available_models
 
 class Experiments:
     def __init__(
-            self, config: PipelineConfig, experiment_tracker: ExperimentTracker, experiment_runner: ExperimentRunner
+            self,
+            config: PipelineConfig,
+            experiment_tracker: ExperimentTracker,
+            experiment_runner: ExperimentRunner
     ):
         self.config = config
         self.experiment_tracker = experiment_tracker
@@ -22,6 +25,7 @@ class Experiments:
 
     def index(self):
         st.title("Experiments")
+
         tab1, tab2, tab3 = st.tabs(
             ["Templates", "Experiments", "Batch Experiments"])
 
