@@ -44,10 +44,11 @@ def train(config: PipelineConfig):
         batch_size=config.processing.batch_size,
         dropout_rate=0.3,
     )
-    name_model.evaluate(eval_data)
+    evaluation_results = name_model.evaluate(eval_data)
 
     model_path = name_model.save()
     logging.info(f"Model saved to: {model_path}")
+    print(f"Evaluation results: {evaluation_results}")
 
 
 def run_pipeline(config: PipelineConfig, reset: bool = False):

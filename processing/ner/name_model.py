@@ -23,6 +23,7 @@ class NameModel:
         self.ner = None
         self.model_path = None
         self.training_stats = {}
+        self.evaluation_stats = {}
 
     def create_blank_model(self, language: str = "fr") -> None:
         """Create a blank spaCy model with NER pipeline"""
@@ -304,7 +305,7 @@ class NameModel:
                 "support": tp + fn,
             }
 
-        evaluation_results = {
+        self.evaluation_stats = {
             "overall": {
                 "precision": precision,
                 "recall": recall,
@@ -317,8 +318,7 @@ class NameModel:
             "by_label": label_metrics,
         }
 
-        logging.info(f"NER Evaluation completed. Overall F1: {f1_score:.4f}")
-        return evaluation_results
+        return self.evaluation_stats
 
     def save(self, model_name: str = "drc_ner_model") -> str:
         """Save the trained model"""
@@ -333,10 +333,14 @@ class NameModel:
         self.nlp.to_disk(model_dir)
         self.model_path = str(model_dir)
 
-        # Save training statistics
-        stats_path = model_dir / "training_stats.json"
-        with open(stats_path, "w", encoding="utf-8") as f:
+        # Save training and evaluation statistics
+        training_stats_path = model_dir / "training_stats.json"
+        with open(training_stats_path, "w", encoding="utf-8") as f:
             json.dump(self.training_stats, f, indent=2)
+
+        evaluation_stats_path = model_dir / "evaluation_stats.json"
+        with open(evaluation_stats_path, "w", encoding="utf-8") as f:
+            json.dump(self.evaluation_stats, f, indent=2)
 
         logging.info(f"NER Model saved to {model_dir}")
         return self.model_path
@@ -352,10 +356,15 @@ class NameModel:
         self.model_path = model_path
 
         # Load training statistics if available
-        stats_path = Path(model_path) / "training_stats.json"
-        if stats_path.exists():
-            with open(stats_path, "r", encoding="utf-8") as f:
+        training_stats_path = Path(model_path) / "training_stats.json"
+        if training_stats_path.exists():
+            with open(training_stats_path, "r", encoding="utf-8") as f:
                 self.training_stats = json.load(f)
+
+        evaluation_stats_path = Path(model_path) / "evaluation_stats.json"
+        if evaluation_stats_path.exists():
+            with open(evaluation_stats_path, "r", encoding="utf-8") as f:
+                self.evaluation_stats = json.load(f)
 
         logging.info("NER Model loaded successfully")
 

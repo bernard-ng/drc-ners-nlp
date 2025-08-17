@@ -60,10 +60,7 @@ class Predictions:
 
     def show_single_prediction(self, experiment):
         """Show single name prediction interface"""
-        st.subheader("Single Name Prediction")
-
         name_input = st.text_input("Enter a name:", placeholder="e.g., Jean Baptiste Mukendi")
-
         if name_input and st.button("Predict Gender"):
             try:
                 # Load the model
@@ -132,11 +129,7 @@ class Predictions:
         st.info(f"Features used: {', '.join([f.value for f in experiment.config.features])}")
 
     def show_batch_prediction(self, experiment):
-        """Show batch prediction interface"""
-        st.subheader("Batch Prediction")
-
         uploaded_file = st.file_uploader("Upload CSV file with names", type="csv")
-
         if uploaded_file is not None:
             try:
                 df = pd.read_csv(uploaded_file, dtype=OPTIMIZED_DTYPES)
@@ -251,11 +244,6 @@ class Predictions:
         st.plotly_chart(fig, use_container_width=True)
 
     def show_dataset_prediction(self, experiment):
-        """Show dataset prediction interface"""
-        st.subheader("Dataset Prediction")
-        st.write("Apply the model to existing datasets")
-
-        # Dataset selection
         dataset_options = {
             "Featured Dataset": self.config.data.output_files["featured"],
             "Evaluation Dataset": self.config.data.output_files["evaluation"],
