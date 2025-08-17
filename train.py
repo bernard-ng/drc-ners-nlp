@@ -15,7 +15,7 @@ def main():
     parser.add_argument("--type", type=str, required=True, help="Experiment type")
     parser.add_argument("--config", type=str, help="Path to configuration file")
     parser.add_argument("--env", type=str, default="development", help="Environment name")
-    parser.add_argument("--templates", type=str, default="config/research_templates.yaml")
+    parser.add_argument("--templates", type=str, default="research_templates.yaml")
     args = parser.parse_args()
 
     try:
