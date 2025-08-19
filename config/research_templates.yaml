@@ -4,7 +4,6 @@ baseline_experiments:
     model_type: "bigru"
     features: [ "full_name" ]
     model_params:
-      max_len: 20
       embedding_dim: 64
       gru_units: 32
       epochs: 2
@@ -16,7 +15,6 @@ baseline_experiments:
     model_type: "cnn"
     features: [ "full_name" ]
     model_params:
-      max_len: 20
       embedding_dim: 64
       filters: 64
       kernel_size: 3
