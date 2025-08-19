@@ -26,7 +26,7 @@ baseline_experiments:
   - name: "ensemble"
     description: "Baseline Ensemble with multiple models"
     model_type: "ensemble"
-    features: [ "full_name", "name_length", "word_count" ]
+    features: [ "full_name" ]
     model_params:
       base_models: [ "logistic_regression", "random_forest", "xgboost" ]
       voting: "soft"
@@ -36,7 +36,7 @@ baseline_experiments:
   - name: "lightgbm"
     description: "Baseline LightGBM with engineered features"
     model_type: "lightgbm"
-    features: [ "full_name", "name_length", "word_count" ]
+    features: [ "full_name" ]
     model_params:
       n_estimators: 100
       max_depth: -1
@@ -92,7 +92,7 @@ baseline_experiments:
   - name: "random_forest"
     description: "Baseline Random Forest with engineered features"
     model_type: "random_forest"
-    features: [ "name_length", "word_count", "province" ]
+    features: [ "full_name" ]
     model_params:
       n_estimators: 100
       max_depth: 10
@@ -126,7 +126,7 @@ baseline_experiments:
   - name: "xgboost"
     description: "Baseline XGBoost with engineered features"
     model_type: "xgboost"
-    features: [ "full_name", "name_length", "word_count" ]
+    features: [ "full_name" ]
     model_params:
       n_estimators: 100
       max_depth: 6
