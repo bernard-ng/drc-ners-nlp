@@ -10,10 +10,14 @@ class RegionMapper:
         self.mapping = mapping or REGION_MAPPING
 
     def map(self, series: pd.Series) -> pd.Series:
-        """Vectorized region to province mapping"""
-        return series.str.lower().map(
-            lambda r: self.mapping.get(r, ("AUTRES", "AUTRES"))[1].lower()
-        )
+        """Map each region to its parent province; unknown regions default to 'AUTRES'."""
+        def mapper_func(r):
+            if not isinstance(r, str):
+                return "AUTRES"
+            mapped = self.mapping.get(r.lower())
+            return mapped[1].upper() if mapped else "AUTRES"
+        return series.map(mapper_func)
+
 
     @staticmethod
     def get_provinces():
@@ -23,7 +27,7 @@ class RegionMapper:
             "bandundu",
             "katanga",
             "equateur",
-            "province-orientale",
+            "orientale",
             "maniema",
             "nord-kivu",
             "sud-kivu",
@@ -70,6 +74,11 @@ REGION_MAPPING: Dict[str, Tuple[str, str]] = {
     "mai-ndombe-2": ("MAI-NDOMBE", "BANDUNDU"),
     "mai-ndombe-3": ("MAI-NDOMBE", "BANDUNDU"),
     # Katanga → HAUT-KATANGA, HAUT-LOMAMI, LUALABA, TANGANYIKA
+    "katanga": ("KATANGA", "KATANGA"),
+    "katanga-1": ("KATANGA", "KATANGA"),
+    "katanga-2": ("KATANGA", "KATANGA"),
+    "katanga-3": ("KATANGA", "KATANGA"),
+    "katanga-4": ("KATANGA", "KATANGA"),
     "haut-katanga": ("HAUT-KATANGA", "KATANGA"),
     "haut-katanga-1": ("HAUT-KATANGA", "KATANGA"),
     "haut-katanga-2": ("HAUT-KATANGA", "KATANGA"),
@@ -103,23 +112,23 @@ REGION_MAPPING: Dict[str, Tuple[str, str]] = {
     "tshuapa-1": ("TSHUAPA", "EQUATEUR"),
     "tshuapa-2": ("TSHUAPA", "EQUATEUR"),
     # Province-Orientale
-    "province-orientale": ("PROVINCE-ORIENTALE", "PROVINCE-ORIENTALE"),
-    "province-orientale-1": ("PROVINCE-ORIENTALE", "PROVINCE-ORIENTALE"),
-    "province-orientale-2": ("PROVINCE-ORIENTALE", "PROVINCE-ORIENTALE"),
-    "province-orientale-3": ("PROVINCE-ORIENTALE", "PROVINCE-ORIENTALE"),
-    "province-orientale-4": ("PROVINCE-ORIENTALE", "PROVINCE-ORIENTALE"),
-    "haut-uele": ("HAUT-UELE", "PROVINCE-ORIENTALE"),
-    "haut-uele-1": ("HAUT-UELE", "PROVINCE-ORIENTALE"),
-    "haut-uele-2": ("HAUT-UELE", "PROVINCE-ORIENTALE"),
-    "bas-uele": ("BAS-UELE", "PROVINCE-ORIENTALE"),
-    "bas-uele-1": ("BAS-UELE", "PROVINCE-ORIENTALE"),
-    "bas-uele-2": ("BAS-UELE", "PROVINCE-ORIENTALE"),
-    "ituri": ("ITURI", "PROVINCE-ORIENTALE"),
-    "ituri-1": ("ITURI", "PROVINCE-ORIENTALE"),
-    "ituri-2": ("ITURI", "PROVINCE-ORIENTALE"),
-    "tshopo": ("TSHOPO", "PROVINCE-ORIENTALE"),
-    "tshopo-1": ("TSHOPO", "PROVINCE-ORIENTALE"),
-    "tshopo-2": ("TSHOPO", "PROVINCE-ORIENTALE"),
+    "province-orientale": ("ORIENTALE", "ORIENTALE"),
+    "province-orientale-1": ("ORIENTALE", "ORIENTALE"),
+    "province-orientale-2": ("ORIENTALE", "ORIENTALE"),
+    "province-orientale-3": ("ORIENTALE", "ORIENTALE"),
+    "province-orientale-4": ("ORIENTALE", "ORIENTALE"),
+    "haut-uele": ("HAUT-UELE", "ORIENTALE"),
+    "haut-uele-1": ("HAUT-UELE", "ORIENTALE"),
+    "haut-uele-2": ("HAUT-UELE", "ORIENTALE"),
+    "bas-uele": ("BAS-UELE", "ORIENTALE"),
+    "bas-uele-1": ("BAS-UELE", "ORIENTALE"),
+    "bas-uele-2": ("BAS-UELE", "ORIENTALE"),
+    "ituri": ("ITURI", "ORIENTALE"),
+    "ituri-1": ("ITURI", "ORIENTALE"),
+    "ituri-2": ("ITURI", "ORIENTALE"),
+    "tshopo": ("TSHOPO", "ORIENTALE"),
+    "tshopo-1": ("TSHOPO", "ORIENTALE"),
+    "tshopo-2": ("TSHOPO", "ORIENTALE"),
     # Maniema
     "maniema": ("MANIEMA", "MANIEMA"),
     "maniema-1": ("MANIEMA", "MANIEMA"),
