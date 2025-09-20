@@ -9,7 +9,7 @@ import pandas as pd
 from pydantic import BaseModel
 
 from core.config.pipeline_config import PipelineConfig
-from core.utils.data_loader import OPTIMIZED_DTYPES, DataLoader
+from core.utils.data_loader import DataLoader
 from processing.batch.batch_config import BatchConfig
 
 

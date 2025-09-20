@@ -150,7 +150,8 @@ class FeatureExtractionStep(PipelineStep):
             except Exception as e:
                 logging.warning(f"NER tagging failed for row {idx}: {e}")
 
-    def _normalize_gender(self, series: pd.Series) -> pd.Series:
+    @classmethod
+    def _normalize_gender(cls, series: pd.Series) -> pd.Series:
         gender_mapping = {
             "m": "m",
             "male": "m",

@@ -21,7 +21,7 @@ class Dashboard:
 
     def index(self):
         st.title("Dashboard")
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2, col3, col4, col5 = st.columns(5)
 
         # Load basic statistics
         try:
@@ -44,7 +44,12 @@ class Dashboard:
                     if "sex" in df.columns:
                         gender_dist = df["sex"].value_counts()
                         ratio = gender_dist.get("f", 0) / max(gender_dist.get("m", 1), 1)
-                        st.metric("F/M Ratio", f"{ratio:.2f}")
+                        st.metric("F/M Rate", f"{ratio:.2%}")
+                with col5:
+                    if "annotated" in df.columns:
+                        annotated = (df.get("annotated", 0) == 1).sum()
+                        ratio = annotated / len(df) if len(df) > 0 else 0
+                        st.metric("Annotation Rate", f"{ratio:.2%}")
             else:
                 st.warning("No processed data found. Please run data processing first.")
 
