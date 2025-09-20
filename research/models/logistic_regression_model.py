@@ -13,14 +13,23 @@ class LogisticRegressionModel(TraditionalModel):
 
     def build_model(self) -> BaseEstimator:
         params = self.config.model_params
+        # Character n-grams are strong signals for names; (2,5) balances
+        # capturing prefixes/suffixes with tractable feature size.
         vectorizer = CountVectorizer(
             analyzer="char",
             ngram_range=params.get("ngram_range", (2, 5)),
             max_features=params.get("max_features", 10000),
         )
 
+        # liblinear handles sparse, small-to-medium problems well; n_jobs parallelizes
+        # OvR across classes (no effect for binary). class_weight can mitigate imbalance.
         classifier = LogisticRegression(
-            max_iter=params.get("max_iter", 1000), random_state=self.config.random_seed, verbose=2
+            max_iter=params.get("max_iter", 1000),
+            random_state=self.config.random_seed,
+            verbose=2,
+            solver=params.get("solver", "liblinear"),
+            n_jobs=params.get("n_jobs", -1),
+            class_weight=params.get("class_weight", None),
         )
 
         return Pipeline([("vectorizer", vectorizer), ("classifier", classifier)])

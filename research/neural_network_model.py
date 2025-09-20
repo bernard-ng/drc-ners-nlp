@@ -82,6 +82,25 @@ class NeuralNetworkModel(BaseModel):
         self.is_fitted = True
         return self
 
+    def _collect_text_corpus(self, X: pd.DataFrame) -> List[str]:
+        """Combine configured textual features into one string per record."""
+
+        column_names = [feature.value for feature in self.config.features if feature.value in X.columns]
+        if not column_names:
+            raise ValueError("No configured text features found in the provided DataFrame.")
+
+        text_frame = X[column_names].fillna("").astype(str)
+
+        if len(column_names) == 1:
+            return text_frame.iloc[:, 0].tolist()
+
+        combined_rows = []
+        for row in text_frame.itertuples(index=False):
+            tokens = [value for value in row if value]
+            combined_rows.append(" ".join(tokens))
+
+        return combined_rows
+
     def cross_validate(
             self, X: pd.DataFrame, y: pd.Series, cv_folds: int = 5
     ) -> dict[str, np.floating[Any]]:
@@ -144,6 +163,9 @@ class NeuralNetworkModel(BaseModel):
     ) -> Dict[str, Any]:
         """Generate learning curve data for the model"""
         logging.info(f"Generating learning curve for {self.__class__.__name__}")
+
+        if train_sizes is None:
+            train_sizes = [0.1, 0.3, 0.5, 0.7, 1.0]
 
         learning_curve_data = {
             "train_sizes": [],

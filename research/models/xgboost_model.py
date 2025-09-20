@@ -20,6 +20,8 @@ class XGBoostModel(TraditionalModel):
     def build_model(self) -> BaseEstimator:
         params = self.config.model_params
 
+        # Histogram-based trees and parallelism provide fast training; default
+        # logloss metric suits binary classification of gender.
         return xgb.XGBClassifier(
             n_estimators=params.get("n_estimators", 100),
             max_depth=params.get("max_depth", 6),
@@ -28,6 +30,8 @@ class XGBoostModel(TraditionalModel):
             colsample_bytree=params.get("colsample_bytree", 0.8),
             random_state=self.config.random_seed,
             eval_metric="logloss",
+            n_jobs=params.get("n_jobs", -1),
+            tree_method=params.get("tree_method", "hist"),
             verbosity=2,
         )
 

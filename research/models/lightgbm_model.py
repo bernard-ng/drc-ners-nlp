@@ -20,6 +20,8 @@ class LightGBMModel(TraditionalModel):
     def build_model(self) -> BaseEstimator:
         params = self.config.model_params
 
+        # Leaf-wise boosted trees excel on sparse/categorical mixes; binary objective
+        # and parallelism improve training speed for this task.
         return lgb.LGBMClassifier(
             n_estimators=params.get("n_estimators", 100),
             max_depth=params.get("max_depth", -1),
@@ -28,6 +30,8 @@ class LightGBMModel(TraditionalModel):
             subsample=params.get("subsample", 0.8),
             colsample_bytree=params.get("colsample_bytree", 0.8),
             random_state=self.config.random_seed,
+            objective=params.get("objective", "binary"),
+            n_jobs=params.get("n_jobs", -1),
             verbose=2,
         )
 

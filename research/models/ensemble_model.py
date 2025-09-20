@@ -31,7 +31,8 @@ class EnsembleModel(TraditionalModel):
             "base_models", ["logistic_regression", "random_forest", "naive_bayes"]
         )
 
-        # Create base models with simplified configs
+        # Create base models with simplified configs; diverse vectorizers/classifiers
+        # encourage complementary errors that voting can average out.
         estimators = []
         for model_type in base_model_types:
             if model_type == "logistic_regression":
@@ -78,8 +79,10 @@ class EnsembleModel(TraditionalModel):
                 )
                 estimators.append((f"nb", model))
 
+        # Soft voting averages probabilities (preferred when members are calibrated);
+        # hard voting uses majority class. Parallelize member predictions.
         voting_type = params.get("voting", "soft")  # 'hard' or 'soft'
-        return VotingClassifier(estimators=estimators, voting=voting_type)
+        return VotingClassifier(estimators=estimators, voting=voting_type, n_jobs=params.get("n_jobs", -1))
 
     def prepare_features(self, X: pd.DataFrame) -> np.ndarray:
         text_features = []
