@@ -12,6 +12,8 @@ from tensorflow.keras.layers import (
     SpatialDropout1D,
 )
 from tensorflow.keras.models import Sequential
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 from research.neural_network_model import NeuralNetworkModel
 
@@ -64,9 +66,6 @@ class CNNModel(NeuralNetworkModel):
     def prepare_features(self, X: pd.DataFrame) -> np.ndarray:
         """Prepare sequences for CNN using extracted features"""
         # X here contains the features already extracted by FeatureExtractor
-        from tensorflow.keras.preprocessing.text import Tokenizer
-        from tensorflow.keras.preprocessing.sequence import pad_sequences
-
         # Get text data from extracted features - use character level for CNN
         text_data = self._collect_text_corpus(X)
 

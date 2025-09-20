@@ -1,4 +1,5 @@
 baseline_experiments:
+  # BiGRU Models
   - name: "bigru"
     description: "Baseline BiGRU with full name features"
     model_type: "bigru"
@@ -10,6 +11,29 @@ baseline_experiments:
       batch_size: 32
     tags: [ "baseline", "neural", "bigru" ]
 
+  - name: "bigru_native"
+    description: "Baseline BiGRU with native name features"
+    model_type: "bigru"
+    features: [ "native_name" ]
+    model_params:
+      embedding_dim: 64
+      gru_units: 32
+      epochs: 2
+      batch_size: 32
+    tags: [ "baseline", "neural", "bigru", "native" ]
+
+  - name: "bigru_surname"
+    description: "Baseline BiGRU with surname features"
+    model_type: "bigru"
+    features: [ "surname" ]
+    model_params:
+      embedding_dim: 64
+      gru_units: 32
+      epochs: 2
+      batch_size: 32
+    tags: [ "baseline", "neural", "bigru", "surname" ]
+
+  ## CNN Models
   - name: "cnn"
     description: "Baseline CNN with character patterns"
     model_type: "cnn"
@@ -23,6 +47,33 @@ baseline_experiments:
       batch_size: 32
     tags: [ "baseline", "neural", "cnn" ]
 
+  - name: "cnn_native"
+    description: "Baseline CNN with native name character patterns"
+    model_type: "cnn"
+    features: [ "native_name" ]
+    model_params:
+      embedding_dim: 64
+      filters: 64
+      kernel_size: 3
+      dropout: 0.5
+      epochs: 2
+      batch_size: 32
+    tags: [ "baseline", "neural", "cnn", "native" ]
+
+  - name: "cnn_surname"
+    description: "Baseline CNN with surname character patterns"
+    model_type: "cnn"
+    features: [ "surname" ]
+    model_params:
+      embedding_dim: 64
+      filters: 64
+      kernel_size: 3
+      dropout: 0.5
+      epochs: 2
+      batch_size: 32
+    tags: [ "baseline", "neural", "cnn", "surname" ]
+
+  ## Ensemble Models
   - name: "ensemble"
     description: "Baseline Ensemble with multiple models"
     model_type: "ensemble"
@@ -33,6 +84,27 @@ baseline_experiments:
       cv_folds: 5
     tags: [ "baseline", "ensemble" ]
 
+  - name: "ensemble_native"
+    description: "Baseline Ensemble with native name"
+    model_type: "ensemble"
+    features: [ "native_name" ]
+    model_params:
+      base_models: [ "logistic_regression", "random_forest", "xgboost" ]
+      voting: "soft"
+      cv_folds: 5
+    tags: [ "baseline", "ensemble", "native" ]
+
+  - name: "ensemble_surname"
+    description: "Baseline Ensemble with surname"
+    model_type: "ensemble"
+    features: [ "surname" ]
+    model_params:
+      base_models: [ "logistic_regression", "random_forest", "xgboost" ]
+      voting: "soft"
+      cv_folds: 5
+    tags: [ "baseline", "ensemble", "surname" ]
+
+  # LightGBM Models
   - name: "lightgbm"
     description: "Baseline LightGBM with engineered features"
     model_type: "lightgbm"
@@ -46,7 +118,34 @@ baseline_experiments:
       colsample_bytree: 0.8
     tags: [ "baseline", "lightgbm" ]
 
-  - name: "logistic_regression_fullname"
+  - name: "lightgbm_native"
+    description: "Baseline LightGBM with native name features"
+    model_type: "lightgbm"
+    features: [ "native_name" ]
+    model_params:
+      n_estimators: 100
+      max_depth: -1
+      learning_rate: 0.1
+      num_leaves: 31
+      subsample: 0.8
+      colsample_bytree: 0.8
+    tags: [ "baseline", "lightgbm", "native" ]
+
+  - name: "lightgbm_surname"
+    description: "Baseline LightGBM with surname features"
+    model_type: "lightgbm"
+    features: [ "surname" ]
+    model_params:
+      n_estimators: 100
+      max_depth: -1
+      learning_rate: 0.1
+      num_leaves: 31
+      subsample: 0.8
+      colsample_bytree: 0.8
+    tags: [ "baseline", "lightgbm", "surname" ]
+
+  # Logistic Regression Models
+  - name: "logistic_regression"
     description: "Baseline logistic regression with full name"
     model_type: "logistic_regression"
     features: [ "full_name" ]
@@ -70,6 +169,7 @@ baseline_experiments:
       max_features: 5000
     tags: [ "baseline", "logistic_regression", "surname" ]
 
+  # LSTM Models
   - name: "lstm"
     description: "Baseline LSTM with full name features"
     model_type: "lstm"
@@ -81,6 +181,29 @@ baseline_experiments:
       batch_size: 64
     tags: [ "baseline", "neural", "lstm" ]
 
+  - name: "lstm_native"
+    description: "Baseline LSTM with native name features"
+    model_type: "lstm"
+    features: [ "native_name" ]
+    model_params:
+      embedding_dim: 128
+      lstm_units: 64
+      epochs: 2
+      batch_size: 64
+    tags: [ "baseline", "neural", "lstm", "native" ]
+
+  - name: "lstm_surname"
+    description: "Baseline LSTM with surname features"
+    model_type: "lstm"
+    features: [ "surname" ]
+    model_params:
+      embedding_dim: 128
+      lstm_units: 64
+      epochs: 2
+      batch_size: 64
+    tags: [ "baseline", "neural", "lstm", "surname" ]
+
+  # Naive Bayes Models
   - name: "naive_bayes"
     description: "Baseline Naive Bayes with full name features"
     model_type: "naive_bayes"
@@ -89,6 +212,23 @@ baseline_experiments:
       max_features: 5000
     tags: [ "baseline", "naive_bayes" ]
 
+  - name: "naive_bayes_native"
+    description: "Baseline Naive Bayes with native name features"
+    model_type: "naive_bayes"
+    features: [ "native_name" ]
+    model_params:
+      max_features: 5000
+    tags: [ "baseline", "naive_bayes", "native" ]
+
+  - name: "naive_bayes_surname"
+    description: "Baseline Naive Bayes with surname features"
+    model_type: "naive_bayes"
+    features: [ "surname" ]
+    model_params:
+      max_features: 5000
+    tags: [ "baseline", "naive_bayes", "surname" ]
+
+  # Random Forest Models
   - name: "random_forest"
     description: "Baseline Random Forest with engineered features"
     model_type: "random_forest"
@@ -100,6 +240,29 @@ baseline_experiments:
       min_samples_leaf: 1
     tags: [ "baseline", "random_forest", "engineered" ]
 
+  - name: "random_forest_native"
+    description: "Baseline Random Forest with native name engineered features"
+    model_type: "random_forest"
+    features: [ "native_name" ]
+    model_params:
+      n_estimators: 100
+      max_depth: 10
+      min_samples_split: 2
+      min_samples_leaf: 1
+    tags: [ "baseline", "random_forest", "engineered", "native" ]
+
+  - name: "random_forest_surname"
+    description: "Baseline Random Forest with surname engineered features"
+    model_type: "random_forest"
+    features: [ "surname" ]
+    model_params:
+      n_estimators: 100
+      max_depth: 10
+      min_samples_split: 2
+      min_samples_leaf: 1
+    tags: [ "baseline", "random_forest", "engineered", "surname" ]
+
+  # SVM Models
   - name: "svm"
     description: "Baseline SVM with full name features"
     model_type: "svm"
@@ -111,6 +274,29 @@ baseline_experiments:
       max_features: 5000
     tags: [ "baseline", "svm" ]
 
+  - name: "svm_native"
+    description: "Baseline SVM with native name features"
+    model_type: "svm"
+    features: [ "native_name" ]
+    model_params:
+      C: 1.0
+      kernel: "rbf"
+      ngram_range: [ 2, 4 ]
+      max_features: 5000
+    tags: [ "baseline", "svm", "native" ]
+
+  - name: "svm_surname"
+    description: "Baseline SVM with surname features"
+    model_type: "svm"
+    features: [ "surname" ]
+    model_params:
+      C: 1.0
+      kernel: "rbf"
+      ngram_range: [ 2, 4 ]
+      max_features: 5000
+    tags: [ "baseline", "svm", "surname" ]
+
+  # Transformer Models
   - name: "transformer"
     description: "Baseline Transformer with attention mechanism"
     model_type: "transformer"
@@ -123,6 +309,31 @@ baseline_experiments:
       batch_size: 64
     tags: [ "baseline", "neural", "transformer" ]
 
+  - name: "transformer_native"
+    description: "Baseline Transformer with native name attention mechanism"
+    model_type: "transformer"
+    features: [ "native_name" ]
+    model_params:
+      embedding_dim: 128
+      num_heads: 4
+      num_layers: 2
+      epochs: 2
+      batch_size: 64
+    tags: [ "baseline", "neural", "transformer", "native" ]
+
+  - name: "transformer_surname"
+    description: "Baseline Transformer with surname attention mechanism"
+    model_type: "transformer"
+    features: [ "surname" ]
+    model_params:
+      embedding_dim: 128
+      num_heads: 4
+      num_layers: 2
+      epochs: 2
+      batch_size: 64
+    tags: [ "baseline", "neural", "transformer", "surname" ]
+
+  # XGBoost Models
   - name: "xgboost"
     description: "Baseline XGBoost with engineered features"
     model_type: "xgboost"
@@ -134,6 +345,30 @@ baseline_experiments:
       subsample: 0.8
       colsample_bytree: 0.8
     tags: [ "baseline", "xgboost" ]
+
+  - name: "xgboost_native"
+    description: "Baseline XGBoost with native name engineered features"
+    model_type: "xgboost"
+    features: [ "native_name" ]
+    model_params:
+      n_estimators: 100
+      max_depth: 6
+      learning_rate: 0.1
+      subsample: 0.8
+      colsample_bytree: 0.8
+    tags: [ "baseline", "xgboost", "native" ]
+
+  - name: "xgboost_surname"
+    description: "Baseline XGBoost with surname engineered features"
+    model_type: "xgboost"
+    features: [ "surname" ]
+    model_params:
+      n_estimators: 100
+      max_depth: 6
+      learning_rate: 0.1
+      subsample: 0.8
+      colsample_bytree: 0.8
+    tags: [ "baseline", "xgboost", "surname" ]
 
 
 # Advanced Experiments Configuration

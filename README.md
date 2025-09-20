@@ -65,7 +65,7 @@ stages:
 python main.py --env development
 ```
 
-## NER Processing
+## NER Processing (Optional)
 
 This project implements a custom named entity recognition (NER) pipeline tailored for Congolese names. 
 Its main objective is to accurately identify and tag the different components of a Congolese name, 
@@ -75,7 +75,7 @@ specifically distinguishing between the native part and the surname.
 python ner.py --env development
 ```
 
-Once you've built and train the NER model you can use it to annotate **CoMPOSE** name in the original dataset 
+Once you've built and train the NER model you can use it to annotate **COMPOSE** name in the original dataset 
 
 **Running the Pipeline with NER Annotation**
 ```yaml
@@ -104,20 +104,55 @@ you can define model features, training parameters, and evaluation metrics in th
 **Running Experiments**
 
 ```bash
+# bigru
 python train.py --name="bigru" --type="baseline" --env="development"
-python train.py --name="cnn" --type="baseline" --env="development"
-python train.py --name="lightgbm" --type="baseline" --env="development"
+python train.py --name="bigru_native" --type="baseline" --env="development"
+python train.py --name="bigru_surname" --type="baseline" --env="development"
 
-python train.py --name="logistic_regression_fullname" --type="baseline" --env="development"
+# cnn
+python train.py --name="cnn" --type="baseline" --env="development"
+python train.py --name="cnn_native" --type="baseline" --env="development"
+python train.py --name="cnn_surname" --type="baseline" --env="development"
+
+# lightgbm
+python train.py --name="lightgbm" --type="baseline" --env="development"
+python train.py --name="lightgbm_native" --type="baseline" --env="development"
+python train.py --name="lightgbm_surname" --type="baseline" --env="development"
+
+# logistic regression
+python train.py --name="logistic_regression" --type="baseline" --env="development"
 python train.py --name="logistic_regression_native" --type="baseline" --env="development"
 python train.py --name="logistic_regression_surname" --type="baseline" --env="development"
 
+# lstm
 python train.py --name="lstm" --type="baseline" --env="development"
+python train.py --name="lstm_native" --type="baseline" --env="development"
+python train.py --name="lstm_surname" --type="baseline" --env="development"
+
+# random forest
 python train.py --name="random_forest" --type="baseline" --env="development"
+python train.py --name="random_forest_native" --type="baseline" --env="development"
+python train.py --name="random_forest_surname" --type="baseline" --env="development"
+
+# svm
 python train.py --name="svm" --type="baseline" --env="development"
+python train.py --name="svm_native" --type="baseline" --env="development"
+python train.py --name="svm_surname" --type="baseline" --env="development"
+
+# naive bayes
 python train.py --name="naive_bayes" --type="baseline" --env="development"
+python train.py --name="naive_bayes_native" --type="baseline" --env="development"
+python train.py --name="naive_bayes_surname" --type="baseline" --env="development"
+
+# transformer
 python train.py --name="transformer" --type="baseline" --env="development"
+python train.py --name="transformer_native" --type="baseline" --env="development"
+python train.py --name="transformer_surname" --type="baseline" --env="development"
+
+# xgboost
 python train.py --name="xgboost" --type="baseline" --env="development"
+python train.py --name="xgboost_native" --type="baseline" --env="development"
+python train.py --name="xgboost_surname" --type="baseline" --env="development"
 ```
 
 ## Web Interface
