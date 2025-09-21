@@ -55,11 +55,11 @@ class ExperimentBuilder:
             # Check if this is the experiment we're looking for
             # Look for experiments that match the model type or contain the name
             if (
-                    experiment.get("model_type") == name
-                    or name.lower() in experiment.get("name", "").lower()
-                    or experiment.get("name") == name
-                    or f"baseline_{name}" == experiment.get("name")
-                    or f"advanced_{name}" == experiment.get("name")
+                experiment.get("model_type") == name
+                or name.lower() in experiment.get("name", "").lower()
+                or experiment.get("name") == name
+                or f"baseline_{name}" == experiment.get("name")
+                or f"advanced_{name}" == experiment.get("name")
             ):
                 return experiment
 
@@ -72,7 +72,9 @@ class ExperimentBuilder:
             f"Available experiments: {available_experiments}"
         )
 
-    def get_templates(self, templates_path: str = "research_templates.yaml") -> Dict[str, List[Dict]]:
+    def get_templates(
+        self, templates_path: str = "research_templates.yaml"
+    ) -> Dict[str, List[Dict]]:
         """Get all available experiments from templates organized by type"""
         templates = self.load_templates(templates_path)
 
@@ -80,7 +82,7 @@ class ExperimentBuilder:
             "baseline": templates.get("baseline_experiments", []),
             "advanced": templates.get("advanced_experiments", []),
             "feature_study": templates.get("feature_studies", []),
-            "tuning": templates.get("hyperparameter_tuning", [])
+            "tuning": templates.get("hyperparameter_tuning", []),
         }
 
     @classmethod
@@ -104,5 +106,5 @@ class ExperimentBuilder:
             tags=template_config.get("tags", []),
             test_size=template_config.get("test_size", 0.2),
             cross_validation_folds=template_config.get("cross_validation_folds", 5),
-            train_data_filter=template_config.get("train_data_filter")
+            train_data_filter=template_config.get("train_data_filter"),
         )

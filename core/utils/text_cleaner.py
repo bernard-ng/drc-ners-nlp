@@ -30,9 +30,8 @@ class TextCleaner:
     def clean_dataframe_text_columns(self, df: pd.DataFrame) -> pd.DataFrame:
         """Clean all text columns in a DataFrame"""
         df = df.copy()
-        text_columns = df.select_dtypes(include="object").columns
-
-        for col in text_columns:
+        columns = df.select_dtypes(include=["object", "string"]).columns
+        for col in columns:
             df[col] = self.clean_text_series(df[col])
 
         return df

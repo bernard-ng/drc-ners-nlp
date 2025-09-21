@@ -50,7 +50,9 @@ class StreamlitApp:
     @classmethod
     def run(cls):
         st.title("🇨🇩 DRC NERS Platform")
-        st.markdown("A Culturally-Aware NLP System for Congolese Name Analysis and Gender Inference")
+        st.markdown(
+            "A Culturally-Aware NLP System for Congolese Name Analysis and Gender Inference"
+        )
         st.markdown(
             """
             ## Overview

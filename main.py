@@ -9,9 +9,9 @@ from core.utils.data_loader import DataLoader
 from processing.batch.batch_config import BatchConfig
 from processing.pipeline import Pipeline
 from processing.steps.data_cleaning_step import DataCleaningStep
+from processing.steps.data_selection_step import DataSelectionStep
 from processing.steps.data_splitting_step import DataSplittingStep
 from processing.steps.feature_extraction_step import FeatureExtractionStep
-from processing.steps.llm_annotation_step import LLMAnnotationStep
 
 
 def create_pipeline(config) -> Pipeline:
@@ -28,8 +28,9 @@ def create_pipeline(config) -> Pipeline:
     steps = [
         DataCleaningStep(config),
         FeatureExtractionStep(config),
+        DataSelectionStep(config),
         # NERAnnotationStep(config),
-        LLMAnnotationStep(config),
+        # LLMAnnotationStep(config),
     ]
 
     for stage in config.stages:

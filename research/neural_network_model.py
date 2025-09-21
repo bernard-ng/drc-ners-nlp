@@ -84,7 +84,9 @@ class NeuralNetworkModel(BaseModel):
     def _collect_text_corpus(self, X: pd.DataFrame) -> List[str]:
         """Combine configured textual features into one string per record."""
 
-        column_names = [feature.value for feature in self.config.features if feature.value in X.columns]
+        column_names = [
+            feature.value for feature in self.config.features if feature.value in X.columns
+        ]
         if not column_names:
             raise ValueError("No configured text features found in the provided DataFrame.")
 
@@ -101,7 +103,7 @@ class NeuralNetworkModel(BaseModel):
         return combined_rows
 
     def cross_validate(
-            self, X: pd.DataFrame, y: pd.Series, cv_folds: int = 5
+        self, X: pd.DataFrame, y: pd.Series, cv_folds: int = 5
     ) -> dict[str, np.floating[Any]]:
         features_df = self.feature_extractor.extract_features(X)
         X_prepared = self.prepare_features(features_df)
@@ -158,7 +160,7 @@ class NeuralNetworkModel(BaseModel):
         }
 
     def generate_learning_curve(
-            self, X: pd.DataFrame, y: pd.Series, train_sizes: List[float] = None
+        self, X: pd.DataFrame, y: pd.Series, train_sizes: List[float] = None
     ) -> Dict[str, Any]:
         """Generate learning curve data for the model"""
         logging.info(f"Generating learning curve for {self.__class__.__name__}")

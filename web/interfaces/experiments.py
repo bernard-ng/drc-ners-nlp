@@ -13,10 +13,10 @@ from research.model_registry import list_available_models
 
 class Experiments:
     def __init__(
-            self,
-            config: PipelineConfig,
-            experiment_tracker: ExperimentTracker,
-            experiment_runner: ExperimentRunner
+        self,
+        config: PipelineConfig,
+        experiment_tracker: ExperimentTracker,
+        experiment_runner: ExperimentRunner,
     ):
         self.config = config
         self.experiment_tracker = experiment_tracker
@@ -26,8 +26,7 @@ class Experiments:
     def index(self):
         st.title("Experiments")
 
-        tab1, tab2, tab3 = st.tabs(
-            ["Templates", "Experiments", "Batch Experiments"])
+        tab1, tab2, tab3 = st.tabs(["Templates", "Experiments", "Batch Experiments"])
 
         with tab1:
             self.show_template_experiments()
@@ -56,14 +55,18 @@ class Experiments:
                 self._show_experiments_by_type(available_experiments["advanced"], "advanced")
 
             with exp_tabs[2]:
-                self._show_experiments_by_type(available_experiments["feature_study"], "feature_study")
+                self._show_experiments_by_type(
+                    available_experiments["feature_study"], "feature_study"
+                )
 
             with exp_tabs[3]:
                 self._show_experiments_by_type(available_experiments["tuning"], "tuning")
 
         except Exception as e:
             st.error(f"Error loading experiment templates: {e}")
-            st.info("Make sure the research templates file exists at `config/research_templates.yaml`")
+            st.info(
+                "Make sure the research templates file exists at `config/research_templates.yaml`"
+            )
 
     def _show_experiments_by_type(self, experiments: List[Dict], experiment_type: str):
         """Show experiments for a specific type"""
@@ -142,7 +145,7 @@ class Experiments:
         # Display experiments
         for i, exp in enumerate(experiments):
             with st.expander(
-                    f"{exp.config.name} - {exp.status.value} - {exp.start_time.strftime('%Y-%m-%d %H:%M')}"
+                f"{exp.config.name} - {exp.status.value} - {exp.start_time.strftime('%Y-%m-%d %H:%M')}"
             ):
                 self._display_experiment_details(exp, i)
 
@@ -213,7 +216,7 @@ class Experiments:
             experiment_types = st.multiselect(
                 "Select Experiment Types",
                 ["baseline", "advanced", "feature_study", "tuning"],
-                default=["baseline"]
+                default=["baseline"],
             )
 
             if experiment_types:
@@ -223,11 +226,11 @@ class Experiments:
                     experiments = available_experiments.get(exp_type, [])
                     if experiments:
                         st.write(f"**{exp_type.title()} Experiments:**")
-                        exp_names = [exp.get("name", f"Exp {i}") for i, exp in enumerate(experiments)]
+                        exp_names = [
+                            exp.get("name", f"Exp {i}") for i, exp in enumerate(experiments)
+                        ]
                         selected_names = st.multiselect(
-                            f"Select {exp_type} experiments",
-                            exp_names,
-                            key=f"select_{exp_type}"
+                            f"Select {exp_type} experiments", exp_names, key=f"select_{exp_type}"
                         )
 
                         for name in selected_names:
@@ -308,13 +311,13 @@ class Experiments:
                 )
 
     def run_batch_experiments(
-            self,
-            base_name: str,
-            model_types: List[str],
-            ngram_ranges: str,
-            feature_combinations: List[str],
-            test_sizes: str,
-            tags: str,
+        self,
+        base_name: str,
+        model_types: List[str],
+        ngram_ranges: str,
+        feature_combinations: List[str],
+        test_sizes: str,
+        tags: str,
     ):
         """Run batch experiments with parameter combinations"""
         with st.spinner("Running batch experiments..."):

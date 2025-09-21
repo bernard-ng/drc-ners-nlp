@@ -33,7 +33,9 @@ class NERTesting:
 
         # Load model
         if not self.load_ner_model():
-            st.warning("NER model could not be loaded. Please ensure the model is trained and available.")
+            st.warning(
+                "NER model could not be loaded. Please ensure the model is trained and available."
+            )
             return
 
         # Display model information
@@ -53,9 +55,11 @@ class NERTesting:
             col1, col2, col3, col4 = st.columns(4)
 
             with col1:
-                st.metric("Training Examples", f"{self.training_stats.get('training_examples', 0):,}")
+                st.metric(
+                    "Training Examples", f"{self.training_stats.get('training_examples', 0):,}"
+                )
             with col2:
-                st.metric("Epochs", self.training_stats.get('epochs', 0))
+                st.metric("Epochs", self.training_stats.get("epochs", 0))
             with col3:
                 st.metric("Final Loss", f"{self.training_stats.get('final_loss', 0):.2f}")
             with col4:
@@ -64,7 +68,7 @@ class NERTesting:
     def show_model_evaluation_info(self):
         if self.evaluation_stats:
             col1, col2, col3 = st.columns(4)
-            overall = self.evaluation_stats.get('overall', {})
+            overall = self.evaluation_stats.get("overall", {})
 
             with col1:
                 st.metric("Overall Precision", f"{overall['precision']:.2f}")
@@ -79,7 +83,7 @@ class NERTesting:
         name_input = st.text_input(
             "Name:",
             placeholder="e.g., Jean Baptiste Mukendi, Marie Kabamba Tshiala, Joseph Kasongo",
-            help="Enter a full name or multiple names separated by spaces"
+            help="Enter a full name or multiple names separated by spaces",
         )
         if name_input.strip():
             if st.button("Analyze Name", type="primary"):
@@ -90,12 +94,12 @@ class NERTesting:
             "Names:",
             placeholder="Jean Baptiste Mukendi\nMarie Kabamba Tshiala\nJoseph Kasongo\nGrace Mbuyi Kalala",
             height=150,
-            help="Enter each name on a new line"
+            help="Enter each name on a new line",
         )
 
         if names_input.strip():
             if st.button("Analyze All Names", type="primary"):
-                names = [name.strip() for name in names_input.split('\n') if name.strip()]
+                names = [name.strip() for name in names_input.split("\n") if name.strip()]
                 for i, name in enumerate(names):
                     st.markdown(f"**Name {i+1}: {name}**")
                     self.analyze_and_display(name)
@@ -106,12 +110,12 @@ class NERTesting:
         try:
             result = self.ner_model.predict(text)
             st.subheader("Analysis Results")
-            entities = result.get('entities', [])
+            entities = result.get("entities", [])
 
             if entities:
                 self.show_visual_entities(text, entities)
-                native_count = sum(1 for e in entities if e['label'] == 'NATIVE')
-                surname_count = sum(1 for e in entities if e['label'] == 'SURNAME')
+                native_count = sum(1 for e in entities if e["label"] == "NATIVE")
+                surname_count = sum(1 for e in entities if e["label"] == "SURNAME")
 
                 col1, col2, col3 = st.columns(3)
                 with col1:
@@ -134,29 +138,17 @@ class NERTesting:
             # Convert our entities format to spaCy format for displacy
             ents = []
             for entity in entities:
-                ents.append({
-                    "start": entity['start'],
-                    "end": entity['end'],
-                    "label": entity['label']
-                })
+                ents.append(
+                    {"start": entity["start"], "end": entity["end"], "label": entity["label"]}
+                )
 
             # Create doc-like structure for displacy
-            doc_data = {
-                "text": text,
-                "ents": ents,
-                "title": None
-            }
+            doc_data = {"text": text, "ents": ents, "title": None}
 
             # Custom colors for our labels
-            colors = {
-                "NATIVE": "#74C0FC",  # Light blue
-                "SURNAME": "#69DB7C"  # Light green
-            }
+            colors = {"NATIVE": "#74C0FC", "SURNAME": "#69DB7C"}  # Light blue  # Light green
 
-            options = {
-                "colors": colors,
-                "distance": 90
-            }
+            options = {"colors": colors, "distance": 90}
 
             # Generate HTML visualization
             html = displacy.render(doc_data, style="ent", manual=True, options=options)

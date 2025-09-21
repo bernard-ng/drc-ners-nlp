@@ -62,7 +62,7 @@ stages:
 **Running the Pipeline**
 
 ```bash
-python main.py --env development
+python main.py --env production
 ```
 
 ## NER Processing (Optional)
@@ -72,7 +72,7 @@ Its main objective is to accurately identify and tag the different components of
 specifically distinguishing between the native part and the surname.
 
 ```bash
-python ner.py --env development
+python ner.py --env production
 ```
 
 Once you've built and train the NER model you can use it to annotate **COMPOSE** name in the original dataset 
@@ -105,54 +105,54 @@ you can define model features, training parameters, and evaluation metrics in th
 
 ```bash
 # bigru
-python train.py --name="bigru" --type="baseline" --env="development"
-python train.py --name="bigru_native" --type="baseline" --env="development"
-python train.py --name="bigru_surname" --type="baseline" --env="development"
+python train.py --name="bigru" --type="baseline" --env="production"
+python train.py --name="bigru_native" --type="baseline" --env="production"
+python train.py --name="bigru_surname" --type="baseline" --env="production"
 
 # cnn
-python train.py --name="cnn" --type="baseline" --env="development"
-python train.py --name="cnn_native" --type="baseline" --env="development"
-python train.py --name="cnn_surname" --type="baseline" --env="development"
+python train.py --name="cnn" --type="baseline" --env="production"
+python train.py --name="cnn_native" --type="baseline" --env="production"
+python train.py --name="cnn_surname" --type="baseline" --env="production"
 
 # lightgbm
-python train.py --name="lightgbm" --type="baseline" --env="development"
-python train.py --name="lightgbm_native" --type="baseline" --env="development"
-python train.py --name="lightgbm_surname" --type="baseline" --env="development"
+python train.py --name="lightgbm" --type="baseline" --env="production"
+python train.py --name="lightgbm_native" --type="baseline" --env="production"
+python train.py --name="lightgbm_surname" --type="baseline" --env="production"
 
 # logistic regression
-python train.py --name="logistic_regression" --type="baseline" --env="development"
-python train.py --name="logistic_regression_native" --type="baseline" --env="development"
-python train.py --name="logistic_regression_surname" --type="baseline" --env="development"
+python train.py --name="logistic_regression" --type="baseline" --env="production"
+python train.py --name="logistic_regression_native" --type="baseline" --env="production"
+python train.py --name="logistic_regression_surname" --type="baseline" --env="production"
 
 # lstm
-python train.py --name="lstm" --type="baseline" --env="development"
-python train.py --name="lstm_native" --type="baseline" --env="development"
-python train.py --name="lstm_surname" --type="baseline" --env="development"
+python train.py --name="lstm" --type="baseline" --env="production"
+python train.py --name="lstm_native" --type="baseline" --env="production"
+python train.py --name="lstm_surname" --type="baseline" --env="production"
 
 # random forest
-python train.py --name="random_forest" --type="baseline" --env="development"
-python train.py --name="random_forest_native" --type="baseline" --env="development"
-python train.py --name="random_forest_surname" --type="baseline" --env="development"
+python train.py --name="random_forest" --type="baseline" --env="production"
+python train.py --name="random_forest_native" --type="baseline" --env="production"
+python train.py --name="random_forest_surname" --type="baseline" --env="production"
 
 # svm
-python train.py --name="svm" --type="baseline" --env="development"
-python train.py --name="svm_native" --type="baseline" --env="development"
-python train.py --name="svm_surname" --type="baseline" --env="development"
+python train.py --name="svm" --type="baseline" --env="production"
+python train.py --name="svm_native" --type="baseline" --env="production"
+python train.py --name="svm_surname" --type="baseline" --env="production"
 
 # naive bayes
-python train.py --name="naive_bayes" --type="baseline" --env="development"
-python train.py --name="naive_bayes_native" --type="baseline" --env="development"
-python train.py --name="naive_bayes_surname" --type="baseline" --env="development"
+python train.py --name="naive_bayes" --type="baseline" --env="production"
+python train.py --name="naive_bayes_native" --type="baseline" --env="production"
+python train.py --name="naive_bayes_surname" --type="baseline" --env="production"
 
 # transformer
-python train.py --name="transformer" --type="baseline" --env="development"
-python train.py --name="transformer_native" --type="baseline" --env="development"
-python train.py --name="transformer_surname" --type="baseline" --env="development"
+python train.py --name="transformer" --type="baseline" --env="production"
+python train.py --name="transformer_native" --type="baseline" --env="production"
+python train.py --name="transformer_surname" --type="baseline" --env="production"
 
 # xgboost
-python train.py --name="xgboost" --type="baseline" --env="development"
-python train.py --name="xgboost_native" --type="baseline" --env="development"
-python train.py --name="xgboost_surname" --type="baseline" --env="development"
+python train.py --name="xgboost" --type="baseline" --env="production"
+python train.py --name="xgboost_native" --type="baseline" --env="production"
+python train.py --name="xgboost_surname" --type="baseline" --env="production"
 ```
 
 ## Web Interface
@@ -171,3 +171,6 @@ streamlit run web/app.py
 <a href="https://github.com/bernard-ng/drc-ners-nlp/graphs/contributors" title="show all contributors">
   <img src="https://contrib.rocks/image?repo=bernard-ng/drc-ners-nlp" alt="contributors"/>
 </a>
+
+## Acknowledgements
+- Map Visualization: [https://data.humdata.org/dataset/anciennes-provinces-rdc-old-provinces-drc](https://data.humdata.org/dataset/anciennes-provinces-rdc-old-provinces-drc)

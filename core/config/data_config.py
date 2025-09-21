@@ -19,6 +19,7 @@ class DataConfig(BaseModel):
             "ner_spacy": "names_ner.spacy",
         }
     )
+    selected_columns: list[str] = field(default=["name", "sex", "region"])
     split_evaluation: bool = False
     split_by_province: bool = True
     split_by_gender: bool = True

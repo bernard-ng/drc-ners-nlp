@@ -11,6 +11,7 @@ from processing.monitoring.pipeline_monitor import PipelineMonitor
 def main():
     choices = [
         "data_cleaning",
+        "data_selection",
         "feature_extraction",
         "ner_annotation",
         "llm_annotation",

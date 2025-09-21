@@ -11,6 +11,7 @@ processing:
 # Pipeline stages
 stages:
   - "data_cleaning"
+  - "data_selection"
   - "feature_extraction"
   #- "ner_annotation"
   #- "llm_annotation"

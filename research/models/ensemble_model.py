@@ -82,7 +82,9 @@ class EnsembleModel(TraditionalModel):
         # Soft voting averages probabilities (preferred when members are calibrated);
         # hard voting uses majority class. Parallelize member predictions.
         voting_type = params.get("voting", "soft")  # 'hard' or 'soft'
-        return VotingClassifier(estimators=estimators, voting=voting_type, n_jobs=params.get("n_jobs", -1))
+        return VotingClassifier(
+            estimators=estimators, voting=voting_type, n_jobs=params.get("n_jobs", -1)
+        )
 
     def prepare_features(self, X: pd.DataFrame) -> np.ndarray:
         text_features = []

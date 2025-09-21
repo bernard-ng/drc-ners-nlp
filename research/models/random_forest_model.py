@@ -55,7 +55,9 @@ class RandomForestModel(TraditionalModel):
                         encoder = self.label_encoders[feature_key]
                         column_clean = column.fillna("unknown").astype(str)
                         known_classes = set(encoder.classes_)
-                        default_class = "unknown" if "unknown" in known_classes else encoder.classes_[0]
+                        default_class = (
+                            "unknown" if "unknown" in known_classes else encoder.classes_[0]
+                        )
                         column_mapped = column_clean.apply(
                             lambda value: value if value in known_classes else default_class
                         )

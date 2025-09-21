@@ -41,14 +41,14 @@ class BaseModel(ABC):
 
     @abstractmethod
     def cross_validate(
-            self, X: pd.DataFrame, y: pd.Series, cv_folds: int = 5
+        self, X: pd.DataFrame, y: pd.Series, cv_folds: int = 5
     ) -> Dict[str, float] | dict[str, np.floating[Any]]:
         """Perform cross-validation and return average scores"""
         pass
 
     @abstractmethod
     def generate_learning_curve(
-            self, X: pd.DataFrame, y: pd.Series, train_sizes: List[float] = None
+        self, X: pd.DataFrame, y: pd.Series, train_sizes: List[float] = None
     ) -> Dict[str, Any]:
         """Generate learning curve data for the model"""
         pass

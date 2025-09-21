@@ -3,17 +3,18 @@ debug: false
 
 # Processing settings
 processing:
-  batch_size: 10_000
-  max_workers: 8
+  batch_size: 100_000
+  max_workers: 4
   checkpoint_interval: 10
   use_multiprocessing: true
 
 # Pipeline stages
 stages:
   - "data_cleaning"
+  - "data_selection"
   - "feature_extraction"
-  - "ner_annotation"
-  - "llm_annotation"
+  # - "ner_annotation"
+  # - "llm_annotation"
   - "data_splitting"
 
 # Production LLM settings
@@ -34,7 +35,7 @@ data:
 # Production logging (less verbose)
 logging:
   level: "INFO"
-  console_logging: false
+  console_logging: true
   file_logging: true
   log_file: "pipeline.production.log"
   max_log_size: 52428800  # 50MB

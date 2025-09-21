@@ -36,9 +36,9 @@ class TransformerModel(NeuralNetworkModel):
 
         # Add positional encoding
         positions = tf.range(start=0, limit=params.get("max_len", 8), delta=1)
-        pos_embedding = Embedding(input_dim=params.get("max_len", 8), output_dim=params.get("embedding_dim", 64))(
-            positions
-        )
+        pos_embedding = Embedding(
+            input_dim=params.get("max_len", 8), output_dim=params.get("embedding_dim", 64)
+        )(positions)
         x = x + pos_embedding
 
         x = self._transformer_encoder(x, params)

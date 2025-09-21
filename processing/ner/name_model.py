@@ -211,7 +211,9 @@ class NameModel:
             for batch in batches:
                 batch_losses = {}
                 self.nlp.update(batch, losses=batch_losses, drop=dropout_rate, sgd=optimizer)
-                logging.info(f"Training batch with {len(batch)} examples, current losses: {batch_losses}")
+                logging.info(
+                    f"Training batch with {len(batch)} examples, current losses: {batch_losses}"
+                )
 
                 # Accumulate into total losses dict
                 for k, v in batch_losses.items():

@@ -13,7 +13,7 @@ from research.experiment.experiment_tracker import ExperimentTracker
 
 class Predictions:
     def __init__(
-            self, config, experiment_tracker: ExperimentTracker, experiment_runner: ExperimentRunner
+        self, config, experiment_tracker: ExperimentTracker, experiment_runner: ExperimentRunner
     ):
         self.config = config
         self.experiment_tracker = experiment_tracker
@@ -111,7 +111,7 @@ class Predictions:
             return None
 
     def _display_single_prediction_results(
-            self, prediction: str, confidence: Optional[float], experiment, name_input: str
+        self, prediction: str, confidence: Optional[float], experiment, name_input: str
     ):
         """Display single prediction results"""
         col1, col2 = st.columns(2)
@@ -288,7 +288,7 @@ class Predictions:
             return pd.DataFrame()
 
     def _run_dataset_prediction(
-            self, df: pd.DataFrame, experiment, sample_size: int, compare_with_actual: bool
+        self, df: pd.DataFrame, experiment, sample_size: int, compare_with_actual: bool
     ):
         """Run dataset prediction and display results"""
         with st.spinner("Running predictions..."):

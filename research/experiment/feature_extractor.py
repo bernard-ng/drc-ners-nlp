@@ -43,7 +43,7 @@ class FeatureExtractor:
         return features_df
 
     def _extract_single_feature(
-            self, df: pd.DataFrame, feature_type: FeatureType
+        self, df: pd.DataFrame, feature_type: FeatureType
     ) -> Union[pd.Series, pd.DataFrame]:
         """Extract a single type of feature"""
         if feature_type == FeatureType.FULL_NAME:

@@ -49,6 +49,9 @@ class Pipeline:
                 "processed_batches": step.state.processed_batches,
                 "total_batches": step.state.total_batches,
                 "failed_batches": len(step.state.failed_batches),
-                "completion_percentage": (step.state.processed_batches / max(1, step.state.total_batches)) * 100,
+                "completion_percentage": (
+                    step.state.processed_batches / max(1, step.state.total_batches)
+                )
+                * 100,
             }
         return progress

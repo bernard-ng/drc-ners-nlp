@@ -8,12 +8,10 @@ class RegionMapper:
 
     def __init__(self, mapping: Optional[Dict] = None):
         self.mapping = mapping or REGION_MAPPING
+        self.mapping = {k.lower(): v[1].upper() for k, v in self.mapping.items()}
 
     def map(self, series: pd.Series) -> pd.Series:
-        """Vectorized region to province mapping"""
-        return series.str.lower().map(
-            lambda r: self.mapping.get(r, ("AUTRES", "AUTRES"))[1].lower()
-        )
+        return series.str.lower().map(self.mapping).fillna("AUTRES")
 
     @staticmethod
     def get_provinces():
