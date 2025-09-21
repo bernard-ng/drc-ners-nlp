@@ -59,8 +59,18 @@ class TraditionalModel(BaseModel):
                 f"Fitting model with {X_prepared.shape[0]} samples and {X_prepared.shape[1]} features"
             )
 
-        self.model.fit(X_prepared, y_encoded)
+        logging.info(X_prepared[0])
+        logging.info(f"Model parameters: {self.config.model_params}")
+
+        history = self.model.fit(X_prepared, y_encoded)
         self.is_fitted = True
+
+        self.training_history = {
+            "accuracy": history.history["accuracy"],
+            "loss": history.history["loss"],
+            "val_accuracy": history.history.get("val_accuracy", []),
+            "val_loss": history.history.get("val_loss", []),
+        }
 
         return self
 

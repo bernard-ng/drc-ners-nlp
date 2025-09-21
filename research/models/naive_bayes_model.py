@@ -17,7 +17,7 @@ class NaiveBayesModel(TraditionalModel):
         # includes unigrams for coverage and higher n for suffix/prefix cues.
         vectorizer = CountVectorizer(
             analyzer="char",
-            ngram_range=params.get("ngram_range", (1, 4)),
+            ngram_range=params.get("ngram_range", (2, 5)),
             max_features=params.get("max_features", 8000),
         )
 

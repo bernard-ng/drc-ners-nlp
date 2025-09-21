@@ -13,7 +13,7 @@ from research.neural_network_model import NeuralNetworkModel
 class LSTMModel(NeuralNetworkModel):
     """LSTM model for sequence learning"""
 
-    def build_model_with_vocab(self, vocab_size: int, max_len: int = 6, **kwargs) -> Any:
+    def build_model_with_vocab(self, vocab_size: int, **kwargs) -> Any:
         params = kwargs
         model = Sequential(
             [
@@ -21,7 +21,6 @@ class LSTMModel(NeuralNetworkModel):
                 Embedding(
                     input_dim=vocab_size,
                     output_dim=params.get("embedding_dim", 64),
-                    input_length=max_len,
                     mask_zero=True,
                 ),
                 # Stacked bidirectional LSTMs: first returns sequences to feed the next.
