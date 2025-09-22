@@ -21,6 +21,7 @@ class PipelineMonitor:
         self.checkpoint_dir = paths.checkpoints_dir
         self.steps = [
             "data_cleaning",
+            "data_selection",
             "feature_extraction",
             "ner_annotation",
             "llm_annotation",

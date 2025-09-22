@@ -70,7 +70,7 @@ class FeatureExtractionStep(PipelineStep):
             result["year"] = pd.to_numeric(result["year"], errors="coerce").astype("Int16")
 
         if "region" in result.columns:
-            result["province"] = self.region_mapper.map(result["region"])
+            result["province"] = self.region_mapper.map(result["region"]).str.lower()
             result["province"] = result["province"].astype("category")
 
         if "sex" in result.columns:
