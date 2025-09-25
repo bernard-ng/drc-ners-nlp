@@ -1,3 +1,4 @@
+import unicodedata
 from typing import Optional, Dict, Tuple
 
 import pandas as pd
@@ -12,6 +13,16 @@ class RegionMapper:
 
     def map(self, series: pd.Series) -> pd.Series:
         return series.str.lower().map(self.mapping).fillna("AUTRES")
+
+    @staticmethod
+    def clean_province(series: pd.Series) -> pd.Series:
+        return (
+            series.str.upper()
+            .str.strip()
+            .apply(lambda x: unicodedata.normalize("NFKD", x)
+                   .encode("ascii", errors="ignore")
+                   .decode("utf-8") if isinstance(x, str) else x)
+        )
 
     @staticmethod
     def get_provinces():
