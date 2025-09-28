@@ -23,7 +23,7 @@ def normalize_letters(s):
     return s
 
 
-def identified_category_dist(df: pd.DataFrame) -> pd.DataFrame:
+def build_category_distribution(df: pd.DataFrame) -> pd.DataFrame:
     return (
         df.groupby("province")["identified_category"]
         .value_counts(normalize=True)  # get proportions
@@ -31,7 +31,7 @@ def identified_category_dist(df: pd.DataFrame) -> pd.DataFrame:
     )
 
 
-def explode_words_token(df: pd.DataFrame, source: str, target: str) -> pd.DataFrame:
+def build_words_token(df: pd.DataFrame, source: str, target: str) -> pd.DataFrame:
     # Normalize + split once (vectorized)
     s = df[source].fillna('').astype(str)
     s = (
@@ -55,12 +55,26 @@ def explode_words_token(df: pd.DataFrame, source: str, target: str) -> pd.DataFr
 
 
 def build_letter_frequencies(series: pd.Series) -> pd.DataFrame:
-    s = series.astype(str).str.lower().str.replace(r'[^a-z]', '', regex=True).str.cat(sep='')
-    out = (
-        s.value_counts(normalize=False)
-        .reindex(list(LETTERS), fill_value=0)
-        .rename_axis("letter").reset_index(name="count")
+    # Normalize: lowercase, remove non-letters, concatenate all into one string
+    s = (
+        series.astype(str)
+        .str.lower()
+        .str.replace(r'[^a-z]', '', regex=True)
+        .str.cat(sep='')
     )
+
+    # Convert string into Series of characters
+    chars = pd.Series(list(s))
+
+    # Count letters and ensure all letters are present
+    out = (
+        chars.value_counts(normalize=False)
+        .reindex(list(LETTERS), fill_value=0)
+        .rename_axis("letter")
+        .reset_index(name="count")
+    )
+
+    # Relative frequency
     total = out["count"].sum()
     out["freq"] = out["count"] / (total if total > 0 else 1)
     return out
@@ -208,4 +222,49 @@ def build_transition_comparisons(names_transitions: Dict[str, Any], surnames_tra
         "permutation_p_value": [names_p_value, surnames_p_value]
     }, index=["names", "surnames"])
 
+    return out
+
+import pandas as pd
+from collections import Counter
+from typing import Literal
+
+
+def build_ngrams_count(
+        df: pd.DataFrame,
+        n: int,
+        where: Literal["any", "prefix", "suffix"] = "any",
+) -> pd.DataFrame:
+    # Normalize and clean to a–z
+    names = (
+        df["name"].astype(str)
+        .str.lower()
+        .str.replace(r"[^a-z]", "", regex=True)
+    )
+
+    ngrams = []
+    if where == "any":
+        for s in names:
+            L = len(s)
+            if L >= n:
+                ngrams.extend(s[i:i+n] for i in range(L - n + 1))
+    elif where == "prefix":
+        for s in names:
+            if len(s) >= n:
+                ngrams.append(s[:n])
+    elif where == "suffix":
+        for s in names:
+            if len(s) >= n:
+                ngrams.append(s[-n:])
+    else:
+        raise ValueError("where must be one of: 'any', 'prefix', 'suffix'")
+
+    counter = Counter(ngrams)
+
+    out = (
+        pd.DataFrame(counter.items(), columns=[f"{n}-gram", "count"])
+        .sort_values("count", ascending=False, kind="mergesort")
+        .reset_index(drop=True)
+    )
+    total = out["count"].sum()
+    out["freq"] = out["count"] / (total if total > 0 else 1)
     return out

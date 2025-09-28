@@ -1,0 +1,7 @@
+sex,position,2-grams,3-grams,4-grams
+female,prefix,"ma, ch, be, na, an, sa, es, jo, ju, me","mar, cha, est, chr, gra, dor, sar, rut, ben, mer","mari, chri, esth, grac, sara, dorc, ruth, rach, naom, jean"
+female,suffix,"ne, ie, te, le, ce, ia, se, el, ah, th","ine, tte, lle, rah, nce, ene, nne, her, lie, rie","ette, line, tine, elle, ther, arie, ille, rcas, ruth, arah"
+female,any,"ne, in, el, an, ie, ri, ra, li, ar, er","ine, tte, ett, mar, ari, lle, lin, eli, the, ell","ette, line, ther, mari, tine, elle, rist, chri, ance, hris"
+male,prefix,"jo, je, pa, ch, ma, da, al, ju, be, fr","jea, jos, chr, pat, mar, jon, fra, dan, cha, ben","jean, chri, jose, jona, patr, fran, mich, emma, davi, dieu"
+male,suffix,"in, el, an, ck, on, re, ce, er, se, is","ean, tin, ick, ier, ard, uel, ert, ain, iel, ise","jean, stin, rick, bert, seph, than, oise, avid, ndre, tian"
+male,any,"an, er, el, ie, in, ri, is, on, en, re","ric, sti, jea, ean, tin, ris, ier, ist, ick, jos","jean, stin, rist, rick, chri, hris, usti, bert, jose, atha"

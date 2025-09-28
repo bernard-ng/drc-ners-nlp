@@ -1,0 +1,7 @@
+sex,position,2-grams,3-grams,4-grams
+female,prefix,"ka, ma, mu, mb, ng, ba, ki, lu, ts, bo","tsh, kab, ngo, mas, kas, kal, muk, kav, mbu, man","tshi, kavi, ngoy, kaso, ilun, mbuy, kaba, ntum, kavu, ngal"
+female,suffix,"ba, ga, la, ka, ma, da, go, ya, bo, na","nga, mba, ngo, nda, ala, mbo, ngu, ndo, mbe, mbu","anga, amba, ongo, umba, inga, ombo, unga, enga, anda, ungu"
+female,any,"ng, ka, mb, an, ba, ma, nd, ga, la, am","nga, mba, ang, ngo, amb, ong, nda, ala, mbo, eng","anga, amba, ongo, tshi, umba, inga, ombo, unga, anda, enga"
+male,prefix,"ka, mu, ma, ba, mb, ng, ki, lu, ts, bo","kab, tsh, kal, kas, muk, ngo, kam, mut, mul, mbu","tshi, ngoy, ilun, kaba, kaso, kamb, muke, kabe, kalo, muto"
+male,suffix,"ba, ga, la, go, ka, da, bo, le, di, ma","nga, mba, ngo, nda, ala, mbo, ngu, mbe, ndo, ele","amba, ongo, anga, umba, unga, ombo, anda, enga, onga, angu"
+male,any,"ng, ka, mb, ba, an, ma, mu, nd, am, al","nga, mba, ngo, amb, ang, ong, ala, nda, shi, mbo","amba, ongo, anga, tshi, umba, unga, ombo, anda, lung, enga"
