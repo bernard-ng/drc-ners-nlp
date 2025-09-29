@@ -48,7 +48,7 @@ class BiGRUModel(NeuralNetworkModel):
                 Dense(64, activation="relu"),
                 Dropout(params.get("dropout", 0.5)),
                 # Two-way softmax for binary gender classification.
-                Dense(2, activation="softmax"),
+                Dense(2, activation="softmax", dtype="float32"),
             ]
         )
 

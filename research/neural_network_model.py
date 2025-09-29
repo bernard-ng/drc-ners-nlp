@@ -30,6 +30,38 @@ class NeuralNetworkModel(BaseModel):
         """Fit the neural network model with deferred building"""
         logging.info(f"Training {self.__class__.__name__}")
 
+        # Best-effort GPU configuration for TensorFlow when available
+        # - Enables memory growth to avoid pre-allocating all VRAM
+        # - Optionally enables mixed precision if requested via model params
+        try:
+            import tensorflow as tf  # Imported lazily to avoid dependency for non-NN runs
+
+            requested_gpu = bool(self.config.model_params.get("use_gpu", False))
+            enable_mixed = bool(self.config.model_params.get("mixed_precision", False))
+
+            gpus = tf.config.list_physical_devices("GPU")
+            if gpus:
+                for gpu in gpus:
+                    try:
+                        tf.config.experimental.set_memory_growth(gpu, True)
+                    except Exception:
+                        pass
+
+                if enable_mixed:
+                    try:
+                        from tensorflow.keras import mixed_precision
+
+                        mixed_precision.set_global_policy("mixed_float16")
+                        logging.info("Enabled TensorFlow mixed precision (float16)")
+                    except Exception as e:
+                        logging.warning(f"Could not enable mixed precision: {e}")
+            else:
+                if requested_gpu:
+                    logging.warning("Requested GPU but no TensorFlow GPU device is available.")
+        except Exception as e:
+            # Keep silent in non-TF environments / non-NN workflows
+            logging.debug(f"TensorFlow GPU setup skipped: {e}")
+
         # Setup feature extraction
         if self.feature_extractor is None:
             self.feature_extractor = FeatureExtractor(
@@ -105,6 +137,32 @@ class NeuralNetworkModel(BaseModel):
     def cross_validate(
         self, X: pd.DataFrame, y: pd.Series, cv_folds: int = 5
     ) -> dict[str, np.floating[Any]]:
+        # Ensure TF GPU/mixed-precision config also applies to CV runs
+        try:
+            import tensorflow as tf
+
+            requested_gpu = bool(self.config.model_params.get("use_gpu", False))
+            enable_mixed = bool(self.config.model_params.get("mixed_precision", False))
+
+            gpus = tf.config.list_physical_devices("GPU")
+            if gpus:
+                for gpu in gpus:
+                    try:
+                        tf.config.experimental.set_memory_growth(gpu, True)
+                    except Exception:
+                        pass
+                if enable_mixed:
+                    try:
+                        from tensorflow.keras import mixed_precision
+
+                        mixed_precision.set_global_policy("mixed_float16")
+                    except Exception:
+                        pass
+            else:
+                if requested_gpu:
+                    logging.warning("Requested GPU for CV but none is available.")
+        except Exception:
+            pass
         features_df = self.feature_extractor.extract_features(X)
         X_prepared = self.prepare_features(features_df)
         y_encoded = self.label_encoder.transform(y)
@@ -164,6 +222,33 @@ class NeuralNetworkModel(BaseModel):
     ) -> Dict[str, Any]:
         """Generate learning curve data for the model"""
         logging.info(f"Generating learning curve for {self.__class__.__name__}")
+
+        # Ensure TF GPU/mixed-precision config also applies here
+        try:
+            import tensorflow as tf
+
+            requested_gpu = bool(self.config.model_params.get("use_gpu", False))
+            enable_mixed = bool(self.config.model_params.get("mixed_precision", False))
+
+            gpus = tf.config.list_physical_devices("GPU")
+            if gpus:
+                for gpu in gpus:
+                    try:
+                        tf.config.experimental.set_memory_growth(gpu, True)
+                    except Exception:
+                        pass
+                if enable_mixed:
+                    try:
+                        from tensorflow.keras import mixed_precision
+
+                        mixed_precision.set_global_policy("mixed_float16")
+                    except Exception:
+                        pass
+            else:
+                if requested_gpu:
+                    logging.warning("Requested GPU for learning curve but none is available.")
+        except Exception:
+            pass
 
         if train_sizes is None:
             train_sizes = [0.1, 0.3, 0.5, 0.7, 1.0]

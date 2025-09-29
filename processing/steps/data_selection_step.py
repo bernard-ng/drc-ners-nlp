@@ -20,11 +20,15 @@ class DataSelectionStep(PipelineStep):
         # Remove rows where region == "global" only for specific years
         if "region" in batch.columns and "year" in batch.columns:
             target_years = {2015, 2021, 2022}
-            mask_remove = batch["region"].str.lower().eq("global") & batch["year"].isin(target_years)
+            mask_remove = batch["region"].str.lower().eq("global") & batch["year"].isin(
+                target_years
+            )
             removed = int(mask_remove.sum())
             if removed:
                 batch = batch[~mask_remove]
-                logging.info(f"Removed {removed} rows with region == 'global' for years {sorted(target_years)} in batch {batch_id}")
+                logging.info(
+                    f"Removed {removed} rows with region == 'global' for years {sorted(target_years)} in batch {batch_id}"
+                )
 
         # Check which columns exist in the batch
         available_columns = [col for col in self.selected_columns if col in batch.columns]

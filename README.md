@@ -166,6 +166,57 @@ experiments and make predictions without needing to understand the underlying co
 streamlit run web/app.py
 ```
 
+## GPU Acceleration
+
+This project can leverage GPUs for faster training when supported libraries and hardware are available.
+
+- TensorFlow/Keras models (BiGRU, LSTM, CNN, Transformer)
+  - Uses GPU automatically if a TensorFlow GPU build is installed.
+  - The code enables safe GPU memory growth by default; optionally enable mixed precision for additional speed:
+    - Add `mixed_precision: true` in the experiment `model_params` (e.g., in `config/research_templates.yaml`).
+  - The final layer outputs are set to float32 for numerical stability under mixed precision.
+
+- spaCy NER
+  - Automatically prefers GPU if available; otherwise falls back to CPU.
+  - Ensure a compatible CUDA-enabled spaCy/thinc stack is installed to use GPU.
+
+- XGBoost
+  - Enable GPU by adding to the experiment `model_params`:
+    - `use_gpu: true` (sets `tree_method: gpu_hist` and `predictor: gpu_predictor`).
+
+- LightGBM
+  - Enable GPU by adding to the experiment `model_params`:
+    - `use_gpu: true` (sets `device: gpu`). Optional: `gpu_platform_id`, `gpu_device_id`.
+
+Example template snippet (GPU on):
+
+```yaml
+- name: "lstm_gpu"
+  description: "LSTM with GPU + mixed precision"
+  model_type: "lstm"
+  features: ["full_name"]
+  model_params:
+    embedding_dim: 128
+    lstm_units: 64
+    epochs: 5
+    batch_size: 128
+    use_gpu: true
+    mixed_precision: true
+  tags: ["gpu", "mixed_precision"]
+
+- name: "xgboost_gpu"
+  description: "XGBoost with GPU"
+  model_type: "xgboost"
+  features: ["full_name"]
+  model_params:
+    n_estimators: 200
+    use_gpu: true
+```
+
+Notes:
+- Install CUDA‑enabled binaries for TensorFlow/spaCy/LightGBM/XGBoost to actually use GPU.
+- If GPU is requested but not available, training will proceed on CPU with a warning.
+
 ## Contributors
 
 <a href="https://github.com/bernard-ng/drc-ners-nlp/graphs/contributors" title="show all contributors">

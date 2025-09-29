@@ -29,6 +29,15 @@ class NameModel:
         """Create a blank spaCy model with NER pipeline"""
         logging.info(f"Creating blank {language} model for NER training")
 
+        # Prefer GPU for spaCy if available (falls back to CPU automatically)
+        try:
+            if spacy.prefer_gpu():
+                logging.info("spaCy GPU enabled (cupy) for NER training")
+            else:
+                logging.info("spaCy running on CPU")
+        except Exception as e:
+            logging.debug(f"spaCy GPU selection skipped: {e}")
+
         # Create blank model - French tokenizer works well for DRC names
         self.nlp = spacy.blank(language)
 

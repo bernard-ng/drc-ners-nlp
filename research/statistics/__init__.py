@@ -1,1 +1,1 @@
-LETTERS = 'abcdefghijklmnopqrstuvwxyz'
+LETTERS = "abcdefghijklmnopqrstuvwxyz"

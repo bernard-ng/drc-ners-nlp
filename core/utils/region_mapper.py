@@ -19,9 +19,15 @@ class RegionMapper:
         return (
             series.str.upper()
             .str.strip()
-            .apply(lambda x: unicodedata.normalize("NFKD", x)
-                   .encode("ascii", errors="ignore")
-                   .decode("utf-8") if isinstance(x, str) else x)
+            .apply(
+                lambda x: (
+                    unicodedata.normalize("NFKD", x)
+                    .encode("ascii", errors="ignore")
+                    .decode("utf-8")
+                    if isinstance(x, str)
+                    else x
+                )
+            )
         )
 
     @staticmethod

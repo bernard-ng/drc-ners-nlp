@@ -9,9 +9,10 @@ from scipy.spatial.distance import euclidean
 from scipy.stats import entropy
 from typing import Dict, Any
 
-LETTERS = 'abcdefghijklmnopqrstuvwxyz'
-START_TOKEN = '^'
-END_TOKEN = '$'
+LETTERS = "abcdefghijklmnopqrstuvwxyz"
+START_TOKEN = "^"
+END_TOKEN = "$"
+
 
 def normalize_letters(s):
     """Normalize accents -> ascii, lowercase, keep only a-z."""
@@ -27,41 +28,28 @@ def build_category_distribution(df: pd.DataFrame) -> pd.DataFrame:
     return (
         df.groupby("province")["identified_category"]
         .value_counts(normalize=True)  # get proportions
-        .unstack(fill_value=0)          # reshape into columns per word count
+        .unstack(fill_value=0)  # reshape into columns per word count
     )
 
 
 def build_words_token(df: pd.DataFrame, source: str, target: str) -> pd.DataFrame:
     # Normalize + split once (vectorized)
-    s = df[source].fillna('').astype(str)
-    s = (
-        s.str.lower()
-        .str.replace(r"[^\w'\-]+", " ", regex=True)
-        .str.strip()
-        .str.split()
-    )
+    s = df[source].fillna("").astype(str)
+    s = s.str.lower().str.replace(r"[^\w'\-]+", " ", regex=True).str.strip().str.split()
 
     # Explode the token list into rows under `target`
-    out = (
-        df.assign(**{target: s})
-        .explode(target, ignore_index=True)
-    )
+    out = df.assign(**{target: s}).explode(target, ignore_index=True)
 
     # Drop NA/empty tokens and strip whitespace
     out[target] = out[target].astype(str).str.strip()
-    out = out[out[target].ne('')].dropna(subset=[target]).reset_index(drop=True)
+    out = out[out[target].ne("")].dropna(subset=[target]).reset_index(drop=True)
 
     return out
 
 
 def build_letter_frequencies(series: pd.Series) -> pd.DataFrame:
     # Normalize: lowercase, remove non-letters, concatenate all into one string
-    s = (
-        series.astype(str)
-        .str.lower()
-        .str.replace(r'[^a-z]', '', regex=True)
-        .str.cat(sep='')
-    )
+    s = series.astype(str).str.lower().str.replace(r"[^a-z]", "", regex=True).str.cat(sep="")
 
     # Convert string into Series of characters
     chars = pd.Series(list(s))
@@ -82,11 +70,7 @@ def build_letter_frequencies(series: pd.Series) -> pd.DataFrame:
 
 def build_transition_probabilities(names: pd.Series, alpha: float = 0.0) -> dict:
     # 1) Normalize
-    names = (
-        names.astype(str)
-        .str.lower()
-        .str.replace(fr"[^{LETTERS}]", "", regex=True)
-    )
+    names = names.astype(str).str.lower().str.replace(rf"[^{LETTERS}]", "", regex=True)
     names = names[names.str.len() > 0]
 
     # 2) Prepare sequences
@@ -130,7 +114,7 @@ def build_transition_probabilities(names: pd.Series, alpha: float = 0.0) -> dict
 
     # 11) DataFrames
     df_counts = pd.DataFrame(counts, index=tokens, columns=tokens)
-    df_probs  = pd.DataFrame(probs, index=tokens, columns=tokens)
+    df_probs = pd.DataFrame(probs, index=tokens, columns=tokens)
 
     return {
         "tokens": tokens,
@@ -142,7 +126,11 @@ def build_transition_probabilities(names: pd.Series, alpha: float = 0.0) -> dict
     }
 
 
-def build_transition_comparisons(names_transitions: Dict[str, Any], surnames_transitions: Dict[str, Any], n_permutations: int = 1000) -> pd.DataFrame:
+def build_transition_comparisons(
+    names_transitions: Dict[str, Any],
+    surnames_transitions: Dict[str, Any],
+    n_permutations: int = 1000,
+) -> pd.DataFrame:
     """
     Compares letter transition probability matrices for names and surnames using
     various distance metrics and a permutation test for statistical significance.
@@ -150,23 +138,20 @@ def build_transition_comparisons(names_transitions: Dict[str, Any], surnames_tra
 
     # Helper function to flatten and smooth matrices
     def prepare_data(data):
-        return {
-            'm': data['m']['probs'].flatten(),
-            'f': data['f']['probs'].flatten()
-        }
+        return {"m": data["m"]["probs"].flatten(), "f": data["f"]["probs"].flatten()}
 
     prepared_names = prepare_data(names_transitions)
     prepared_surnames = prepare_data(surnames_transitions)
 
     # Distance Metrics
-    names_l2 = euclidean(prepared_names['m'], prepared_names['f'])
-    surnames_l2 = euclidean(prepared_surnames['m'], prepared_surnames['f'])
+    names_l2 = euclidean(prepared_names["m"], prepared_names["f"])
+    surnames_l2 = euclidean(prepared_surnames["m"], prepared_surnames["f"])
 
-    kl_names_mf = entropy(prepared_names['m'] + 1e-12, prepared_names['f'] + 1e-12)
-    kl_names_fm = entropy(prepared_names['f'] + 1e-12, prepared_names['m'] + 1e-12)
+    kl_names_mf = entropy(prepared_names["m"] + 1e-12, prepared_names["f"] + 1e-12)
+    kl_names_fm = entropy(prepared_names["f"] + 1e-12, prepared_names["m"] + 1e-12)
 
-    kl_surnames_mf = entropy(prepared_surnames['m'] + 1e-12, prepared_surnames['f'] + 1e-12)
-    kl_surnames_fm = entropy(prepared_surnames['f'] + 1e-12, prepared_surnames['m'] + 1e-12)
+    kl_surnames_mf = entropy(prepared_surnames["m"] + 1e-12, prepared_surnames["f"] + 1e-12)
+    kl_surnames_fm = entropy(prepared_surnames["f"] + 1e-12, prepared_surnames["m"] + 1e-12)
 
     jsd_names = 0.5 * (kl_names_mf + kl_names_fm)
     jsd_surnames = 0.5 * (kl_surnames_mf + kl_surnames_fm)
@@ -174,15 +159,15 @@ def build_transition_comparisons(names_transitions: Dict[str, Any], surnames_tra
     # Permutation Test
     def run_permutation_test(transitions):
         # Flattened probabilities for male and female
-        P_m = transitions['m']['probs'].flatten()
-        P_f = transitions['f']['probs'].flatten()
+        P_m = transitions["m"]["probs"].flatten()
+        P_f = transitions["f"]["probs"].flatten()
 
         # Calculate the observed JSD (our test statistic)
         observed_jsd = 0.5 * (entropy(P_m + 1e-12, P_f + 1e-12) + entropy(P_f + 1e-12, P_m + 1e-12))
 
         # Concatenate male and female counts
-        counts_m = transitions['m']['counts']
-        counts_f = transitions['f']['counts']
+        counts_m = transitions["m"]["counts"]
+        counts_f = transitions["f"]["counts"]
         all_counts = np.concatenate((counts_m, counts_f), axis=1)
         total_counts = counts_m.shape[1] + counts_f.shape[1]
 
@@ -194,17 +179,27 @@ def build_transition_comparisons(names_transitions: Dict[str, Any], surnames_tra
             # Note: This is a simplified approach, assuming counts are
             # structured per name. A more robust implementation would
             # shuffle the actual names themselves.
-            permuted_counts_m = all_counts[:, shuffled_indices[:counts_m.shape[1]]]
-            permuted_counts_f = all_counts[:, shuffled_indices[counts_m.shape[1]:]]
+            permuted_counts_m = all_counts[:, shuffled_indices[: counts_m.shape[1]]]
+            permuted_counts_f = all_counts[:, shuffled_indices[counts_m.shape[1] :]]
 
             # Re-calculate probabilities and JSD for the permuted groups
             # Add a small epsilon to the denominator to prevent division by zero
             epsilon = 1e-12
-            permuted_probs_m = permuted_counts_m / (permuted_counts_m.sum(axis=0, keepdims=True) + epsilon)
-            permuted_probs_f = permuted_counts_f / (permuted_counts_f.sum(axis=0, keepdims=True) + epsilon)
+            permuted_probs_m = permuted_counts_m / (
+                permuted_counts_m.sum(axis=0, keepdims=True) + epsilon
+            )
+            permuted_probs_f = permuted_counts_f / (
+                permuted_counts_f.sum(axis=0, keepdims=True) + epsilon
+            )
 
-            permuted_jsd = 0.5 * (entropy(permuted_probs_m.mean(axis=1) + 1e-12, permuted_probs_f.mean(axis=1) + 1e-12) +
-                                  entropy(permuted_probs_f.mean(axis=1) + 1e-12, permuted_probs_m.mean(axis=1) + 1e-12))
+            permuted_jsd = 0.5 * (
+                entropy(
+                    permuted_probs_m.mean(axis=1) + 1e-12, permuted_probs_f.mean(axis=1) + 1e-12
+                )
+                + entropy(
+                    permuted_probs_f.mean(axis=1) + 1e-12, permuted_probs_m.mean(axis=1) + 1e-12
+                )
+            )
             permuted_jsds.append(permuted_jsd)
 
         # Calculate the p-value
@@ -214,15 +209,19 @@ def build_transition_comparisons(names_transitions: Dict[str, Any], surnames_tra
     names_p_value = run_permutation_test(names_transitions)
     surnames_p_value = run_permutation_test(surnames_transitions)
 
-    out = pd.DataFrame({
-        "l2": [names_l2, surnames_l2],
-        "kl_mf": [kl_names_mf, kl_surnames_mf],
-        "kl_fm": [kl_names_fm, kl_surnames_fm],
-        "jsd": [jsd_names, jsd_surnames],
-        "permutation_p_value": [names_p_value, surnames_p_value]
-    }, index=["names", "surnames"])
+    out = pd.DataFrame(
+        {
+            "l2": [names_l2, surnames_l2],
+            "kl_mf": [kl_names_mf, kl_surnames_mf],
+            "kl_fm": [kl_names_fm, kl_surnames_fm],
+            "jsd": [jsd_names, jsd_surnames],
+            "permutation_p_value": [names_p_value, surnames_p_value],
+        },
+        index=["names", "surnames"],
+    )
 
     return out
+
 
 import pandas as pd
 from collections import Counter
@@ -230,23 +229,19 @@ from typing import Literal
 
 
 def build_ngrams_count(
-        df: pd.DataFrame,
-        n: int,
-        where: Literal["any", "prefix", "suffix"] = "any",
+    df: pd.DataFrame,
+    n: int,
+    where: Literal["any", "prefix", "suffix"] = "any",
 ) -> pd.DataFrame:
     # Normalize and clean to a–z
-    names = (
-        df["name"].astype(str)
-        .str.lower()
-        .str.replace(r"[^a-z]", "", regex=True)
-    )
+    names = df["name"].astype(str).str.lower().str.replace(r"[^a-z]", "", regex=True)
 
     ngrams = []
     if where == "any":
         for s in names:
             L = len(s)
             if L >= n:
-                ngrams.extend(s[i:i+n] for i in range(L - n + 1))
+                ngrams.extend(s[i : i + n] for i in range(L - n + 1))
     elif where == "prefix":
         for s in names:
             if len(s) >= n:

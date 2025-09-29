@@ -1,0 +1,412 @@
+baseline_experiments:
+  # BiGRU Models (GPU-enabled)
+  - name: "bigru"
+    description: "Baseline BiGRU with full name features (GPU)"
+    model_type: "bigru"
+    features: [ "full_name" ]
+    model_params:
+      embedding_dim: 64
+      gru_units: 32
+      epochs: 2
+      batch_size: 32
+      use_gpu: true
+      mixed_precision: true
+    tags: [ "baseline", "neural", "bigru", "gpu" ]
+
+  - name: "bigru_native"
+    description: "Baseline BiGRU with native name features (GPU)"
+    model_type: "bigru"
+    features: [ "native_name" ]
+    model_params:
+      embedding_dim: 64
+      gru_units: 32
+      epochs: 2
+      batch_size: 32
+      use_gpu: true
+      mixed_precision: true
+    tags: [ "baseline", "neural", "bigru", "native", "gpu" ]
+
+  - name: "bigru_surname"
+    description: "Baseline BiGRU with surname features (GPU)"
+    model_type: "bigru"
+    features: [ "surname" ]
+    model_params:
+      embedding_dim: 64
+      gru_units: 32
+      epochs: 2
+      batch_size: 32
+      use_gpu: true
+      mixed_precision: true
+    tags: [ "baseline", "neural", "bigru", "surname", "gpu" ]
+
+  ## CNN Models (GPU-enabled)
+  - name: "cnn"
+    description: "Baseline CNN with character patterns (GPU)"
+    model_type: "cnn"
+    features: [ "full_name" ]
+    model_params:
+      embedding_dim: 64
+      filters: 64
+      kernel_size: 3
+      dropout: 0.5
+      epochs: 2
+      batch_size: 32
+      use_gpu: true
+      mixed_precision: true
+    tags: [ "baseline", "neural", "cnn", "gpu" ]
+
+  - name: "cnn_native"
+    description: "Baseline CNN with native name character patterns (GPU)"
+    model_type: "cnn"
+    features: [ "native_name" ]
+    model_params:
+      embedding_dim: 64
+      filters: 64
+      kernel_size: 3
+      dropout: 0.5
+      epochs: 2
+      batch_size: 32
+      use_gpu: true
+      mixed_precision: true
+    tags: [ "baseline", "neural", "cnn", "native", "gpu" ]
+
+  - name: "cnn_surname"
+    description: "Baseline CNN with surname character patterns (GPU)"
+    model_type: "cnn"
+    features: [ "surname" ]
+    model_params:
+      embedding_dim: 64
+      filters: 64
+      kernel_size: 3
+      dropout: 0.5
+      epochs: 2
+      batch_size: 32
+      use_gpu: true
+      mixed_precision: true
+    tags: [ "baseline", "neural", "cnn", "surname", "gpu" ]
+
+  ## Ensemble Models (CPU)
+  - name: "ensemble"
+    description: "Baseline Ensemble with multiple models"
+    model_type: "ensemble"
+    features: [ "full_name" ]
+    model_params:
+      base_models: [ "logistic_regression", "random_forest", "xgboost" ]
+      voting: "soft"
+      cv_folds: 5
+    tags: [ "baseline", "ensemble" ]
+
+  - name: "ensemble_native"
+    description: "Baseline Ensemble with native name"
+    model_type: "ensemble"
+    features: [ "native_name" ]
+    model_params:
+      base_models: [ "logistic_regression", "random_forest", "xgboost" ]
+      voting: "soft"
+      cv_folds: 5
+    tags: [ "baseline", "ensemble", "native" ]
+
+  - name: "ensemble_surname"
+    description: "Baseline Ensemble with surname"
+    model_type: "ensemble"
+    features: [ "surname" ]
+    model_params:
+      base_models: [ "logistic_regression", "random_forest", "xgboost" ]
+      voting: "soft"
+      cv_folds: 5
+    tags: [ "baseline", "ensemble", "surname" ]
+
+  # LightGBM Models (GPU-enabled)
+  - name: "lightgbm"
+    description: "Baseline LightGBM with engineered features (GPU)"
+    model_type: "lightgbm"
+    features: [ "full_name" ]
+    model_params:
+      n_estimators: 100
+      max_depth: -1
+      learning_rate: 0.1
+      num_leaves: 31
+      subsample: 0.8
+      colsample_bytree: 0.8
+      use_gpu: true
+    tags: [ "baseline", "lightgbm", "gpu" ]
+
+  - name: "lightgbm_native"
+    description: "Baseline LightGBM with native name features (GPU)"
+    model_type: "lightgbm"
+    features: [ "native_name" ]
+    model_params:
+      n_estimators: 100
+      max_depth: -1
+      learning_rate: 0.1
+      num_leaves: 31
+      subsample: 0.8
+      colsample_bytree: 0.8
+      use_gpu: true
+    tags: [ "baseline", "lightgbm", "native", "gpu" ]
+
+  - name: "lightgbm_surname"
+    description: "Baseline LightGBM with surname features (GPU)"
+    model_type: "lightgbm"
+    features: [ "surname" ]
+    model_params:
+      n_estimators: 100
+      max_depth: -1
+      learning_rate: 0.1
+      num_leaves: 31
+      subsample: 0.8
+      colsample_bytree: 0.8
+      use_gpu: true
+    tags: [ "baseline", "lightgbm", "surname", "gpu" ]
+
+  # Logistic Regression Models (CPU)
+  - name: "logistic_regression"
+    description: "Baseline logistic regression with full name"
+    model_type: "logistic_regression"
+    features: [ "full_name" ]
+    model_params:
+      max_features: 10000
+    tags: [ "baseline", "logistic_regression", "fullname" ]
+
+  - name: "logistic_regression_native"
+    description: "Logistic regression with native name only"
+    model_type: "logistic_regression"
+    features: [ "native_name" ]
+    model_params:
+      max_features: 5000
+    tags: [ "baseline", "logistic_regression", "native" ]
+
+  - name: "logistic_regression_surname"
+    description: "Logistic regression with surname name only"
+    model_type: "logistic_regression"
+    features: [ "surname" ]
+    model_params:
+      max_features: 5000
+    tags: [ "baseline", "logistic_regression", "surname" ]
+
+  # LSTM Models (GPU-enabled)
+  - name: "lstm"
+    description: "Baseline LSTM with full name features (GPU)"
+    model_type: "lstm"
+    features: [ "full_name" ]
+    model_params:
+      embedding_dim: 128
+      lstm_units: 64
+      epochs: 2
+      batch_size: 64
+      use_gpu: true
+      mixed_precision: true
+    tags: [ "baseline", "neural", "lstm", "gpu" ]
+
+  - name: "lstm_native"
+    description: "Baseline LSTM with native name features (GPU)"
+    model_type: "lstm"
+    features: [ "native_name" ]
+    model_params:
+      embedding_dim: 128
+      lstm_units: 64
+      epochs: 2
+      batch_size: 64
+      use_gpu: true
+      mixed_precision: true
+    tags: [ "baseline", "neural", "lstm", "native", "gpu" ]
+
+  - name: "lstm_surname"
+    description: "Baseline LSTM with surname features (GPU)"
+    model_type: "lstm"
+    features: [ "surname" ]
+    model_params:
+      embedding_dim: 128
+      lstm_units: 64
+      epochs: 2
+      batch_size: 64
+      use_gpu: true
+      mixed_precision: true
+    tags: [ "baseline", "neural", "lstm", "surname", "gpu" ]
+
+  # Naive Bayes Models (CPU)
+  - name: "naive_bayes"
+    description: "Baseline Naive Bayes with full name features"
+    model_type: "naive_bayes"
+    features: [ "full_name" ]
+    model_params:
+      max_features: 5000
+    tags: [ "baseline", "naive_bayes" ]
+
+  - name: "naive_bayes_native"
+    description: "Baseline Naive Bayes with native name features"
+    model_type: "naive_bayes"
+    features: [ "native_name" ]
+    model_params:
+      max_features: 5000
+    tags: [ "baseline", "naive_bayes", "native" ]
+
+  - name: "naive_bayes_surname"
+    description: "Baseline Naive Bayes with surname features"
+    model_type: "naive_bayes"
+    features: [ "surname" ]
+    model_params:
+      max_features: 5000
+    tags: [ "baseline", "naive_bayes", "surname" ]
+
+  # Random Forest Models (CPU)
+  - name: "random_forest"
+    description: "Baseline Random Forest with engineered features"
+    model_type: "random_forest"
+    features: [ "full_name" ]
+    model_params:
+      n_estimators: 100
+      max_depth: 10
+      min_samples_split: 2
+      min_samples_leaf: 1
+    tags: [ "baseline", "random_forest", "engineered" ]
+
+  - name: "random_forest_native"
+    description: "Baseline Random Forest with native name engineered features"
+    model_type: "random_forest"
+    features: [ "native_name" ]
+    model_params:
+      n_estimators: 100
+      max_depth: 10
+      min_samples_split: 2
+      min_samples_leaf: 1
+    tags: [ "baseline", "random_forest", "engineered", "native" ]
+
+  - name: "random_forest_surname"
+    description: "Baseline Random Forest with surname engineered features"
+    model_type: "random_forest"
+    features: [ "surname" ]
+    model_params:
+      n_estimators: 100
+      max_depth: 10
+      min_samples_split: 2
+      min_samples_leaf: 1
+    tags: [ "baseline", "random_forest", "engineered", "surname" ]
+
+  # SVM Models (CPU)
+  - name: "svm"
+    description: "Baseline SVM with full name features"
+    model_type: "svm"
+    features: [ "full_name" ]
+    model_params:
+      C: 1.0
+      kernel: "rbf"
+      ngram_range: [ 2, 4 ]
+      max_features: 5000
+    tags: [ "baseline", "svm" ]
+
+  - name: "svm_native"
+    description: "Baseline SVM with native name features"
+    model_type: "svm"
+    features: [ "native_name" ]
+    model_params:
+      C: 1.0
+      kernel: "rbf"
+      ngram_range: [ 2, 4 ]
+      max_features: 5000
+    tags: [ "baseline", "svm", "native" ]
+
+  - name: "svm_surname"
+    description: "Baseline SVM with surname features"
+    model_type: "svm"
+    features: [ "surname" ]
+    model_params:
+      C: 1.0
+      kernel: "rbf"
+      ngram_range: [ 2, 4 ]
+      max_features: 5000
+    tags: [ "baseline", "svm", "surname" ]
+
+  # Transformer Models (GPU-enabled)
+  - name: "transformer"
+    description: "Baseline Transformer with attention mechanism (GPU)"
+    model_type: "transformer"
+    features: [ "full_name" ]
+    model_params:
+      embedding_dim: 128
+      num_heads: 4
+      num_layers: 2
+      epochs: 2
+      batch_size: 64
+      use_gpu: true
+      mixed_precision: true
+    tags: [ "baseline", "neural", "transformer", "gpu" ]
+
+  - name: "transformer_native"
+    description: "Baseline Transformer with native name attention mechanism (GPU)"
+    model_type: "transformer"
+    features: [ "native_name" ]
+    model_params:
+      embedding_dim: 128
+      num_heads: 4
+      num_layers: 2
+      epochs: 2
+      batch_size: 64
+      use_gpu: true
+      mixed_precision: true
+    tags: [ "baseline", "neural", "transformer", "native", "gpu" ]
+
+  - name: "transformer_surname"
+    description: "Baseline Transformer with surname attention mechanism (GPU)"
+    model_type: "transformer"
+    features: [ "surname" ]
+    model_params:
+      embedding_dim: 128
+      num_heads: 4
+      num_layers: 2
+      epochs: 2
+      batch_size: 64
+      use_gpu: true
+      mixed_precision: true
+    tags: [ "baseline", "neural", "transformer", "surname", "gpu" ]
+
+  # XGBoost Models (GPU-enabled)
+  - name: "xgboost"
+    description: "Baseline XGBoost with engineered features (GPU)"
+    model_type: "xgboost"
+    features: [ "full_name" ]
+    model_params:
+      n_estimators: 100
+      max_depth: 6
+      learning_rate: 0.1
+      subsample: 0.8
+      colsample_bytree: 0.8
+      use_gpu: true
+    tags: [ "baseline", "xgboost", "gpu" ]
+
+  - name: "xgboost_native"
+    description: "Baseline XGBoost with native name engineered features (GPU)"
+    model_type: "xgboost"
+    features: [ "native_name" ]
+    model_params:
+      n_estimators: 100
+      max_depth: 6
+      learning_rate: 0.1
+      subsample: 0.8
+      colsample_bytree: 0.8
+      use_gpu: true
+    tags: [ "baseline", "xgboost", "native", "gpu" ]
+
+  - name: "xgboost_surname"
+    description: "Baseline XGBoost with surname engineered features (GPU)"
+    model_type: "xgboost"
+    features: [ "surname" ]
+    model_params:
+      n_estimators: 100
+      max_depth: 6
+      learning_rate: 0.1
+      subsample: 0.8
+      colsample_bytree: 0.8
+      use_gpu: true
+    tags: [ "baseline", "xgboost", "surname", "gpu" ]
+
+
+# Advanced Experiments Configuration
+advanced_experiments:
+
+# Feature Study Configurations
+feature_studies:
+
+# Hyperparameter Tuning Configurations
+hyperparameter_tuning:
+
