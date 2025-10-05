@@ -10,12 +10,14 @@ million names from the Democratic Republic of Congo (DRC) annotated with gender 
 
 ### Installation & Setup
 
-**Unix based**
 ```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
 git clone https://github.com/bernard-ng/drc-ners-nlp.git
 cd drc-ners-nlp
+```
+
+**Linux**
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
 uv sync
 ```
@@ -23,12 +25,9 @@ uv sync
 **Macos & windows**
 ```bash
 docker compose build
-docker compose run --rm app
-docker compose run --rm app ners pipeline run --env=production
-docker compose run --rm app ners research train --name=lightgbm --type=baseline --env=production
-docker compose run --rm --service-ports app ners web run --env=production
+docker compose exec app bash
 ```
-
+s
 ## Data Processing
 
 This project includes a robust data processing pipeline designed to handle large datasets efficiently with batching,
@@ -116,6 +115,10 @@ experiments and make predictions without needing to understand the underlying co
 
 ```bash
 uv run ners web run --env="production"
+```
+
+```bash
+docker compose run --rm --service-ports app ners web run --env=production
 ```
 
 ## Contributors
