@@ -61,18 +61,22 @@ class TraditionalModel(BaseModel):
                 f"Fitting model with {X_prepared.shape[0]} samples and {X_prepared.shape[1]} features"
             )
 
-        logging.info(X_prepared[0])
+        try:
+            # Log a small sample safely for arrays or DataFrames
+            if hasattr(X_prepared, "iloc"):
+                logging.info(X_prepared.iloc[0].to_dict())
+            else:
+                logging.info(X_prepared[0])
+        except Exception:
+            pass
         logging.info(f"Model parameters: {self.config.model_params}")
 
-        history = self.model.fit(X_prepared, y_encoded)
+        # Fit scikit-learn compatible model. Unlike Keras, sklearn's fit returns
+        # the estimator itself and does not provide a training history object.
+        # We therefore do not populate training_history here.
+        self.model.fit(X_prepared, y_encoded)
         self.is_fitted = True
-
-        self.training_history = {
-            "accuracy": history.history["accuracy"],
-            "loss": history.history["loss"],
-            "val_accuracy": history.history.get("val_accuracy", []),
-            "val_loss": history.history.get("val_loss", []),
-        }
+        self.training_history = {}
 
         return self
 

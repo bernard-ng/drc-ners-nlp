@@ -30,7 +30,7 @@ llm:
 # Data handling configuration
 data:
   split_evaluation: false
-  max_dataset_size: 100_000
+  max_dataset_size: 10_000
   balance_by_sex: true
 
 # Enhanced logging for development

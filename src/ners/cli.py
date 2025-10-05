@@ -204,7 +204,6 @@ def web_run(
     config: Optional[Path] = typer.Option(None, help="Path to configuration file"),
     env: str = typer.Option("development", help="Environment name"),
 ) -> None:
-    """Launch the Streamlit web app via subprocess."""
     app_path = Path(__file__).parent / "web" / "app.py"
     cmd = [
         sys.executable,

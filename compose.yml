@@ -10,10 +10,12 @@ services:
     environment:
       NERS_ENV: production
       STREAMLIT_SERVER_ADDRESS: 0.0.0.0
+      PYTHONPATH: /app/src
     # expose Streamlit for `ners web run`
     ports:
       - "8501:8501"
     volumes:
+      - ./src:/app/src
       - ./assets:/app/assets
       - ./config:/app/config
       - ./data:/app/data

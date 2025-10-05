@@ -4,7 +4,6 @@ from typing import Optional, Union
 
 from ners.core.utils import ensure_directories
 from ners.core.config.config_manager import ConfigManager
-from ners.core.config.logging_config import LoggingConfig
 from ners.core.config.pipeline_config import PipelineConfig
 
 config_manager = ConfigManager()

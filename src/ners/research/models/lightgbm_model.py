@@ -16,6 +16,7 @@ class LightGBMModel(TraditionalModel):
         # Store vectorizers and encoders to ensure consistent feature space
         self.vectorizers = {}
         self.label_encoders = {}
+        self.feature_columns = []
 
     def build_model(self) -> BaseEstimator:
         params = self.config.model_params
@@ -38,14 +39,16 @@ class LightGBMModel(TraditionalModel):
             random_state=self.config.random_seed,
             objective=params.get("objective", "binary"),
             n_jobs=params.get("n_jobs", -1),
-            verbose=2,
+            verbose=params.get("verbose", -1),
             device=device,
             gpu_platform_id=gpu_platform_id,
             gpu_device_id=gpu_device_id,
+            force_row_wise=params.get("force_row_wise", True),
         )
 
-    def prepare_features(self, X: pd.DataFrame) -> np.ndarray:
+    def prepare_features(self, X: pd.DataFrame) -> pd.DataFrame | np.ndarray:
         features = []
+        columns: list[str] = []
 
         for feature_type in self.config.features:
             if feature_type.value in X.columns:
@@ -53,7 +56,9 @@ class LightGBMModel(TraditionalModel):
 
                 if feature_type.value in ["name_length", "word_count"]:
                     # Numerical features
-                    features.append(column.fillna(0).values.reshape(-1, 1))
+                    arr = column.fillna(0).values.reshape(-1, 1)
+                    features.append(arr)
+                    columns.append(feature_type.value)
                 elif feature_type.value in ["full_name", "native_name", "surname"]:
                     # Character-level features for names
                     feature_key = f"vectorizer_{feature_type.value}"
@@ -63,20 +68,24 @@ class LightGBMModel(TraditionalModel):
                         self.vectorizers[feature_key] = CountVectorizer(
                             analyzer="char", ngram_range=(2, 3), max_features=50
                         )
-                        char_features = (
-                            self.vectorizers[feature_key]
-                            .fit_transform(column.fillna("").astype(str))
-                            .toarray()
-                        )
+                        vec = self.vectorizers[feature_key]
+                        char_features = vec.fit_transform(
+                            column.fillna("").astype(str)
+                        ).toarray()
+                        vocab_names = list(vec.get_feature_names_out())
                     else:
                         # Subsequent times - use existing vectorizer
-                        char_features = (
-                            self.vectorizers[feature_key]
-                            .transform(column.fillna("").astype(str))
-                            .toarray()
-                        )
+                        vec = self.vectorizers[feature_key]
+                        char_features = vec.transform(
+                            column.fillna("").astype(str)
+                        ).toarray()
+                        vocab_names = list(vec.get_feature_names_out())
 
                     features.append(char_features)
+                    # Prefix with feature name to avoid collisions
+                    columns.extend(
+                        [f"char_{feature_type.value}_{n}" for n in vocab_names]
+                    )
                 else:
                     # Categorical features
                     feature_key = f"encoder_{feature_type.value}"
@@ -111,5 +120,11 @@ class LightGBMModel(TraditionalModel):
                         )
 
                     features.append(encoded.reshape(-1, 1))
+                    columns.append(f"cat_{feature_type.value}")
+        if not features:
+            return pd.DataFrame(index=X.index)
 
-        return np.hstack(features) if features else np.array([]).reshape(len(X), 0)
+        matrix = np.hstack(features)
+        # Persist column order for consistency
+        self.feature_columns = columns
+        return pd.DataFrame(matrix, index=X.index, columns=columns)

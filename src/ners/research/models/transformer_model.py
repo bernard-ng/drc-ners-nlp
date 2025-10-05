@@ -24,20 +24,21 @@ class TransformerModel(NeuralNetworkModel):
 
     def build_model_with_vocab(self, vocab_size: int, **kwargs) -> Any:
         params = kwargs
+        # Use a single resolved max_len everywhere to avoid shape mismatches
+        max_len = int(params.get("max_len", 6))
 
         # Build Transformer model
-        inputs = Input(shape=(params.get("max_len", 8),))
+        inputs = Input(shape=(max_len,))
         x = Embedding(
             input_dim=vocab_size,
             output_dim=params.get("embedding_dim", 64),
-            input_length=params.get("max_len", 8),
             mask_zero=True,
         )(inputs)
 
         # Add positional encoding
-        positions = tf.range(start=0, limit=params.get("max_len", 8), delta=1)
+        positions = tf.range(start=0, limit=max_len, delta=1)
         pos_embedding = Embedding(
-            input_dim=params.get("max_len", 8),
+            input_dim=max_len,
             output_dim=params.get("embedding_dim", 64),
         )(positions)
         x = x + pos_embedding
@@ -85,6 +86,6 @@ class TransformerModel(NeuralNetworkModel):
 
         # Convert to sequences
         sequences = self.tokenizer.texts_to_sequences(text_data)
-        max_len = self.config.model_params.get("max_len", 6)
+        max_len = int(self.config.model_params.get("max_len", 6))
 
         return pad_sequences(sequences, maxlen=max_len, padding="post")

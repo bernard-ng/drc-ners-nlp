@@ -22,6 +22,7 @@ dependencies = [
     "streamlit>=1.50.0",
     "tqdm>=4.67.1",
     "typer>=0.19.2",
+    "tensorflow==2.20.0; sys_platform == 'linux' and platform_machine == 'x86_64'",
     "xgboost>=3.0.5",
 ]
 
@@ -36,6 +37,3 @@ build-backend = "uv_build"
 dev = [
     "ruff>=0.13.3",
 ]
-
-[tool.uv]
-required-environments = ["sys_platform == 'linux' and platform_machine == 'x86_64'"]

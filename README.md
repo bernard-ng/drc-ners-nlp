@@ -91,11 +91,6 @@ uv run ners research train --name="random_forest" --type="baseline" --env="produ
 uv run ners research train --name="random_forest_native" --type="baseline" --env="production"
 uv run ners research train --name="random_forest_surname" --type="baseline" --env="production"
 
-# svm
-uv run ners research train --name="svm" --type="baseline" --env="production"
-uv run ners research train --name="svm_native" --type="baseline" --env="production"
-uv run ners research train --name="svm_surname" --type="baseline" --env="production"
-
 # naive bayes
 uv run ners research train --name="naive_bayes" --type="baseline" --env="production"
 uv run ners research train --name="naive_bayes_native" --type="baseline" --env="production"
@@ -110,46 +105,6 @@ uv run ners research train --name="transformer_surname" --type="baseline" --env=
 uv run ners research train --name="xgboost" --type="baseline" --env="production"
 uv run ners research train --name="xgboost_native" --type="baseline" --env="production"
 uv run ners research train --name="xgboost_surname" --type="baseline" --env="production"
-```
-
-## TensorFlow on macOS (Intel) with uv
-
-TensorFlow no longer publishes wheels for macOS Intel. To keep using uv and run TF reliably, use a Linux container with TF preinstalled and install project code with minimal extras inside the container.
-
-### One-time build
-
-```bash
-docker compose -f docker/compose.tf.yml build
-
-If you see a message like `tensorflow/tensorflow:<tag>: not found`, update `docker/Dockerfile.tf-cpu` to a tag that exists (e.g., `2.17.0`) and rebuild:
-
-```bash
-sed -n '1,20p' docker/Dockerfile.tf-cpu  # verify the FROM line
-docker pull tensorflow/tensorflow:2.17.0 # quick availability check
-docker compose -f docker/compose.tf.yml build
-```
-```
-
-### Start a shell with uv and TF available
-
-```bash
-docker compose -f docker/compose.tf.yml run --rm tf bash
-```
-
-Inside the container:
-
-```bash
-# Install project in editable mode without pulling full deps
-uv pip install -e . --no-deps
-
-# Install only what research needs alongside TensorFlow
-uv pip install typer pandas scikit-learn seaborn plotly
-
-# Sanity check
-uv run python -c "import tensorflow as tf; print(tf.__version__)"
-
-# Run an experiment
-uv run ners research train --name="lstm" --type="baseline" --env="production"
 ```
 
 ## Web Interface

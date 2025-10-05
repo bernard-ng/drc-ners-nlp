@@ -20,13 +20,12 @@ class XGBoostModel(TraditionalModel):
     def build_model(self) -> BaseEstimator:
         params = self.config.model_params
 
-        # Optional GPU acceleration
+        # Optional GPU acceleration. With modern XGBoost, setting tree_method is
+        # sufficient and you typically don't need to pass `predictor`; doing so can
+        # trigger "Parameters ... are not used" warnings with the sklearn API.
         use_gpu = bool(params.get("use_gpu", False))
         default_tree_method = "gpu_hist" if use_gpu else "hist"
         tree_method = params.get("tree_method", default_tree_method)
-        predictor = params.get(
-            "predictor", "gpu_predictor" if tree_method.startswith("gpu") else "auto"
-        )
 
         # Histogram-based trees and parallelism provide fast training; default
         # logloss metric suits binary classification of gender.
@@ -40,8 +39,7 @@ class XGBoostModel(TraditionalModel):
             eval_metric="logloss",
             n_jobs=params.get("n_jobs", -1),
             tree_method=tree_method,
-            predictor=predictor,
-            verbosity=2,
+            verbosity=params.get("verbosity", 0),
         )
 
     def prepare_features(self, X: pd.DataFrame) -> np.ndarray:

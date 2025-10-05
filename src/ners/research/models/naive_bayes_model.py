@@ -15,9 +15,14 @@ class NaiveBayesModel(TraditionalModel):
         params = self.config.model_params
         # Bag-of-character-ngrams aligns with Multinomial NB assumptions; (1,4)
         # includes unigrams for coverage and higher n for suffix/prefix cues.
+        # Ensure tuple for sklearn API (YAML lists -> tuple)
+        ngram_range = params.get("ngram_range", (2, 4))
+        if isinstance(ngram_range, list):
+            ngram_range = tuple(ngram_range)
+
         vectorizer = CountVectorizer(
             analyzer="char",
-            ngram_range=params.get("ngram_range", (2, 5)),
+            ngram_range=ngram_range,
             max_features=params.get("max_features", 8000),
         )
 
