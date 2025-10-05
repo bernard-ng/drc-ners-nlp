@@ -25,7 +25,7 @@ def plot_letter_frequencies(males, females, sort_values=False, title=None):
 
     # Combine into one DataFrame
     df_plot = pd.DataFrame({"Male": L_m, "Female": L_f}).fillna(0).reset_index()
-    df_plot.to_csv(f"../assets/{title}_letter_frequencies.csv", index=False)
+    df_plot.to_csv(f"../../assets/{title}_letter_frequencies.csv", index=False)
 
     # Optional sorting
     if sort_values:

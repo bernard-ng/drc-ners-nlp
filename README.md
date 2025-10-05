@@ -10,8 +10,14 @@ million names from the Democratic Republic of Congo (DRC) annotated with gender 
 
 ### Installation & Setup
 
+> download [the dataset](https://drive.google.com/file/d/1a5wQnOZdsRWBOeoMA_0lNtbneTvS9xqy/view?usp=drive_link), if you need access please reach us at mlec.academia@gmail.com. 
+
 ```bash
 git clone https://github.com/bernard-ng/drc-ners-nlp.git
+
+mkdir -p drc-ners-nlp/data/dataset
+cp names.csv drc-ners-nlp/data/dataset
+
 cd drc-ners-nlp
 ```
 
@@ -27,13 +33,11 @@ uv sync
 docker compose build
 docker compose exec app bash
 ```
-s
+
 ## Data Processing
 
 This project includes a robust data processing pipeline designed to handle large datasets efficiently with batching,
 checkpointing, and parallel processing capabilities.
-step are defined in the `drc-ners-nlp/processing/steps` directory. and configuration to enable them is managed through
-the `drc-ners-nlp/config/pipeline.yaml` file.
 
 **Pipeline Configuration**
 
@@ -54,8 +58,7 @@ uv run ners pipeline run --env="production"
 ## Experiments
 
 This project provides a modular experiment (model training and evaluation) framework for systematic model comparison and
-research iteration. models are defined in the `drc-ners-nlp/research/models` directory.
-you can define model features, training parameters, and evaluation metrics in the `research_templates.yaml` file.
+research iteration. you can define model features, training parameters, and evaluation metrics in the `config/research_templates.yaml` file.
 
 **Running Experiments**
 
@@ -64,42 +67,58 @@ you can define model features, training parameters, and evaluation metrics in th
 uv run ners research train --name="bigru" --type="baseline" --env="production"
 uv run ners research train --name="bigru_native" --type="baseline" --env="production"
 uv run ners research train --name="bigru_surname" --type="baseline" --env="production"
+```
 
+```bash
 # cnn
 uv run ners research train --name="cnn" --type="baseline" --env="production"
 uv run ners research train --name="cnn_native" --type="baseline" --env="production"
 uv run ners research train --name="cnn_surname" --type="baseline" --env="production"
+```
 
+```bash
 # lightgbm
 uv run ners research train --name="lightgbm" --type="baseline" --env="production"
 uv run ners research train --name="lightgbm_native" --type="baseline" --env="production"
 uv run ners research train --name="lightgbm_surname" --type="baseline" --env="production"
+```
 
+```bash
 # logistic regression
 uv run ners research train --name="logistic_regression" --type="baseline" --env="production"
 uv run ners research train --name="logistic_regression_native" --type="baseline" --env="production"
 uv run ners research train --name="logistic_regression_surname" --type="baseline" --env="production"
+```
 
+```bash
 # lstm
 uv run ners research train --name="lstm" --type="baseline" --env="production"
 uv run ners research train --name="lstm_native" --type="baseline" --env="production"
 uv run ners research train --name="lstm_surname" --type="baseline" --env="production"
+```
 
+```bash
 # random forest
 uv run ners research train --name="random_forest" --type="baseline" --env="production"
 uv run ners research train --name="random_forest_native" --type="baseline" --env="production"
 uv run ners research train --name="random_forest_surname" --type="baseline" --env="production"
+```
 
+```bash
 # naive bayes
 uv run ners research train --name="naive_bayes" --type="baseline" --env="production"
 uv run ners research train --name="naive_bayes_native" --type="baseline" --env="production"
 uv run ners research train --name="naive_bayes_surname" --type="baseline" --env="production"
+```
 
+```bash
 # transformer
 uv run ners research train --name="transformer" --type="baseline" --env="production"
 uv run ners research train --name="transformer_native" --type="baseline" --env="production"
 uv run ners research train --name="transformer_surname" --type="baseline" --env="production"
+```
 
+```bash
 # xgboost
 uv run ners research train --name="xgboost" --type="baseline" --env="production"
 uv run ners research train --name="xgboost_native" --type="baseline" --env="production"
@@ -113,6 +132,8 @@ experiments and make predictions without needing to understand the underlying co
 
 ### Running the Web Interface
 
+![web](./assets/web.png)
+
 ```bash
 uv run ners web run --env="production"
 ```
@@ -120,6 +141,8 @@ uv run ners web run --env="production"
 ```bash
 docker compose run --rm --service-ports app ners web run --env=production
 ```
+
+then open : http://localhost:8501/
 
 ## Contributors
 
