@@ -10,7 +10,6 @@ from ners.research.models.logistic_regression_model import LogisticRegressionMod
 from ners.research.models.lstm_model import LSTMModel
 from ners.research.models.naive_bayes_model import NaiveBayesModel
 from ners.research.models.random_forest_model import RandomForestModel
-from ners.research.models.svm_model import SVMModel
 from ners.research.models.transformer_model import TransformerModel
 from ners.research.models.xgboost_model import XGBoostModel
 
@@ -23,7 +22,6 @@ MODEL_REGISTRY = {
     "lstm": LSTMModel,
     "naive_bayes": NaiveBayesModel,
     "random_forest": RandomForestModel,
-    "svm": SVMModel,
     "transformer": TransformerModel,
     "xgboost": XGBoostModel,
 }
