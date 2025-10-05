@@ -10,37 +10,23 @@ million names from the Democratic Republic of Congo (DRC) annotated with gender 
 
 ### Installation & Setup
 
-Instructions and command line snippets bellow are provided to help you set up the project environment quickly and
-efficiently.
-assuming you have Python 3.11 and Git installed and working on a Unix-like system (Linux, macOS, etc.).
-
-**Using Makefile (Recommended)**
-
+**Unix based**
 ```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
 git clone https://github.com/bernard-ng/drc-ners-nlp.git
 cd drc-ners-nlp
 
-# Setup environment
-make setup
-make activate
+uv sync
 ```
 
-**Manual Setup**
-
+**Macos & windows**
 ```bash
-git clone https://github.com/bernard-ng/drc-ners-nlp.git
-cd drc-ners-nlp
-
-# Setup environment
-python -m venv .venv
-.venv/bin/pip install --upgrade pip
-.venv/bin/pip install -r requirements.txt
-
-pip install --upgrade pip
-pip install -r requirements.txt
-pip install jupyter notebook ipykernel pytest black flake8 mypy
-
-source .venv/bin/activate
+docker compose build
+docker compose run --rm app
+docker compose run --rm app ners pipeline run --env=production
+docker compose run --rm app ners research train --name=lightgbm --type=baseline --env=production
+docker compose run --rm --service-ports app ners web run --env=production
 ```
 
 ## Data Processing
@@ -55,6 +41,7 @@ the `drc-ners-nlp/config/pipeline.yaml` file.
 ```yaml
 stages:
   - "data_cleaning"
+  - "data_selection"
   - "feature_extraction"
   - "data_splitting"
 ```
@@ -62,37 +49,7 @@ stages:
 **Running the Pipeline**
 
 ```bash
-python main.py --env production
-```
-
-## NER Processing (Optional)
-
-This project implements a custom named entity recognition (NER) pipeline tailored for Congolese names. 
-Its main objective is to accurately identify and tag the different components of a Congolese name, 
-specifically distinguishing between the native part and the surname.
-
-```bash
-python ner.py --env production
-```
-
-Once you've built and train the NER model you can use it to annotate **COMPOSE** name in the original dataset 
-
-**Running the Pipeline with NER Annotation**
-```yaml
-stages:
-  - "data_cleaning"
-  - "feature_extraction"
-  - "ner_annotation"
-  - "data_splitting"
-```
-
-**Running the Pipeline with LLM Annotation**
-```yaml
-stages:
-  - "data_cleaning"
-  - "feature_extraction"
-  - "llm_annotation"
-  - "data_splitting"
+uv run ners pipeline run --env="production"
 ```
 
 ## Experiments
@@ -105,54 +62,94 @@ you can define model features, training parameters, and evaluation metrics in th
 
 ```bash
 # bigru
-python train.py --name="bigru" --type="baseline" --env="production"
-python train.py --name="bigru_native" --type="baseline" --env="production"
-python train.py --name="bigru_surname" --type="baseline" --env="production"
+uv run ners research train --name="bigru" --type="baseline" --env="production"
+uv run ners research train --name="bigru_native" --type="baseline" --env="production"
+uv run ners research train --name="bigru_surname" --type="baseline" --env="production"
 
 # cnn
-python train.py --name="cnn" --type="baseline" --env="production"
-python train.py --name="cnn_native" --type="baseline" --env="production"
-python train.py --name="cnn_surname" --type="baseline" --env="production"
+uv run ners research train --name="cnn" --type="baseline" --env="production"
+uv run ners research train --name="cnn_native" --type="baseline" --env="production"
+uv run ners research train --name="cnn_surname" --type="baseline" --env="production"
 
 # lightgbm
-python train.py --name="lightgbm" --type="baseline" --env="production"
-python train.py --name="lightgbm_native" --type="baseline" --env="production"
-python train.py --name="lightgbm_surname" --type="baseline" --env="production"
+uv run ners research train --name="lightgbm" --type="baseline" --env="production"
+uv run ners research train --name="lightgbm_native" --type="baseline" --env="production"
+uv run ners research train --name="lightgbm_surname" --type="baseline" --env="production"
 
 # logistic regression
-python train.py --name="logistic_regression" --type="baseline" --env="production"
-python train.py --name="logistic_regression_native" --type="baseline" --env="production"
-python train.py --name="logistic_regression_surname" --type="baseline" --env="production"
+uv run ners research train --name="logistic_regression" --type="baseline" --env="production"
+uv run ners research train --name="logistic_regression_native" --type="baseline" --env="production"
+uv run ners research train --name="logistic_regression_surname" --type="baseline" --env="production"
 
 # lstm
-python train.py --name="lstm" --type="baseline" --env="production"
-python train.py --name="lstm_native" --type="baseline" --env="production"
-python train.py --name="lstm_surname" --type="baseline" --env="production"
+uv run ners research train --name="lstm" --type="baseline" --env="production"
+uv run ners research train --name="lstm_native" --type="baseline" --env="production"
+uv run ners research train --name="lstm_surname" --type="baseline" --env="production"
 
 # random forest
-python train.py --name="random_forest" --type="baseline" --env="production"
-python train.py --name="random_forest_native" --type="baseline" --env="production"
-python train.py --name="random_forest_surname" --type="baseline" --env="production"
+uv run ners research train --name="random_forest" --type="baseline" --env="production"
+uv run ners research train --name="random_forest_native" --type="baseline" --env="production"
+uv run ners research train --name="random_forest_surname" --type="baseline" --env="production"
 
 # svm
-python train.py --name="svm" --type="baseline" --env="production"
-python train.py --name="svm_native" --type="baseline" --env="production"
-python train.py --name="svm_surname" --type="baseline" --env="production"
+uv run ners research train --name="svm" --type="baseline" --env="production"
+uv run ners research train --name="svm_native" --type="baseline" --env="production"
+uv run ners research train --name="svm_surname" --type="baseline" --env="production"
 
 # naive bayes
-python train.py --name="naive_bayes" --type="baseline" --env="production"
-python train.py --name="naive_bayes_native" --type="baseline" --env="production"
-python train.py --name="naive_bayes_surname" --type="baseline" --env="production"
+uv run ners research train --name="naive_bayes" --type="baseline" --env="production"
+uv run ners research train --name="naive_bayes_native" --type="baseline" --env="production"
+uv run ners research train --name="naive_bayes_surname" --type="baseline" --env="production"
 
 # transformer
-python train.py --name="transformer" --type="baseline" --env="production"
-python train.py --name="transformer_native" --type="baseline" --env="production"
-python train.py --name="transformer_surname" --type="baseline" --env="production"
+uv run ners research train --name="transformer" --type="baseline" --env="production"
+uv run ners research train --name="transformer_native" --type="baseline" --env="production"
+uv run ners research train --name="transformer_surname" --type="baseline" --env="production"
 
 # xgboost
-python train.py --name="xgboost" --type="baseline" --env="production"
-python train.py --name="xgboost_native" --type="baseline" --env="production"
-python train.py --name="xgboost_surname" --type="baseline" --env="production"
+uv run ners research train --name="xgboost" --type="baseline" --env="production"
+uv run ners research train --name="xgboost_native" --type="baseline" --env="production"
+uv run ners research train --name="xgboost_surname" --type="baseline" --env="production"
+```
+
+## TensorFlow on macOS (Intel) with uv
+
+TensorFlow no longer publishes wheels for macOS Intel. To keep using uv and run TF reliably, use a Linux container with TF preinstalled and install project code with minimal extras inside the container.
+
+### One-time build
+
+```bash
+docker compose -f docker/compose.tf.yml build
+
+If you see a message like `tensorflow/tensorflow:<tag>: not found`, update `docker/Dockerfile.tf-cpu` to a tag that exists (e.g., `2.17.0`) and rebuild:
+
+```bash
+sed -n '1,20p' docker/Dockerfile.tf-cpu  # verify the FROM line
+docker pull tensorflow/tensorflow:2.17.0 # quick availability check
+docker compose -f docker/compose.tf.yml build
+```
+```
+
+### Start a shell with uv and TF available
+
+```bash
+docker compose -f docker/compose.tf.yml run --rm tf bash
+```
+
+Inside the container:
+
+```bash
+# Install project in editable mode without pulling full deps
+uv pip install -e . --no-deps
+
+# Install only what research needs alongside TensorFlow
+uv pip install typer pandas scikit-learn seaborn plotly
+
+# Sanity check
+uv run python -c "import tensorflow as tf; print(tf.__version__)"
+
+# Run an experiment
+uv run ners research train --name="lstm" --type="baseline" --env="production"
 ```
 
 ## Web Interface
@@ -163,59 +160,8 @@ experiments and make predictions without needing to understand the underlying co
 ### Running the Web Interface
 
 ```bash
-streamlit run web/app.py
+uv run ners web run --env="production"
 ```
-
-## GPU Acceleration
-
-This project can leverage GPUs for faster training when supported libraries and hardware are available.
-
-- TensorFlow/Keras models (BiGRU, LSTM, CNN, Transformer)
-  - Uses GPU automatically if a TensorFlow GPU build is installed.
-  - The code enables safe GPU memory growth by default; optionally enable mixed precision for additional speed:
-    - Add `mixed_precision: true` in the experiment `model_params` (e.g., in `config/research_templates.yaml`).
-  - The final layer outputs are set to float32 for numerical stability under mixed precision.
-
-- spaCy NER
-  - Automatically prefers GPU if available; otherwise falls back to CPU.
-  - Ensure a compatible CUDA-enabled spaCy/thinc stack is installed to use GPU.
-
-- XGBoost
-  - Enable GPU by adding to the experiment `model_params`:
-    - `use_gpu: true` (sets `tree_method: gpu_hist` and `predictor: gpu_predictor`).
-
-- LightGBM
-  - Enable GPU by adding to the experiment `model_params`:
-    - `use_gpu: true` (sets `device: gpu`). Optional: `gpu_platform_id`, `gpu_device_id`.
-
-Example template snippet (GPU on):
-
-```yaml
-- name: "lstm_gpu"
-  description: "LSTM with GPU + mixed precision"
-  model_type: "lstm"
-  features: ["full_name"]
-  model_params:
-    embedding_dim: 128
-    lstm_units: 64
-    epochs: 5
-    batch_size: 128
-    use_gpu: true
-    mixed_precision: true
-  tags: ["gpu", "mixed_precision"]
-
-- name: "xgboost_gpu"
-  description: "XGBoost with GPU"
-  model_type: "xgboost"
-  features: ["full_name"]
-  model_params:
-    n_estimators: 200
-    use_gpu: true
-```
-
-Notes:
-- Install CUDA‑enabled binaries for TensorFlow/spaCy/LightGBM/XGBoost to actually use GPU.
-- If GPU is requested but not available, training will proceed on CPU with a warning.
 
 ## Contributors
 

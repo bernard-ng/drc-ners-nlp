@@ -1,0 +1,21 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: drc-ners:uv
+    working_dir: /app
+    tty: true
+    stdin_open: true
+    environment:
+      NERS_ENV: production
+      STREAMLIT_SERVER_ADDRESS: 0.0.0.0
+    # expose Streamlit for `ners web run`
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./assets:/app/assets
+      - ./config:/app/config
+      - ./data:/app/data
+    # default command shows CLI help; override per run
+    command: ["ners", "--help"]

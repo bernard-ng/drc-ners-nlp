@@ -1,0 +1,16 @@
+.git
+.gitignore
+.idea
+.vscode
+__pycache__
+.ruff_cache
+.venv
+*.pyc
+*.pyo
+*.pyd
+*.swp
+*.swo
+*.DS_Store
+dist
+build
+*.egg-info
