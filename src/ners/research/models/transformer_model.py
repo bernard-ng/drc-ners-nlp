@@ -88,4 +88,7 @@ class TransformerModel(NeuralNetworkModel):
         sequences = self.tokenizer.texts_to_sequences(text_data)
         max_len = int(self.config.model_params.get("max_len", 6))
 
-        return pad_sequences(sequences, maxlen=max_len, padding="post")
+        # Right-side padding and truncation for consistent masking/shape
+        return pad_sequences(
+            sequences, maxlen=max_len, padding="post", truncating="post"
+        )

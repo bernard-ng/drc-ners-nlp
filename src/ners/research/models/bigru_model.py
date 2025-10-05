@@ -23,6 +23,7 @@ class BiGRUModel(NeuralNetworkModel):
                     input_dim=vocab_size,
                     output_dim=params.get("embedding_dim", 64),
                     mask_zero=True,
+                    input_length=params.get("max_len", 6),
                 ),
                 # First recurrent block returns full sequences to allow stacking.
                 # Moderate dropout + optional recurrent_dropout to reduce overfitting
@@ -69,4 +70,8 @@ class BiGRUModel(NeuralNetworkModel):
         sequences = self.tokenizer.texts_to_sequences(text_data)
         max_len = self.config.model_params.get("max_len", 6)
 
-        return pad_sequences(sequences, maxlen=max_len, padding="post")
+        # Ensure padding and truncation are applied on the right to keep
+        # contiguous non-zero tokens on the left, matching RNN mask expectations.
+        return pad_sequences(
+            sequences, maxlen=max_len, padding="post", truncating="post"
+        )

@@ -149,6 +149,29 @@ class NeuralNetworkModel(BaseModel):
                 if invalid_mask.any():
                     arr[invalid_mask] = oov_index
 
+                # Enforce strictly right-padded masks for RNN/cuDNN compatibility.
+                # Any zero appearing before the last non-zero in a sequence will be
+                # replaced with the OOV index so the mask remains contiguous True->False.
+                try:
+                    nz = arr != 0  # non-padding tokens
+                    if nz.ndim == 2 and arr.shape[1] > 0:
+                        # Identify rows that have at least one non-zero
+                        has_nz = nz.any(axis=1)
+                        # Compute last non-zero position per row; if none, set to -1
+                        indices = np.arange(arr.shape[1], dtype=np.int64)
+                        # Max of indices where nz is True gives last non-zero
+                        last_pos = (nz * indices).max(axis=1)
+                        last_pos = np.where(has_nz, last_pos, -1)
+                        # Broadcast to mark the left region up to last non-zero (inclusive)
+                        left_region = indices <= last_pos[:, None]
+                        # Zeros inside the left region are invalid padding -> set to OOV
+                        zero_inside = (~nz) & left_region
+                        if zero_inside.any():
+                            arr[zero_inside] = oov_index
+                except Exception:
+                    # Best-effort; skip if any unexpected broadcasting issue occurs
+                    pass
+
             # Use int32 for TF embedding ops compatibility
             return arr.astype(np.int32, copy=False)
         except Exception as e:

@@ -83,4 +83,7 @@ class CNNModel(NeuralNetworkModel):
             "max_len", 20
         )  # Longer for character level
 
-        return pad_sequences(sequences, maxlen=max_len, padding="post")
+        # Right-side padding and truncation ensure contiguous non-zero tokens on the left
+        return pad_sequences(
+            sequences, maxlen=max_len, padding="post", truncating="post"
+        )

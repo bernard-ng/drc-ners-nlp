@@ -68,4 +68,7 @@ class LSTMModel(NeuralNetworkModel):
         sequences = self.tokenizer.texts_to_sequences(text_data)
         max_len = self.config.model_params.get("max_len", 6)
 
-        return pad_sequences(sequences, maxlen=max_len, padding="post")
+        # Right-side padding and truncation to preserve contiguous non-zero tokens
+        return pad_sequences(
+            sequences, maxlen=max_len, padding="post", truncating="post"
+        )
