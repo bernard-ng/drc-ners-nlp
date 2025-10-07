@@ -1,5 +1,10 @@
 # A Culturally-Aware NLP System for Congolese Name Analysis and Gender Inference
 
+[![audit](https://github.com/bernard-ng/drc-ners-nlp/actions/workflows/audit.yml/badge.svg)](https://github.com/bernard-ng/drc-ners-nlp/actions/workflows/audit.yml)
+[![quality](https://github.com/bernard-ng/drc-ners-nlp/actions/workflows/quality.yml/badge.svg)](https://github.com/bernard-ng/drc-ners-nlp/actions/workflows/quality.yml)
+
+---
+
 Despite the growing success of gender inference models in Natural Language Processing (NLP), these tools often
 underperform when applied to culturally diverse African contexts due to the lack of culturally-representative training
 data.
