@@ -13,7 +13,9 @@ class ConfigManager:
     """Centralized configuration management"""
 
     def __init__(self, config_path: Optional[Union[str, Path]] = None):
-        self.config_path = config_path or self._find_config_file()
+        self.config_path: Path = (
+            Path(config_path) if config_path is not None else self._find_config_file()
+        )
         self._config: Optional[PipelineConfig] = None
         self._setup_default_paths()
 
@@ -47,10 +49,12 @@ class ConfigManager:
             checkpoints_dir=root_dir / "data" / "checkpoints",
         )
 
-    def load_config(self, config_path: Optional[Path] = None) -> PipelineConfig:
+    def load_config(
+        self, config_path: Optional[Union[str, Path]] = None
+    ) -> PipelineConfig:
         """Load configuration from file"""
-        if config_path:
-            self.config_path = config_path
+        if config_path is not None:
+            self.config_path = Path(config_path)
 
         if not self.config_path.exists():
             logging.warning(
@@ -80,9 +84,11 @@ class ConfigManager:
         """Create default configuration"""
         return PipelineConfig(paths=self.default_paths)
 
-    def save_config(self, config: PipelineConfig, path: Optional[Path] = None):
+    def save_config(
+        self, config: PipelineConfig, path: Optional[Union[str, Path]] = None
+    ):
         """Save configuration to file"""
-        save_path = path or self.config_path
+        save_path = Path(path) if path is not None else self.config_path
         save_path.parent.mkdir(parents=True, exist_ok=True)
 
         config_dict = config.model_dump()
@@ -142,8 +148,8 @@ class ConfigManager:
             env_config = self.load_config(env_config_path)
 
             # Merge configurations
-            base_dict = base_config.dict()
-            env_dict = env_config.dict()
+            base_dict = base_config.model_dump()
+            env_dict = env_config.model_dump()
             self._deep_update(base_dict, env_dict)
 
             return PipelineConfig(**base_dict)

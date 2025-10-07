@@ -99,14 +99,24 @@ class ExperimentBuilder:
                 logging.warning(f"Unknown feature type: {feature_str}")
                 continue
 
+        name = (
+            template_config.get("name")
+            or template_config.get("model_type")
+            or "experiment"
+        )
+        model_type = template_config.get("model_type") or "logistic_regression"
+        description = template_config.get("description") or ""
+
         return ExperimentConfig(
-            name=template_config.get("name"),
-            description=template_config.get("description"),
-            model_type=template_config.get("model_type"),
+            name=str(name),
+            description=str(description),
+            model_type=str(model_type),
             features=features,
             model_params=template_config.get("model_params", {}),
             tags=template_config.get("tags", []),
-            test_size=template_config.get("test_size", 0.2),
-            cross_validation_folds=template_config.get("cross_validation_folds", 5),
+            test_size=float(template_config.get("test_size", 0.2)),
+            cross_validation_folds=int(
+                template_config.get("cross_validation_folds", 5)
+            ),
             train_data_filter=template_config.get("train_data_filter"),
         )

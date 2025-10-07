@@ -21,7 +21,7 @@ from ners.research.neural_network_model import NeuralNetworkModel
 class CNNModel(NeuralNetworkModel):
     """1D Convolutional Neural Network for character patterns"""
 
-    def build_model_with_vocab(self, vocab_size: int, **kwargs) -> Any:
+    def build_model(self, vocab_size: int, **kwargs) -> Any:
         """Build CNN model with known vocabulary size"""
 
         params = kwargs

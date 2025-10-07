@@ -30,12 +30,21 @@ def train_from_template(
         logging.info(f"Features: {experiment_config.get('features')}")
 
         trainer = ModelTrainer(cfg)
+        name_val = experiment_config.get("name")
+        type_val = experiment_config.get("model_type")
+        features_val = experiment_config.get("features") or ["full_name"]
+        tags_val = experiment_config.get("tags", [])
+        if not isinstance(name_val, str) or not isinstance(type_val, str):
+            raise ValueError("Template must include 'name' and 'model_type' as strings")
+        if not isinstance(features_val, list):
+            raise ValueError("Template 'features' must be a list of strings")
+
         trainer.train_single_model(
-            model_name=experiment_config.get("name"),
-            model_type=experiment_config.get("model_type"),
-            features=experiment_config.get("features"),
+            model_name=name_val,
+            model_type=type_val,
+            features=features_val,
             model_params=experiment_config.get("model_params", {}),
-            tags=experiment_config.get("tags", []),
+            tags=tags_val if isinstance(tags_val, list) else [],
         )
 
         logging.info("Training completed successfully!")

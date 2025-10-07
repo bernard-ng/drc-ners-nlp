@@ -13,7 +13,7 @@ from ners.research.neural_network_model import NeuralNetworkModel
 class LSTMModel(NeuralNetworkModel):
     """LSTM model for sequence learning"""
 
-    def build_model_with_vocab(self, vocab_size: int, **kwargs) -> Any:
+    def build_model(self, vocab_size: int, **kwargs) -> Any:
         params = kwargs
         model = Sequential(
             [
@@ -30,7 +30,9 @@ class LSTMModel(NeuralNetworkModel):
                         params.get("lstm_units", 32),
                         return_sequences=True,
                         dropout=params.get("dropout", 0.2),
-                        recurrent_dropout=params.get("recurrent_dropout", 0.0),
+                        # Default to a small non-zero recurrent_dropout to avoid
+                        # cuDNN mask assertions when masking with Bidirectional.
+                        recurrent_dropout=params.get("recurrent_dropout", 0.1),
                     )
                 ),
                 # Second LSTM condenses sequence to a fixed vector for classification.
@@ -38,7 +40,7 @@ class LSTMModel(NeuralNetworkModel):
                     LSTM(
                         params.get("lstm_units", 32),
                         dropout=params.get("dropout", 0.2),
-                        recurrent_dropout=params.get("recurrent_dropout", 0.0),
+                        recurrent_dropout=params.get("recurrent_dropout", 0.1),
                     )
                 ),
                 # Compact dense head with dropout; sufficient capacity for name signals.

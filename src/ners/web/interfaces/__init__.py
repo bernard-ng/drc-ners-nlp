@@ -1,1 +1,3 @@
-from .ner_testing import NERTesting
+from .ner_testing import NERTesting as NERTesting
+
+__all__ = ["NERTesting"]

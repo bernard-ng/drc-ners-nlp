@@ -1,6 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, TYPE_CHECKING, Union
 
 import joblib
 import matplotlib.pyplot as plt
@@ -9,19 +9,23 @@ import pandas as pd
 
 from ners.research.experiment import ExperimentConfig
 
+if TYPE_CHECKING:
+    from ners.research.experiment.feature_extractor import FeatureExtractor
+    from sklearn.preprocessing import LabelEncoder
+
 
 class BaseModel(ABC):
     """Abstract base class for all models"""
 
     def __init__(self, config: ExperimentConfig):
         self.config = config
-        self.model = None
-        self.feature_extractor = None
-        self.label_encoder = None
-        self.tokenizer = None  # For neural models
-        self.is_fitted = False
-        self.training_history = {}  # Store training history for learning curves
-        self.learning_curve_data = {}  # Store learning curve experiment data
+        self.model: Any | None = None
+        self.feature_extractor: "FeatureExtractor | None" = None
+        self.label_encoder: "LabelEncoder | None" = None
+        self.tokenizer: Any | None = None  # For neural models
+        self.is_fitted: bool = False
+        self.training_history: Dict[str, Any] = {}  # For learning curves
+        self.learning_curve_data: Dict[str, Any] = {}
 
     @property
     @abstractmethod
@@ -48,7 +52,7 @@ class BaseModel(ABC):
 
     @abstractmethod
     def generate_learning_curve(
-        self, X: pd.DataFrame, y: pd.Series, train_sizes: List[float] = None
+        self, X: pd.DataFrame, y: pd.Series, train_sizes: List[float] = []
     ) -> Dict[str, Any]:
         """Generate learning curve data for the model"""
         pass
@@ -58,10 +62,17 @@ class BaseModel(ABC):
         if not self.is_fitted:
             raise ValueError("Model must be fitted before making predictions")
 
+        if (
+            self.feature_extractor is None
+            or self.model is None
+            or self.label_encoder is None
+        ):
+            raise ValueError("Model is not fully initialized for prediction")
+
         features_df = self.feature_extractor.extract_features(X)
         X_prepared = self.prepare_features(features_df)
 
-        predictions = self.model.predict(X_prepared)
+        predictions: Union[np.ndarray, Any] = self.model.predict(X_prepared)
 
         # Handle different prediction formats
         if hasattr(predictions, "shape") and len(predictions.shape) > 1:
@@ -75,6 +86,9 @@ class BaseModel(ABC):
         if not self.is_fitted:
             raise ValueError("Model must be fitted before making predictions")
 
+        if self.feature_extractor is None or self.model is None:
+            raise ValueError("Model is not fully initialized for prediction")
+
         features_df = self.feature_extractor.extract_features(X)
         X_prepared = self.prepare_features(features_df)
 
@@ -83,7 +97,11 @@ class BaseModel(ABC):
         elif hasattr(self.model, "predict"):
             # For neural networks that return probabilities directly
             probabilities = self.model.predict(X_prepared)
-            if len(probabilities.shape) == 2 and probabilities.shape[1] > 1:
+            if (
+                hasattr(probabilities, "shape")
+                and len(probabilities.shape) == 2
+                and probabilities.shape[1] > 1
+            ):
                 return probabilities
 
         raise NotImplementedError("Model does not support probability predictions")
@@ -91,30 +109,29 @@ class BaseModel(ABC):
     def get_feature_importance(self) -> Optional[Dict[str, float]]:
         """Get feature importance if supported by the model"""
 
-        if hasattr(self.model, "feature_importances_"):
+        model = self.model
+        if model is None:
+            return None
+
+        if hasattr(model, "feature_importances_"):
             # For tree-based models
-            importances = self.model.feature_importances_
+            importances = model.feature_importances_
             feature_names = self._get_feature_names()
             return dict(zip(feature_names, importances))
 
-        elif hasattr(self.model, "coef_"):
+        elif hasattr(model, "coef_"):
             # For linear models
-            coefficients = np.abs(self.model.coef_[0])
+            coefficients = np.abs(model.coef_[0])
             feature_names = self._get_feature_names()
             return dict(zip(feature_names, coefficients))
 
-        elif (
-            hasattr(self.model, "named_steps")
-            and "classifier" in self.model.named_steps
-        ):
+        elif hasattr(model, "named_steps") and "classifier" in model.named_steps:
             # For sklearn pipelines (like LogisticRegression with vectorizer)
-            classifier = self.model.named_steps["classifier"]
+            classifier = model.named_steps["classifier"]
             if hasattr(classifier, "coef_"):
                 coefficients = np.abs(classifier.coef_[0])
-                if hasattr(
-                    self.model.named_steps["vectorizer"], "get_feature_names_out"
-                ):
-                    feature_names = self.model.named_steps[
+                if hasattr(model.named_steps["vectorizer"], "get_feature_names_out"):
+                    feature_names = model.named_steps[
                         "vectorizer"
                     ].get_feature_names_out()
                     # Take top features to avoid too many n-grams
@@ -127,8 +144,9 @@ class BaseModel(ABC):
 
     def _get_feature_names(self) -> List[str]:
         """Get feature names (override in subclasses if needed)"""
-        if hasattr(self.model, "feature_names_in_"):
-            return list(self.model.feature_names_in_)
+        model = self.model
+        if model is not None and hasattr(model, "feature_names_in_"):
+            return list(model.feature_names_in_)
         return [f"feature_{i}" for i in range(100)]  # Default fallback
 
     def save(self, path: str):

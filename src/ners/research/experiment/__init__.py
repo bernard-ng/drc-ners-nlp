@@ -70,7 +70,7 @@ class ExperimentStatus(Enum):
 
 
 def calculate_metrics(
-    y_true: np.ndarray, y_pred: np.ndarray, metrics: List[str] = None
+    y_true: np.ndarray, y_pred: np.ndarray, metrics: Optional[List[str]] = None
 ) -> Dict[str, float]:
     """Calculate specified metrics"""
 

@@ -21,7 +21,7 @@ class DataSelectionStep(PipelineStep):
         if "region" in batch.columns and "year" in batch.columns:
             target_years = {2015, 2021, 2022}
             mask_remove = batch["region"].str.lower().eq("global") & batch["year"].isin(
-                target_years
+                list(target_years)
             )
             removed = int(mask_remove.sum())
             if removed:

@@ -13,7 +13,7 @@ from ners.research.neural_network_model import NeuralNetworkModel
 class BiGRUModel(NeuralNetworkModel):
     """Bidirectional GRU model for name classification"""
 
-    def build_model_with_vocab(self, vocab_size: int, **kwargs) -> Any:
+    def build_model(self, vocab_size: int, **kwargs) -> Any:
         params = kwargs
         model = Sequential(
             [
@@ -33,7 +33,10 @@ class BiGRUModel(NeuralNetworkModel):
                         params.get("gru_units", 32),
                         return_sequences=True,
                         dropout=params.get("dropout", 0.2),
-                        recurrent_dropout=params.get("recurrent_dropout", 0.0),
+                        # Use a small non-zero recurrent_dropout by default to
+                        # disable cuDNN path, which has strict right-padding mask
+                        # requirements and can assert when using Bidirectional.
+                        recurrent_dropout=params.get("recurrent_dropout", 0.1),
                     )
                 ),
                 # Second GRU summarizes to the last hidden state (no return_sequences),
@@ -42,7 +45,7 @@ class BiGRUModel(NeuralNetworkModel):
                     GRU(
                         params.get("gru_units", 32),
                         dropout=params.get("dropout", 0.2),
-                        recurrent_dropout=params.get("recurrent_dropout", 0.0),
+                        recurrent_dropout=params.get("recurrent_dropout", 0.1),
                     )
                 ),
                 # Small dense head; ReLU + dropout for capacity and regularization.

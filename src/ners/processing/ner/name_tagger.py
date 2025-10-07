@@ -260,9 +260,9 @@ class NameTagger:
 
         # Remove overlaps
         filtered, last_end = [], -1
-        for s, e, l in valid:
+        for s, e, label in valid:
             if s >= last_end:
-                filtered.append((s, e, l))
+                filtered.append((s, e, label))
                 last_end = e
         return filtered
 

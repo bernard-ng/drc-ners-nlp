@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Dict, Any, Union
+from typing import List, Dict, Any, Union, Optional
 
 import pandas as pd
 
@@ -25,7 +25,9 @@ class FeatureExtractor:
     """Extract different types of features from name data"""
 
     def __init__(
-        self, feature_types: List[FeatureType], feature_params: Dict[str, Any] = None
+        self,
+        feature_types: List[FeatureType],
+        feature_params: Optional[Dict[str, Any]] = None,
     ):
         self.feature_types = feature_types
         self.feature_params = feature_params or {}

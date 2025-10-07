@@ -118,12 +118,31 @@ def research_train(
     exp_cfg = exp_builder.find_template(tmpl, name, type)
 
     trainer = ModelTrainer(cfg)
+    # Validate and coerce template fields to expected types for type safety
+    model_name = exp_cfg.get("name")
+    model_type = exp_cfg.get("model_type")
+    features = exp_cfg.get("features")
+    tags = exp_cfg.get("tags", [])
+
+    if not isinstance(model_name, str) or not isinstance(model_type, str):
+        raise typer.BadParameter(
+            "Template must include 'name' and 'model_type' as strings"
+        )
+
+    if features is None:
+        features = ["full_name"]
+    elif not isinstance(features, list):
+        raise typer.BadParameter("Template 'features' must be a list of strings")
+
+    if not isinstance(tags, list):
+        tags = []
+
     trainer.train_single_model(
-        model_name=exp_cfg.get("name"),
-        model_type=exp_cfg.get("model_type"),
-        features=exp_cfg.get("features"),
+        model_name=model_name,
+        model_type=model_type,
+        features=features,
         model_params=exp_cfg.get("model_params", {}),
-        tags=exp_cfg.get("tags", []),
+        tags=tags,
     )
 
 

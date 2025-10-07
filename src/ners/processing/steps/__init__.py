@@ -19,7 +19,7 @@ class PipelineState:
 
     processed_batches: int = 0
     total_batches: int = 0
-    failed_batches: List[int] = None
+    failed_batches: Optional[List[int]] = None
     last_checkpoint: Optional[str] = None
 
     def __post_init__(self):

@@ -29,8 +29,8 @@ class FeatureExtractionStep(PipelineStep):
         self.region_mapper = RegionMapper()
         self.name_tagger = NameTagger()
 
-    @classmethod
-    def requires_batch_mutation(cls) -> bool:
+    @property
+    def requires_batch_mutation(self) -> bool:
         """This step creates new columns, so mutation is required"""
         return True
 

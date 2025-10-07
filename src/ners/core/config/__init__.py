@@ -16,13 +16,13 @@ def get_config() -> PipelineConfig:
 
 def load_config(config_path: Optional[Union[str, Path]] = None) -> PipelineConfig:
     """Load configuration from specified path"""
-    if config_path:
-        return config_manager.load_config(Path(config_path))
+    if config_path is not None:
+        return config_manager.load_config(config_path)
     return config_manager.get_config()
 
 
 def setup_config(
-    config_path: Optional[Path] = None, env: str = "development"
+    config_path: Optional[Union[str, Path]] = None, env: str = "development"
 ) -> PipelineConfig:
     """
     Unified configuration loading and logging setup for all entrypoint scripts.
@@ -37,6 +37,8 @@ def setup_config(
     # Determine config path
     if config_path is None:
         config_path = Path("config") / f"pipeline.{env}.yaml"
+    else:
+        config_path = Path(config_path)
 
     # Load configuration
     config = ConfigManager(config_path).load_config()

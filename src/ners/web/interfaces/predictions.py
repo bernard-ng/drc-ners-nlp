@@ -116,7 +116,7 @@ class Predictions:
         try:
             probabilities = model.predict_proba(input_df)[0]
             return max(probabilities)
-        except:
+        except Exception:
             return None
 
     def _display_single_prediction_results(
@@ -209,7 +209,7 @@ class Predictions:
             try:
                 probabilities = model.predict_proba(df)
                 df["confidence"] = np.max(probabilities, axis=1)
-            except:
+            except Exception:
                 df["confidence"] = None
 
         st.success("Predictions completed!")

@@ -22,7 +22,7 @@ from ners.research.neural_network_model import NeuralNetworkModel
 class TransformerModel(NeuralNetworkModel):
     """Transformer-based model"""
 
-    def build_model_with_vocab(self, vocab_size: int, **kwargs) -> Any:
+    def build_model(self, vocab_size: int, **kwargs) -> Any:
         params = kwargs
         # Use a single resolved max_len everywhere to avoid shape mismatches
         max_len = int(params.get("max_len", 6))

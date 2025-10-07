@@ -1,7 +1,7 @@
 import json
 import logging
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 import pandas as pd
 
@@ -30,9 +30,9 @@ class ModelTrainer:
         self,
         model_name: str,
         model_type: str = "logistic_regression",
-        features: List[str] = None,
-        model_params: Dict[str, Any] = None,
-        tags: List[str] = None,
+        features: Optional[List[str]] = None,
+        model_params: Optional[Dict[str, Any]] = None,
+        tags: Optional[List[str]] = None,
         save_artifacts: bool = True,
     ) -> str:
         """
@@ -106,7 +106,7 @@ class ModelTrainer:
         logging.info(f"Completed training {len(experiment_ids)} models successfully")
         return experiment_ids
 
-    def save_model_artifacts(self, experiment_id: str) -> Dict[str, str]:
+    def save_model_artifacts(self, experiment_id: str) -> Dict[str, Optional[str]]:
         """
         Save model artifacts in a structured way for easy loading.
         Returns paths to saved artifacts.

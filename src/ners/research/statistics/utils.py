@@ -5,7 +5,8 @@ import numpy as np
 import pandas as pd
 from scipy.spatial.distance import euclidean
 from scipy.stats import entropy
-from typing import Dict, Any
+from collections import Counter
+from typing import Dict, Any, Literal
 
 LETTERS = "abcdefghijklmnopqrstuvwxyz"
 START_TOKEN = "^"
@@ -232,11 +233,6 @@ def build_transition_comparisons(
     )
 
     return out
-
-
-import pandas as pd
-from collections import Counter
-from typing import Literal
 
 
 def build_ngrams_count(
