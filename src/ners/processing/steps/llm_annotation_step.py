@@ -1,7 +1,7 @@
 import logging
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Dict
+from typing import Dict, Any, cast
 
 import ollama
 import pandas as pd
@@ -55,7 +55,7 @@ class LLMAnnotationStep(PipelineStep):
         )
         return RateLimiter(rate_config)
 
-    def analyze_name(self, client: ollama.Client, name: str) -> Dict:
+    def analyze_name(self, client: ollama.Client, name: str) -> Dict[str, Any]:
         """Analyze a name with retry logic and rate limiting"""
         for attempt in range(self.llm_config.retry_attempts):
             try:
@@ -117,7 +117,8 @@ class LLMAnnotationStep(PipelineStep):
 
     def process_batch(self, batch: pd.DataFrame, batch_id: int) -> pd.DataFrame:
         """Process batch with LLM annotation"""
-        unannotated_mask = batch.get("annotated", 0) == 0
+        # Ensure mask is treated as a Series to avoid truthiness ambiguity
+        unannotated_mask = pd.Series(batch.get("annotated", 0) == 0)
         unannotated_entries = batch[unannotated_mask]
 
         if unannotated_entries.empty:
@@ -137,7 +138,8 @@ class LLMAnnotationStep(PipelineStep):
         if len(unannotated_entries) == 1 or max_workers == 1:
             # Sequential processing
             for idx, row in unannotated_entries.iterrows():
-                result = self.analyze_name(client, row["name"])
+                # Explicit string conversion for name parameter
+                result = self.analyze_name(client, str(row["name"]))
                 for field, value in result.items():
                     if field not in ["failed"]:
                         batch.loc[idx, field] = value
@@ -147,7 +149,8 @@ class LLMAnnotationStep(PipelineStep):
                 future_to_idx = {}
 
                 for idx, row in unannotated_entries.iterrows():
-                    future = executor.submit(self.analyze_name, client, row["name"])
+                    # Explicit string conversion for name parameter
+                    future = executor.submit(self.analyze_name, client, str(row["name"]))
                     future_to_idx[future] = idx
 
                 for future in as_completed(future_to_idx):
@@ -161,9 +164,9 @@ class LLMAnnotationStep(PipelineStep):
                         logging.error(f"Failed to process row {idx}: {e}")
                         batch.loc[idx, "annotated"] = 0
 
-        # Ensure proper data types
-        batch["annotated"] = (
-            pd.to_numeric(batch["annotated"], errors="coerce").fillna(0).astype("Int8")
-        )
+        # Cast to Series before fillna to satisfy Pyright's strict analysis
+        if "annotated" in batch.columns:
+            converted = pd.to_numeric(batch["annotated"], errors="coerce")
+            batch["annotated"] = cast(pd.Series, converted).fillna(0).astype("Int8")
 
         return batch
