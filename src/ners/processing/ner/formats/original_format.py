@@ -1,22 +1,25 @@
 from typing import Dict
-
 import pandas as pd
 
-from ners.processing.ner.formats import BaseNameFormatter
+from ners.processing.ner.formats import BaseNameFormatter, is_nonempty
 
 
 class OriginalFormatter(BaseNameFormatter):
     def transform(self, row: pd.Series) -> Dict:
-        native_parts = self.parse_native_components(row["probable_native"])
-        surname = row["probable_surname"] if pd.notna(row["probable_surname"]) else ""
+        native_raw = row.get("probable_native", None)
+        surname_raw = row.get("probable_surname", None)
+
+        native_parts = self.parse_native_components(native_raw)
+        native_text = self._to_str(native_raw)
+        surname = self._to_str(surname_raw)
 
         # Keep original order: native components + surname
-        full_name = f"{row['probable_native']} {surname}".strip()
+        full_name = f"{native_text} {surname}".strip()
 
         return {
             "name": full_name,
-            "probable_native": row["probable_native"],
-            "identified_name": row["probable_native"],
+            "probable_native": native_text,
+            "identified_name": native_text,
             "probable_surname": surname,
             "identified_surname": surname,
             "ner_entities": str(self.create_ner_tags(full_name, native_parts, surname)),

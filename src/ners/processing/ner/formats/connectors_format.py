@@ -1,26 +1,28 @@
 import random
 from typing import Dict
-
 import pandas as pd
 
-from ners.processing.ner.formats import BaseNameFormatter
+from ners.processing.ner.formats import BaseNameFormatter, is_nonempty
 
 
 class ConnectorFormatter(BaseNameFormatter):
     def transform(self, row: pd.Series) -> Dict:
-        native_parts = self.parse_native_components(row["probable_native"])
-        surname = row["probable_surname"] if pd.notna(row["probable_surname"]) else ""
+        native_raw = row.get("probable_native", None)
+        surname_raw = row.get("probable_surname", None)
+
+        native_parts = self.parse_native_components(native_raw)
+        native_text = self._to_str(native_raw)
+        surname = self._to_str(surname_raw)
+
         connector = random.choice(self.connectors)
 
-        # Connect native parts with a random connector
         if len(native_parts) > 1:
             connected_native = f" {connector} ".join(native_parts)
-            full_name = f"{connected_native} {surname}".strip()
         else:
-            connected_native = (
-                f"{row['probable_native']} {connector} {row['probable_native']}".strip()
-            )
-            full_name = f"{connected_native} {surname}".strip()
+            # if native_text empty, keep it safe
+            connected_native = f"{native_text} {connector} {native_text}".strip()
+
+        full_name = f"{connected_native} {surname}".strip()
 
         return {
             "name": full_name,
