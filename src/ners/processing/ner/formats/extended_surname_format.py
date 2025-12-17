@@ -2,7 +2,7 @@ import random
 from typing import Dict
 import pandas as pd
 
-from ners.processing.ner.formats import BaseNameFormatter, is_nonempty
+from ners.processing.ner.formats import BaseNameFormatter
 
 
 class ExtendedSurnameFormatter(BaseNameFormatter):
@@ -24,7 +24,9 @@ class ExtendedSurnameFormatter(BaseNameFormatter):
             "identified_name": native_text,
             "probable_surname": combined_surname,
             "identified_surname": combined_surname,
-            "ner_entities": str(self.create_ner_tags(full_name, native_parts, combined_surname)),
+            "ner_entities": str(
+                self.create_ner_tags(full_name, native_parts, combined_surname)
+            ),
             "transformation_type": self.transformation_type,
             **self.compute_numeric_features(full_name),
         }

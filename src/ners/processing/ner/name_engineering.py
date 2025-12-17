@@ -72,7 +72,7 @@ class NameEngineering:
 
         mask = df["ner_tagged"] == 1
         ner_data = df.loc[mask].copy()
-        
+
         if not isinstance(ner_data, pd.DataFrame):
             ner_data = ner_data.to_frame().T
 
@@ -93,11 +93,11 @@ class NameEngineering:
         )
 
         df = self.data_loader.load_csv_complete(input_filepath)
-        
+
         # Consistent filtering with type safety
         mask = df["ner_tagged"] == 1
         ner_df = df.loc[mask].copy()
-        
+
         if not isinstance(ner_df, pd.DataFrame):
             ner_df = ner_df.to_frame().T
 
@@ -123,12 +123,12 @@ class NameEngineering:
 
         # Define transformation groups
         groups = [
-            (0, split_25_1, "original"),  
-            (split_25_1, split_25_2, "native_only"),  
-            (split_25_2, split_25_3, "position_flipped"),  
-            (split_25_3, split_10_1, "reduced_native"),  
-            (split_10_1, split_10_2, "connector_added"),  
-            (split_10_2, total_rows, "extended_surname"),  
+            (0, split_25_1, "original"),
+            (split_25_1, split_25_2, "native_only"),
+            (split_25_2, split_25_3, "position_flipped"),
+            (split_25_3, split_10_1, "reduced_native"),
+            (split_10_1, split_10_2, "connector_added"),
+            (split_10_2, total_rows, "extended_surname"),
         ]
 
         for start, end, trans_type in groups:

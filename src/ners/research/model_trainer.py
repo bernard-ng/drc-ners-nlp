@@ -190,8 +190,12 @@ class ModelTrainer:
             "model_path": str(model_path),
             "config_path": str(config_path),
             "results_path": str(results_path),
-            "learning_curve_plot": str(learning_curve_path) if learning_curve_path else None,
-            "training_history_plot": str(training_history_path) if training_history_path else None,
+            "learning_curve_plot": str(learning_curve_path)
+            if learning_curve_path
+            else None,
+            "training_history_plot": str(training_history_path)
+            if training_history_path
+            else None,
             "has_learning_curve": bool(trained_model.learning_curve_data),
             "has_training_history": bool(trained_model.training_history),
         }
@@ -207,8 +211,12 @@ class ModelTrainer:
             "config_path": str(config_path),
             "results_path": str(results_path),
             "metadata_path": str(metadata_path),
-            "learning_curve_plot": str(learning_curve_path) if learning_curve_path else None,
-            "training_history_plot": str(training_history_path) if training_history_path else None,
+            "learning_curve_plot": str(learning_curve_path)
+            if learning_curve_path
+            else None,
+            "training_history_plot": str(training_history_path)
+            if training_history_path
+            else None,
         }
 
     def load_trained_model(self, experiment_id: str):
@@ -249,7 +257,9 @@ class ModelTrainer:
                             metadata = json.load(f)
                         models_data.append(metadata)
                     except Exception as e:
-                        logging.warning(f"Could not read metadata for {model_dir.name}: {e}")
+                        logging.warning(
+                            f"Could not read metadata for {model_dir.name}: {e}"
+                        )
 
         if not models_data:
             logging.info("No saved models found.")
@@ -272,7 +282,11 @@ class ModelTrainer:
 
         if "training_date" in df_subset.columns:
             # normalize to datetime (coerce invalid -> NaT)
-            df_subset["training_date"] = pd.to_datetime(df_subset["training_date"], errors="coerce")
+            df_subset["training_date"] = pd.to_datetime(
+                df_subset["training_date"], errors="coerce"
+            )
 
         # Cast to pd.DataFrame to help Pyright pick the correct overload
-        return cast(pd.DataFrame, df_subset).sort_values(by=["training_date"], ascending=False)
+        return cast(pd.DataFrame, df_subset).sort_values(
+            by=["training_date"], ascending=False
+        )

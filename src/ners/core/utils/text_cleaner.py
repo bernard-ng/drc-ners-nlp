@@ -1,6 +1,7 @@
 from typing import Optional, Dict, cast
 import pandas as pd
 
+
 class TextCleaner:
     """Reusable text cleaning utilities"""
 

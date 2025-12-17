@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 import pandas as pd
@@ -23,11 +23,10 @@ class TransformerModel(NeuralNetworkModel):
     """Transformer-based model"""
 
     def build_model(self, vocab_size: int, **kwargs) -> Any:
+        """Build and compile a lightweight Transformer encoder model"""
         params = kwargs
-        # Use a single resolved max_len everywhere to avoid shape mismatches
         max_len = int(params.get("max_len", 6))
 
-        # Build Transformer model
         inputs = Input(shape=(max_len,))
         x = Embedding(
             input_dim=vocab_size,
@@ -35,7 +34,6 @@ class TransformerModel(NeuralNetworkModel):
             mask_zero=True,
         )(inputs)
 
-        # Add positional encoding
         positions = tf.range(start=0, limit=max_len, delta=1)
         pos_embedding = Embedding(
             input_dim=max_len,
@@ -59,36 +57,43 @@ class TransformerModel(NeuralNetworkModel):
 
     @classmethod
     def _transformer_encoder(cls, x, cfg_params):
-        """Transformer encoder block"""
-
+        """Single Transformer encoder block with residual connections"""
         attn = MultiHeadAttention(
             num_heads=cfg_params.get("transformer_num_heads", 2),
             key_dim=cfg_params.get("transformer_head_size", 64),
             dropout=cfg_params.get("attn_dropout", 0.1),
         )(x, x)
+
         x = LayerNormalization(epsilon=1e-6)(
             x + Dropout(cfg_params.get("dropout", 0.1))(attn)
         )
 
-        ff = Dense(cfg_params.get("transformer_ff_dim", 128), activation="relu")(x)
+        ff = Dense(
+            cfg_params.get("transformer_ff_dim", 128), activation="relu"
+        )(x)
         ff = Dense(x.shape[-1])(ff)
+
         return LayerNormalization(epsilon=1e-6)(
             x + Dropout(cfg_params.get("dropout", 0.1))(ff)
         )
 
     def prepare_features(self, X: pd.DataFrame) -> np.ndarray:
+        """Tokenize text features and return padded token sequences"""
         text_data = self._collect_text_corpus(X)
 
-        # Initialize tokenizer if needed
         if self.tokenizer is None:
             self.tokenizer = Tokenizer(oov_token="<OOV>")
-            self.tokenizer.fit_on_texts(text_data)
 
-        # Convert to sequences
-        sequences = self.tokenizer.texts_to_sequences(text_data)
+        # Pyright fix: ensure tokenizer is treated as non-Optional
+        tokenizer = cast(Tokenizer, self.tokenizer)
+        tokenizer.fit_on_texts(text_data)
+
+        sequences = tokenizer.texts_to_sequences(text_data)
         max_len = int(self.config.model_params.get("max_len", 6))
 
-        # Right-side padding and truncation for consistent masking/shape
         return pad_sequences(
-            sequences, maxlen=max_len, padding="post", truncating="post"
+            sequences,
+            maxlen=max_len,
+            padding="post",
+            truncating="post",
         )

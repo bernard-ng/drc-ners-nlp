@@ -2,7 +2,7 @@ import random
 from typing import Dict
 import pandas as pd
 
-from ners.processing.ner.formats import BaseNameFormatter, is_nonempty
+from ners.processing.ner.formats import BaseNameFormatter
 
 
 class ConnectorFormatter(BaseNameFormatter):

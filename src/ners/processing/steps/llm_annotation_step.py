@@ -150,7 +150,9 @@ class LLMAnnotationStep(PipelineStep):
 
                 for idx, row in unannotated_entries.iterrows():
                     # Explicit string conversion for name parameter
-                    future = executor.submit(self.analyze_name, client, str(row["name"]))
+                    future = executor.submit(
+                        self.analyze_name, client, str(row["name"])
+                    )
                     future_to_idx[future] = idx
 
                 for future in as_completed(future_to_idx):

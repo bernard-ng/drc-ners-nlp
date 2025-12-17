@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Optional, Any, cast
+from typing import List, Dict, Optional, cast
 
 import joblib
 import numpy as np
@@ -61,7 +61,7 @@ class ExperimentRunner:
                 random_state=experiment_config.random_seed,
                 stratify=y,
             )
-            
+
             # Explicitly cast to DataFrame to satisfy Pyright
             X_train = cast(pd.DataFrame, X_train_raw)
             X_test = cast(pd.DataFrame, X_test_raw)
@@ -196,7 +196,7 @@ class ExperimentRunner:
 
         # Get both correct and incorrect predictions
         correct_mask = y_test == predictions
-        
+
         # FIX: Explicit conversion to list using .tolist() to satisfy Iterable[int]
         incorrect_indices = X_test[~correct_mask].index.tolist()[: n_examples // 2]
         correct_indices = X_test[correct_mask].index.tolist()[: n_examples // 2]
@@ -208,7 +208,9 @@ class ExperimentRunner:
                 "name": X_test.loc[idx, "name"] if "name" in X_test.columns else "N/A",
                 "true_label": y_test.loc[idx],
                 "predicted_label": predictions[X_test.index.get_loc(idx)],
-                "correct": bool(y_test.loc[idx] == predictions[X_test.index.get_loc(idx)]),
+                "correct": bool(
+                    y_test.loc[idx] == predictions[X_test.index.get_loc(idx)]
+                ),
             }
 
             # Add probability if available
