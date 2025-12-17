@@ -1,4 +1,5 @@
 import logging
+from typing import cast, Set
 
 import pandas as pd
 
@@ -16,16 +17,15 @@ class DataSelectionStep(PipelineStep):
     def process_batch(self, batch: pd.DataFrame, batch_id: int) -> pd.DataFrame:
         """Process a single batch for data selection"""
         logging.info(f"Selecting columns for batch {batch_id} with {len(batch)} rows")
-
-        # Remove rows where region == "global" only for specific years
         if "region" in batch.columns and "year" in batch.columns:
-            target_years = {2015, 2021, 2022}
+            target_years: Set[int] = {2015, 2021, 2022}
             mask_remove = batch["region"].str.lower().eq("global") & batch["year"].isin(
                 list(target_years)
             )
             removed = int(mask_remove.sum())
             if removed:
-                batch = batch[~mask_remove]
+        
+                batch = cast(pd.DataFrame, batch[~mask_remove])
                 logging.info(
                     f"Removed {removed} rows with region == 'global' for years {sorted(target_years)} in batch {batch_id}"
                 )
@@ -46,7 +46,8 @@ class DataSelectionStep(PipelineStep):
             return pd.DataFrame()  # Return empty DataFrame if no required columns exist
 
         # Select only the available required columns
-        selected_batch = batch[available_columns].copy()
+       
+        selected_batch = cast(pd.DataFrame, batch[available_columns].copy())
 
         logging.info(
             f"Selected {len(available_columns)} columns for batch {batch_id}: {available_columns}"
