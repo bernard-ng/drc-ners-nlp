@@ -1,6 +1,6 @@
 import logging
 from abc import abstractmethod
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, cast
 
 import numpy as np
 import pandas as pd
@@ -33,8 +33,6 @@ class NeuralNetworkModel(BaseModel):
         logging.info(f"Training {self.__class__.__name__}")
 
         # Best-effort GPU configuration for TensorFlow when available
-        # - Enables memory growth to avoid pre-allocating all VRAM
-        # - Optionally enables mixed precision if requested via model params
         try:
             requested_gpu = bool(self.config.model_params.get("use_gpu", False))
             enable_mixed = bool(self.config.model_params.get("mixed_precision", False))
@@ -59,7 +57,6 @@ class NeuralNetworkModel(BaseModel):
                         "Requested GPU but no TensorFlow GPU device is available."
                     )
         except Exception as e:
-            # Keep silent in non-TF environments / non-NN workflows
             logging.debug(f"TensorFlow GPU setup skipped: {e}")
 
         # Setup feature extraction
@@ -68,18 +65,23 @@ class NeuralNetworkModel(BaseModel):
                 self.config.features, self.config.feature_params
             )
 
-        # Extract and prepare features (this will also initialize tokenizer)
-        features_df = self.feature_extractor.extract_features(X)
+        # Pyright fix: Access via local variable to ensure non-None type
+        fe = self.feature_extractor
+        assert fe is not None
+        features_df = fe.extract_features(X)
+        
         X_prepared = self.prepare_features(features_df)
-        # Sanitize any out-of-range indices to avoid embedding scatter errors
         X_prepared = self._sanitize_sequences(X_prepared)
 
         # Encode labels
+        # Pyright fix: Use local variable and cast to avoid reportOptionalMemberAccess
         if self.label_encoder is None:
             self.label_encoder = LabelEncoder()
-            y_encoded = self.label_encoder.fit_transform(y)
+            le = cast(LabelEncoder, self.label_encoder)
+            y_encoded = le.fit_transform(y)
         else:
-            y_encoded = self.label_encoder.transform(y)
+            le = cast(LabelEncoder, self.label_encoder)
+            y_encoded = le.transform(y)
 
         # Now we can build the model with known vocab size
         vocab_size = len(self.tokenizer.word_index) + 1 if self.tokenizer else 1000
@@ -87,14 +89,16 @@ class NeuralNetworkModel(BaseModel):
 
         # Get additional model parameters
         self.model = self.build_model(vocab_size=vocab_size, **self.config.model_params)
+        
+        # Pyright fix: Explicitly check that model is built before training
+        if self.model is None:
+            raise ValueError("Model building failed: self.model is None")
 
         # Train the neural network
         logging.info(
             f"Fitting model with {X_prepared.shape[0]} samples and {X_prepared.shape[1]} features"
         )
-        logging.info(X_prepared[0])
-        logging.info(f"Model parameters: {self.config.model_params}")
-
+        
         history = self.model.fit(
             X_prepared,
             y_encoded,
@@ -116,61 +120,41 @@ class NeuralNetworkModel(BaseModel):
         return self
 
     def _sanitize_sequences(self, sequences: np.ndarray) -> np.ndarray:
-        """Clamp invalid token indices to OOV and ensure int32 dtype.
-
-        This prevents rare cases where malformed inputs or dtype issues introduce
-        large or negative indices which can trigger TensorScatterUpdate errors
-        during embedding updates on GPU.
-        """
+        """Clamp invalid token indices to OOV and ensure int32 dtype."""
         try:
             if sequences is None:
                 return sequences
             arr = np.asarray(sequences)
-            # Ensure integer dtype for embedding lookups
             if not np.issubdtype(arr.dtype, np.integer):
                 arr = arr.astype(np.int64, copy=False)
 
             if self.tokenizer is not None and hasattr(self.tokenizer, "word_index"):
-                # Use the actual max index present in the tokenizer mapping
                 if self.tokenizer.word_index:
                     max_idx = max(self.tokenizer.word_index.values())
                 else:
                     max_idx = 0
-                # OOV token index if available, else fall back to 1
                 oov_index = self.tokenizer.word_index.get(
                     getattr(self.tokenizer, "oov_token", "<OOV>"), 1
                 )
-                # Keep zeros (padding) untouched; clamp negatives and > max_idx to OOV
                 invalid_mask = (arr < 0) | (arr > max_idx)
-                # Avoid turning zeros into OOV
                 invalid_mask &= arr != 0
                 if invalid_mask.any():
                     arr[invalid_mask] = oov_index
 
-                # Enforce strictly right-padded masks for RNN/cuDNN compatibility.
-                # Any zero appearing before the last non-zero in a sequence will be
-                # replaced with the OOV index so the mask remains contiguous True->False.
                 try:
-                    nz = arr != 0  # non-padding tokens
+                    nz = arr != 0
                     if nz.ndim == 2 and arr.shape[1] > 0:
-                        # Identify rows that have at least one non-zero
                         has_nz = nz.any(axis=1)
-                        # Compute last non-zero position per row; if none, set to -1
                         indices = np.arange(arr.shape[1], dtype=np.int64)
-                        # Max of indices where nz is True gives last non-zero
                         last_pos = (nz * indices).max(axis=1)
                         last_pos = np.where(has_nz, last_pos, -1)
-                        # Broadcast to mark the left region up to last non-zero (inclusive)
                         left_region = indices <= last_pos[:, None]
-                        # Zeros inside the left region are invalid padding -> set to OOV
                         zero_inside = (~nz) & left_region
                         if zero_inside.any():
                             arr[zero_inside] = oov_index
                 except Exception:
-                    # Best-effort; skip if any unexpected broadcasting issue occurs
                     pass
 
-            # Use int32 for TF embedding ops compatibility
             return arr.astype(np.int32, copy=False)
         except Exception as e:
             logging.debug(f"Sequence sanitization skipped due to: {e}")
@@ -178,7 +162,6 @@ class NeuralNetworkModel(BaseModel):
 
     def _collect_text_corpus(self, X: pd.DataFrame) -> List[str]:
         """Combine configured textual features into one string per record."""
-
         column_names = [
             feature.value
             for feature in self.config.features
@@ -204,55 +187,39 @@ class NeuralNetworkModel(BaseModel):
     def cross_validate(
         self, X: pd.DataFrame, y: pd.Series, cv_folds: int = 5
     ) -> dict[str, np.floating[Any]]:
-        # Ensure TF GPU/mixed-precision config also applies to CV runs
+        """Run cross-validation on the neural network model"""
         try:
-            import tensorflow as tf
-
-            requested_gpu = bool(self.config.model_params.get("use_gpu", False))
-            enable_mixed = bool(self.config.model_params.get("mixed_precision", False))
-
             gpus = tf.config.list_physical_devices("GPU")
             if gpus:
                 for gpu in gpus:
-                    try:
-                        tf.config.experimental.set_memory_growth(gpu, True)
-                    except Exception:
-                        pass
-                if enable_mixed:
-                    try:
-                        tf.keras.mixed_precision.set_global_policy("mixed_float16")
-                    except Exception:
-                        pass
-            else:
-                if requested_gpu:
-                    logging.warning("Requested GPU for CV but none is available.")
+                    tf.config.experimental.set_memory_growth(gpu, True)
         except Exception:
             pass
-        features_df = self.feature_extractor.extract_features(X)
+
+        # Pyright fix: Explicitly verify and capture components to avoid None errors
+        if self.feature_extractor is None or self.label_encoder is None:
+            raise ValueError("Required components (FeatureExtractor/LabelEncoder) must be initialized.")
+            
+        fe, le = self.feature_extractor, self.label_encoder
+        features_df = fe.extract_features(X)
         X_prepared = self.prepare_features(features_df)
         X_prepared = self._sanitize_sequences(X_prepared)
-        y_encoded = self.label_encoder.transform(y)
+        y_encoded = le.transform(y)
 
         cv = StratifiedKFold(
             n_splits=cv_folds, shuffle=True, random_state=self.config.random_seed
         )
 
-        accuracies = []
-        precisions = []
-        recalls = []
-        f1_scores = []
+        accuracies, precisions, recalls, f1_scores = [], [], [], []
 
-        # Get vocabulary size and model parameters
         vocab_size = len(self.tokenizer.word_index) + 1 if self.tokenizer else 1000
         max_len = self.config.model_params.get("max_len", 6)
 
-        for fold, (train_idx, val_idx) in enumerate(cv.split(X_prepared, y_encoded)):
-            # Create fresh model for each fold using build_model
+        for train_idx, val_idx in cv.split(X_prepared, y_encoded):
             fold_model = self.build_model(
                 vocab_size=vocab_size, max_len=max_len, **self.config.model_params
             )
 
-            # Train on fold
             if hasattr(fold_model, "fit"):
                 fold_model.fit(
                     X_prepared[train_idx],
@@ -262,12 +229,10 @@ class NeuralNetworkModel(BaseModel):
                     verbose=0,
                 )
 
-            # Predict on validation
             y_pred = fold_model.predict(X_prepared[val_idx])
             if len(y_pred.shape) > 1:
                 y_pred = y_pred.argmax(axis=1)
 
-            # Calculate metrics
             acc = accuracy_score(y_encoded[val_idx], y_pred)
             prec, rec, f1, _ = precision_recall_fscore_support(
                 y_encoded[val_idx], y_pred, average="weighted"
@@ -286,40 +251,13 @@ class NeuralNetworkModel(BaseModel):
         }
 
     def generate_learning_curve(
-        self, X: pd.DataFrame, y: pd.Series, train_sizes: List[float] = None
+        self, X: pd.DataFrame, y: pd.Series, train_sizes: Optional[List[float]] = None
     ) -> Dict[str, Any]:
         """Generate learning curve data for the model"""
         logging.info(f"Generating learning curve for {self.__class__.__name__}")
 
-        # Ensure TF GPU/mixed-precision config also applies here
-        try:
-            import tensorflow as tf
-
-            requested_gpu = bool(self.config.model_params.get("use_gpu", False))
-            enable_mixed = bool(self.config.model_params.get("mixed_precision", False))
-
-            gpus = tf.config.list_physical_devices("GPU")
-            if gpus:
-                for gpu in gpus:
-                    try:
-                        tf.config.experimental.set_memory_growth(gpu, True)
-                    except Exception:
-                        pass
-                if enable_mixed:
-                    try:
-                        tf.keras.mixed_precision.set_global_policy("mixed_float16")
-                    except Exception:
-                        pass
-            else:
-                if requested_gpu:
-                    logging.warning(
-                        "Requested GPU for learning curve but none is available."
-                    )
-        except Exception:
-            pass
-
-        if train_sizes is None:
-            train_sizes = [0.1, 0.3, 0.5, 0.7, 1.0]
+        # Pyright fix: Handle Optional train_sizes by assigning to a local non-optional list
+        actual_train_sizes = train_sizes if train_sizes is not None else [0.1, 0.3, 0.5, 0.7, 1.0]
 
         learning_curve_data = {
             "train_sizes": [],
@@ -329,16 +267,19 @@ class NeuralNetworkModel(BaseModel):
             "val_scores_std": [],
         }
 
-        # Prepare features and get vocabulary size
-        features_df = self.feature_extractor.extract_features(X)
+        # Pyright fix: Capture components to local variables to ensure type safety
+        if self.feature_extractor is None or self.label_encoder is None:
+            raise ValueError("Required components (FeatureExtractor/LabelEncoder) must be initialized.")
+            
+        fe, le = self.feature_extractor, self.label_encoder
+        features_df = fe.extract_features(X)
         X_prepared = self.prepare_features(features_df)
         X_prepared = self._sanitize_sequences(X_prepared)
-        y_encoded = self.label_encoder.transform(y)
+        y_encoded = le.transform(y)
 
         vocab_size = len(self.tokenizer.word_index) + 1 if self.tokenizer else 1000
         max_len = self.config.model_params.get("max_len", 6)
 
-        # Split data once for validation
         X_train_full, X_val, y_train_full, y_val = train_test_split(
             X_prepared,
             y_encoded,
@@ -347,27 +288,22 @@ class NeuralNetworkModel(BaseModel):
             stratify=y_encoded,
         )
 
-        for size in train_sizes:
+        for size in actual_train_sizes:
             train_size = int(len(X_train_full) * size)
-            if train_size < 10:  # Minimum training size
+            if train_size < 10:
                 continue
 
-            # Sample training data
             indices = np.random.choice(len(X_train_full), train_size, replace=False)
             X_train_subset = X_train_full[indices]
             y_train_subset = y_train_full[indices]
 
-            # Train multiple models for variance estimation
-            train_scores = []
-            val_scores = []
+            train_scores, val_scores = [], []
 
-            for seed in range(3):  # 3 runs for variance
-                # Build fresh model using build_model
+            for seed in range(3):
                 model = self.build_model(
                     vocab_size=vocab_size, max_len=max_len, **self.config.model_params
                 )
 
-                # Train model
                 if hasattr(model, "fit"):
                     model.fit(
                         X_train_subset,
@@ -378,7 +314,6 @@ class NeuralNetworkModel(BaseModel):
                         verbose=0,
                     )
 
-                # Evaluate
                 train_pred = model.predict(X_train_subset)
                 val_pred = model.predict(X_val)
 
