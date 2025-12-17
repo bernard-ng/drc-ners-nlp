@@ -1,6 +1,7 @@
 import gc
 import random
 import logging
+from typing import List, Dict, Any, cast
 
 import numpy as np
 import pandas as pd
@@ -69,15 +70,20 @@ class NameEngineering:
         )
         df = self.data_loader.load_csv_complete(filepath)
 
-        # Filter only NER-tagged rows
-        ner_data = df[df["ner_tagged"] == 1].copy()
+        mask = df["ner_tagged"] == 1
+        ner_data = df.loc[mask].copy()
+        
+        if not isinstance(ner_data, pd.DataFrame):
+            ner_data = ner_data.to_frame().T
+
         logging.info(
             f"Loaded {len(ner_data)} NER-tagged records from {len(df)} total records"
         )
 
-        return ner_data
+        return cast(pd.DataFrame, ner_data)
 
     def compute(self) -> None:
+        """Apply transformations and save engineered dataset"""
         logging.info("Applying feature engineering transformations...")
         input_filepath = self.config.paths.get_data_path(
             self.config.data.output_files["featured"]
@@ -87,7 +93,14 @@ class NameEngineering:
         )
 
         df = self.data_loader.load_csv_complete(input_filepath)
-        ner_df = df[df["ner_tagged"] == 1].copy()
+        
+        # Consistent filtering with type safety
+        mask = df["ner_tagged"] == 1
+        ner_df = df.loc[mask].copy()
+        
+        if not isinstance(ner_df, pd.DataFrame):
+            ner_df = ner_df.to_frame().T
+
         logging.info(
             f"Loaded {len(ner_df)} NER-tagged records from {len(df)} total records"
         )
@@ -95,6 +108,7 @@ class NameEngineering:
         del df  # No need to keep in memory
         gc.collect()
 
+        # Shuffle dataset
         ner_df = ner_df.sample(
             frac=1, random_state=self.config.data.random_seed
         ).reset_index(drop=True)
@@ -109,23 +123,19 @@ class NameEngineering:
 
         # Define transformation groups
         groups = [
-            (0, split_25_1, "original"),  # First 25%: original format
-            (split_25_1, split_25_2, "native_only"),  # Second 25%: remove surname
-            (split_25_2, split_25_3, "position_flipped"),  # Third 25%: flip positions
-            (
-                split_25_3,
-                split_10_1,
-                "reduced_native",
-            ),  # Fourth 10%: reduce native components
-            (split_10_1, split_10_2, "connector_added"),  # Fifth 10%: add connectors
-            (split_10_2, total_rows, "extended_surname"),  # Last 5%: extend surnames
+            (0, split_25_1, "original"),  
+            (split_25_1, split_25_2, "native_only"),  
+            (split_25_2, split_25_3, "position_flipped"),  
+            (split_25_3, split_10_1, "reduced_native"),  
+            (split_10_1, split_10_2, "connector_added"),  
+            (split_10_2, total_rows, "extended_surname"),  
         ]
 
         for start, end, trans_type in groups:
             logging.info(f"Group {trans_type}: {start} to {end} ({end - start} rows)")
 
         # Process each group
-        rows = []
+        rows: List[Dict[str, Any]] = []
         for start, end, formatter_key in groups:
             formatter = self.formatters[formatter_key]
 
@@ -138,5 +148,6 @@ class NameEngineering:
                 new_row.update(transformed)
                 rows.append(new_row)
 
+        # Save results
         self.data_loader.save_csv(pd.DataFrame(rows), output_filepath)
         logging.info(f"Engineered dataset saved to {output_filepath}")
