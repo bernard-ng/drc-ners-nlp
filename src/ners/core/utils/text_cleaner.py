@@ -30,7 +30,6 @@ class TextCleaner:
         df = df.copy()
         columns = df.select_dtypes(include=["object", "string"]).columns
         for col in columns:
-            # Force Pyright à reconnaître que c'est une Series
             series = cast(pd.Series, df[col])
             df[col] = self.clean_text_series(series)
 
