@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 import pandas as pd
@@ -14,33 +14,25 @@ class BiGRUModel(NeuralNetworkModel):
     """Bidirectional GRU model for name classification"""
 
     def build_model(self, vocab_size: int, **kwargs) -> Any:
+        """Build and compile the BiGRU neural network architecture"""
         params = kwargs
+
         model = Sequential(
             [
-                # Mask padding tokens so recurrent layers ignore them; fix input length
-                # for better shape inference and to support masking through the stack.
                 Embedding(
                     input_dim=vocab_size,
                     output_dim=params.get("embedding_dim", 64),
                     mask_zero=True,
                     input_length=params.get("max_len", 6),
                 ),
-                # First recurrent block returns full sequences to allow stacking.
-                # Moderate dropout + optional recurrent_dropout to reduce overfitting
-                # on short names while retaining temporal signal.
                 Bidirectional(
                     GRU(
                         params.get("gru_units", 32),
                         return_sequences=True,
                         dropout=params.get("dropout", 0.2),
-                        # Use a small non-zero recurrent_dropout by default to
-                        # disable cuDNN path, which has strict right-padding mask
-                        # requirements and can assert when using Bidirectional.
                         recurrent_dropout=params.get("recurrent_dropout", 0.1),
                     )
                 ),
-                # Second GRU summarizes to the last hidden state (no return_sequences),
-                # capturing bidirectional context efficiently for classification.
                 Bidirectional(
                     GRU(
                         params.get("gru_units", 32),
@@ -48,10 +40,8 @@ class BiGRUModel(NeuralNetworkModel):
                         recurrent_dropout=params.get("recurrent_dropout", 0.1),
                     )
                 ),
-                # Small dense head; ReLU + dropout for capacity and regularization.
                 Dense(64, activation="relu"),
                 Dropout(params.get("dropout", 0.5)),
-                # Two-way softmax for binary gender classification.
                 Dense(2, activation="softmax", dtype="float32"),
             ]
         )
@@ -64,17 +54,24 @@ class BiGRUModel(NeuralNetworkModel):
         return model
 
     def prepare_features(self, X: pd.DataFrame) -> np.ndarray:
+        """Tokenize text features and convert them into padded integer sequences"""
         text_data = self._collect_text_corpus(X)
 
         if self.tokenizer is None:
-            self.tokenizer = Tokenizer(char_level=False, lower=True, oov_token="<OOV>")
-            self.tokenizer.fit_on_texts(text_data)
+            self.tokenizer = Tokenizer(
+                char_level=False, lower=True, oov_token="<OOV>"
+            )
 
-        sequences = self.tokenizer.texts_to_sequences(text_data)
+        # Pyright fix: ensure tokenizer is treated as non-Optional
+        tokenizer = cast(Tokenizer, self.tokenizer)
+        tokenizer.fit_on_texts(text_data)
+
+        sequences = tokenizer.texts_to_sequences(text_data)
         max_len = self.config.model_params.get("max_len", 6)
 
-        # Ensure padding and truncation are applied on the right to keep
-        # contiguous non-zero tokens on the left, matching RNN mask expectations.
         return pad_sequences(
-            sequences, maxlen=max_len, padding="post", truncating="post"
+            sequences,
+            maxlen=max_len,
+            padding="post",
+            truncating="post",
         )
