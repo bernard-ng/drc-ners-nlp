@@ -1,7 +1,7 @@
 import logging
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Dict
+from typing import Dict, Any, cast
 
 import pandas as pd
 
@@ -47,7 +47,7 @@ class NERAnnotationStep(PipelineStep):
             logging.error(f"Failed to load NER model: {e}")
             self.name_model.nlp = None
 
-    def analyze_name(self, name: str) -> Dict:
+    def analyze_name(self, name: str) -> Dict[str, Any]:
         """Analyze a name with retry logic"""
         if self.name_model.nlp is None:
             return {
@@ -122,7 +122,8 @@ class NERAnnotationStep(PipelineStep):
     def process_batch(self, batch: pd.DataFrame, batch_id: int) -> pd.DataFrame:
         """Process batch with NER annotation using same logic as LLM step"""
         unannotated_mask = batch.get("annotated", 0) == 0
-        unannotated_entries = batch[unannotated_mask]
+        # Cast to DataFrame to avoid "Series | DataFrame" ambiguity
+        unannotated_entries = cast(pd.DataFrame, batch[unannotated_mask])
 
         if unannotated_entries.empty:
             logging.info(f"Batch {batch_id}: No entries to annotate")
@@ -140,7 +141,8 @@ class NERAnnotationStep(PipelineStep):
         if len(unannotated_entries) == 1 or max_workers == 1:
             # Sequential processing
             for idx, row in unannotated_entries.iterrows():
-                result = self.analyze_name(row["name"])
+                # Cast value to string for Pyright
+                result = self.analyze_name(str(row["name"]))
                 for field, value in result.items():
                     if field not in ["failed"]:
                         batch.loc[idx, field] = value
@@ -150,7 +152,8 @@ class NERAnnotationStep(PipelineStep):
                 future_to_idx = {}
 
                 for idx, row in unannotated_entries.iterrows():
-                    future = executor.submit(self.analyze_name, row["name"])
+                    # Cast value to string for Pyright
+                    future = executor.submit(self.analyze_name, str(row["name"]))
                     future_to_idx[future] = idx
 
                 for future in as_completed(future_to_idx):
@@ -165,8 +168,8 @@ class NERAnnotationStep(PipelineStep):
                         batch.loc[idx, "annotated"] = 0
 
         # Ensure proper data types
-        batch["annotated"] = (
-            pd.to_numeric(batch["annotated"], errors="coerce").fillna(0).astype("Int8")
-        )
+        # Fix: Cast to pd.Series before calling .fillna() to satisfy Pyright
+        annotated_series = pd.to_numeric(batch["annotated"], errors="coerce")
+        batch["annotated"] = cast(pd.Series, annotated_series).fillna(0).astype("Int8")
 
         return batch
