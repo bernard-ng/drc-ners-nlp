@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any, cast
 
 import joblib
 import numpy as np
@@ -54,13 +54,17 @@ class ExperimentRunner:
             X = df
 
             # Split data
-            X_train, X_test, y_train, y_test = train_test_split(
+            X_train_raw, X_test_raw, y_train, y_test = train_test_split(
                 X,
                 y,
                 test_size=experiment_config.test_size,
                 random_state=experiment_config.random_seed,
                 stratify=y,
             )
+            
+            # Explicitly cast to DataFrame to satisfy Pyright
+            X_train = cast(pd.DataFrame, X_train_raw)
+            X_test = cast(pd.DataFrame, X_test_raw)
 
             # Create and train model
             model = create_model(experiment_config)
@@ -159,22 +163,24 @@ class ExperimentRunner:
         # Apply training data filters
         if config.train_data_filter:
             for column, criteria in config.train_data_filter.items():
-                if column in filtered_df.columns:
+                # Cast to ensure Pyright knows we have a DataFrame for .columns access
+                current_df = cast(pd.DataFrame, filtered_df)
+                if column in current_df.columns:
                     if isinstance(criteria, list):
-                        filtered_df = filtered_df[filtered_df[column].isin(criteria)]
+                        filtered_df = current_df[current_df[column].isin(criteria)]
                     elif isinstance(criteria, dict):
                         if "min" in criteria:
-                            filtered_df = filtered_df[
-                                filtered_df[column] >= criteria["min"]
+                            filtered_df = current_df[
+                                current_df[column] >= criteria["min"]
                             ]
                         if "max" in criteria:
-                            filtered_df = filtered_df[
-                                filtered_df[column] <= criteria["max"]
+                            filtered_df = current_df[
+                                current_df[column] <= criteria["max"]
                             ]
                     else:
-                        filtered_df = filtered_df[filtered_df[column] == criteria]
+                        filtered_df = current_df[current_df[column] == criteria]
 
-        return filtered_df
+        return cast(pd.DataFrame, filtered_df)
 
     @classmethod
     def _create_prediction_examples(
@@ -190,17 +196,19 @@ class ExperimentRunner:
 
         # Get both correct and incorrect predictions
         correct_mask = y_test == predictions
-        incorrect_indices = X_test[~correct_mask].index[: n_examples // 2]
-        correct_indices = X_test[correct_mask].index[: n_examples // 2]
+        
+        # FIX: Explicit conversion to list using .tolist() to satisfy Iterable[int]
+        incorrect_indices = X_test[~correct_mask].index.tolist()[: n_examples // 2]
+        correct_indices = X_test[correct_mask].index.tolist()[: n_examples // 2]
 
-        sample_indices = list(incorrect_indices) + list(correct_indices)
+        sample_indices = incorrect_indices + correct_indices
 
         for idx in sample_indices[:n_examples]:
             example = {
                 "name": X_test.loc[idx, "name"] if "name" in X_test.columns else "N/A",
                 "true_label": y_test.loc[idx],
                 "predicted_label": predictions[X_test.index.get_loc(idx)],
-                "correct": y_test.loc[idx] == predictions[X_test.index.get_loc(idx)],
+                "correct": bool(y_test.loc[idx] == predictions[X_test.index.get_loc(idx)]),
             }
 
             # Add probability if available
@@ -228,7 +236,7 @@ class ExperimentRunner:
 
         if experiment and experiment.model_path:
             try:
-                # Load the saved model data Recreate the model instance using the saved config
+                # Load the saved model data
                 model_data = joblib.load(experiment.model_path)
                 config = ExperimentConfig.from_dict(model_data["config"])
                 model = create_model(config)
@@ -242,11 +250,11 @@ class ExperimentRunner:
                 model.training_history = model_data.get("training_history", {})
                 model.learning_curve_data = model_data.get("learning_curve_data", {})
 
-                # Restore vectorizers and encoders for models that use them (like XGBoost)
-                if "vectorizers" in model_data and hasattr(model, "vectorizers"):
-                    model.vectorizers = model_data["vectorizers"]
-                if "label_encoders" in model_data and hasattr(model, "label_encoders"):
-                    model.label_encoders = model_data["label_encoders"]
+                # Use setattr to bypass strict attribute checking on BaseModel for dynamic fields
+                if "vectorizers" in model_data:
+                    setattr(model, "vectorizers", model_data["vectorizers"])
+                if "label_encoders" in model_data:
+                    setattr(model, "label_encoders", model_data["label_encoders"])
 
                 return model
 
