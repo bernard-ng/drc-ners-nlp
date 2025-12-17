@@ -1,7 +1,7 @@
 import json
 import logging
 from datetime import datetime
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, cast
 
 import pandas as pd
 
@@ -131,8 +131,6 @@ class ModelTrainer:
         # Save model configuration
         config_path = model_dir / "model_config.json"
         with open(config_path, "w") as f:
-            import json
-
             json.dump(experiment.config.to_dict(), f, indent=2)
 
         # Save experiment results
@@ -154,9 +152,8 @@ class ModelTrainer:
 
                 # Generate learning curve
                 logging.info("Generating learning curve...")
-                trained_model.generate_learning_curve(
-                    df, df[experiment.config.target_column]
-                )
+                y_true = cast(pd.Series, df[experiment.config.target_column])
+                trained_model.generate_learning_curve(df, y_true)
 
                 # Plot and save learning curve
                 learning_curve_path = model_dir / "learning_curve.png"
@@ -193,12 +190,8 @@ class ModelTrainer:
             "model_path": str(model_path),
             "config_path": str(config_path),
             "results_path": str(results_path),
-            "learning_curve_plot": str(learning_curve_path)
-            if learning_curve_path
-            else None,
-            "training_history_plot": str(training_history_path)
-            if training_history_path
-            else None,
+            "learning_curve_plot": str(learning_curve_path) if learning_curve_path else None,
+            "training_history_plot": str(training_history_path) if training_history_path else None,
             "has_learning_curve": bool(trained_model.learning_curve_data),
             "has_training_history": bool(trained_model.training_history),
         }
@@ -208,29 +201,14 @@ class ModelTrainer:
             json.dump(metadata, f, indent=2)
 
         logging.info(f"Model artifacts saved to: {model_dir}")
-        logging.info(f"   - Complete model: {model_path.name}")
-        logging.info(f"   - Configuration: {config_path.name}")
-        logging.info(f"   - Results: {results_path.name}")
-        logging.info(f"   - Metadata: {metadata_path.name}")
-
-        if learning_curve_path and learning_curve_path.exists():
-            logging.info(f"   - Learning curve: {learning_curve_path.name}")
-
-        if training_history_path and training_history_path.exists():
-            logging.info(f"   - Training history: {training_history_path.name}")
-
         return {
             "model_dir": str(model_dir),
             "model_path": str(model_path),
             "config_path": str(config_path),
             "results_path": str(results_path),
             "metadata_path": str(metadata_path),
-            "learning_curve_plot": str(learning_curve_path)
-            if learning_curve_path
-            else None,
-            "training_history_plot": str(training_history_path)
-            if training_history_path
-            else None,
+            "learning_curve_plot": str(learning_curve_path) if learning_curve_path else None,
+            "training_history_plot": str(training_history_path) if training_history_path else None,
         }
 
     def load_trained_model(self, experiment_id: str):
@@ -245,28 +223,22 @@ class ModelTrainer:
                 f"Model artifacts not found for experiment {experiment_id}"
             )
 
-        # Load the model class dynamically
         metadata_path = model_dir / "metadata.json"
         with open(metadata_path, "r") as f:
             metadata = json.load(f)
 
         model_type = metadata["model_type"]
         model_class = MODEL_REGISTRY[model_type]
-
-        # Load the complete model
         loaded_model = model_class.load(str(model_path))
 
         logging.info(f"Loaded model: {metadata['model_name']}")
-        logging.info(f"   Type: {model_type}")
-        logging.info(f"   Accuracy: {metadata['test_accuracy']:.4f}")
-
         return loaded_model
 
     def list_saved_models(self) -> pd.DataFrame:
         """
         List all saved model artifacts.
         """
-        models_data = []
+        models_data: list[Dict[str, Any]] = []
 
         for model_dir in self.models_dir.iterdir():
             if model_dir.is_dir():
@@ -277,9 +249,7 @@ class ModelTrainer:
                             metadata = json.load(f)
                         models_data.append(metadata)
                     except Exception as e:
-                        logging.warning(
-                            f"Could not read metadata for {model_dir.name}: {e}"
-                        )
+                        logging.warning(f"Could not read metadata for {model_dir.name}: {e}")
 
         if not models_data:
             logging.info("No saved models found.")
@@ -287,7 +257,6 @@ class ModelTrainer:
 
         df = pd.DataFrame(models_data)
 
-        # Format the display
         display_columns = [
             "model_name",
             "model_type",
@@ -298,4 +267,12 @@ class ModelTrainer:
         ]
         available_columns = [col for col in display_columns if col in df.columns]
 
-        return df[available_columns].sort_values("training_date", ascending=False)
+        # Defensive subset and ensure proper dtype for sorting
+        df_subset: pd.DataFrame = df.loc[:, available_columns].copy()
+
+        if "training_date" in df_subset.columns:
+            # normalize to datetime (coerce invalid -> NaT)
+            df_subset["training_date"] = pd.to_datetime(df_subset["training_date"], errors="coerce")
+
+        # Cast to pd.DataFrame to help Pyright pick the correct overload
+        return cast(pd.DataFrame, df_subset).sort_values(by=["training_date"], ascending=False)
