@@ -1,3 +1,5 @@
+from typing import Any
+
 import pandas as pd
 import plotly.express as px
 import streamlit as st
@@ -8,45 +10,91 @@ from ners.web.interfaces.log_reader import LogReader
 
 @st.cache_data
 def load_dataset(file_path: str) -> pd.DataFrame:
+    """
+    Load a CSV dataset from disk using optimized dtypes, with a safe fallback.
+
+    The OPTIMIZED_DTYPES mapping is supported by pandas at runtime but is not
+    fully recognized by static type checkers (Pyright). A targeted type ignore
+    is used to avoid false-positive errors.
+
+    Args:
+        file_path: Path to the CSV file to load.
+
+    Returns:
+        A pandas DataFrame containing the dataset, or an empty DataFrame on error.
+    """
     try:
-        return pd.read_csv(file_path, dtype=OPTIMIZED_DTYPES)
+        return pd.read_csv(
+            file_path,
+            dtype=OPTIMIZED_DTYPES,  # type: ignore[arg-type]
+        )
     except Exception as e:
         st.error(f"Error loading dataset: {e}")
         return pd.DataFrame()
 
 
 class DataProcessing:
-    def __init__(self, config, pipeline_monitor):
+    """
+    Streamlit interface for monitoring the data processing pipeline.
+
+    Displays overall progress, step-level metrics, and recent log entries
+    with filtering and basic statistics.
+    """
+
+    def __init__(self, config: Any, pipeline_monitor: Any):
+        """
+        Initialize the DataProcessing view.
+
+        Args:
+            config: Application configuration object providing paths.
+            pipeline_monitor: Object exposing pipeline status information.
+        """
         self.config = config
         self.pipeline_monitor = pipeline_monitor
 
-    def index(self):
+    def index(self) -> None:
+        """
+        Render the Data Processing dashboard.
+
+        Shows pipeline progress, per-step statistics, recent processing logs,
+        and aggregated log-level metrics with a visualization.
+        """
         st.title("Data Processing")
         status = self.pipeline_monitor.get_pipeline_status()
 
         # Overall progress
-        overall_progress = status["overall_completion"] / 100
+        overall_progress = (status.get("overall_completion", 0) or 0) / 100
         st.progress(overall_progress)
-        st.write(f"Overall Progress: {status['overall_completion']:.1f}%")
+        st.write(f"Overall Progress: {status.get('overall_completion', 0):.1f}%")
 
         # Step details
-        for step_name, step_status in status["steps"].items():
+        for step_name, step_status in status.get("steps", {}).items():
             with st.expander(
-                f"{step_name.replace('_', ' ').title()} - {step_status['status']}"
+                f"{step_name.replace('_', ' ').title()} - {step_status.get('status', 'unknown')}"
             ):
                 col1, col2, col3 = st.columns(3)
 
                 with col1:
-                    st.metric("Processed Batches", step_status["processed_batches"])
+                    st.metric(
+                        "Processed Batches",
+                        int(step_status.get("processed_batches", 0) or 0),
+                    )
 
                 with col2:
-                    st.metric("Total Batches", step_status["total_batches"])
+                    st.metric(
+                        "Total Batches",
+                        int(step_status.get("total_batches", 0) or 0),
+                    )
 
                 with col3:
-                    st.metric("Failed Batches", step_status["failed_batches"])
+                    st.metric(
+                        "Failed Batches",
+                        int(step_status.get("failed_batches", 0) or 0),
+                    )
 
-                if step_status["completion_percentage"] > 0:
-                    st.progress(step_status["completion_percentage"] / 100)
+                completion_pct = step_status.get("completion_percentage", 0) or 0
+                if completion_pct > 0:
+                    st.progress(completion_pct / 100)
 
         # Read actual log entries from the log file
         st.subheader("Recent Processing Logs")
@@ -82,22 +130,17 @@ class DataProcessing:
 
             if log_entries:
                 for entry in log_entries:
+                    timestamp = entry.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+                    message = f"[{timestamp}] {entry.level}: {entry.message}"
+
                     if entry.level == "ERROR":
-                        st.error(
-                            f"[{entry.timestamp.strftime('%Y-%m-%d %H:%M:%S')}] {entry.level}: {entry.message}"
-                        )
+                        st.error(message)
                     elif entry.level == "WARNING":
-                        st.warning(
-                            f"[{entry.timestamp.strftime('%Y-%m-%d %H:%M:%S')}] {entry.level}: {entry.message}"
-                        )
+                        st.warning(message)
                     elif entry.level == "INFO":
-                        st.info(
-                            f"[{entry.timestamp.strftime('%Y-%m-%d %H:%M:%S')}] {entry.level}: {entry.message}"
-                        )
+                        st.info(message)
                     else:
-                        st.text(
-                            f"[{entry.timestamp.strftime('%Y-%m-%d %H:%M:%S')}] {entry.level}: {entry.message}"
-                        )
+                        st.text(message)
 
                 # Show log statistics
                 st.subheader("Log Statistics")
@@ -107,17 +150,17 @@ class DataProcessing:
                     col1, col2, col3, col4 = st.columns(4)
 
                     with col1:
-                        st.metric("Total Lines", log_stats.get("total_lines", 0))
+                        st.metric("Total Lines", int(log_stats.get("total_lines", 0) or 0))
                     with col2:
-                        st.metric("INFO", log_stats.get("INFO", 0))
+                        st.metric("INFO", int(log_stats.get("INFO", 0) or 0))
                     with col3:
-                        st.metric("WARNING", log_stats.get("WARNING", 0))
+                        st.metric("WARNING", int(log_stats.get("WARNING", 0) or 0))
                     with col4:
-                        st.metric("ERROR", log_stats.get("ERROR", 0))
+                        st.metric("ERROR", int(log_stats.get("ERROR", 0) or 0))
 
                     # Log level distribution chart
                     levels = ["INFO", "WARNING", "ERROR", "DEBUG", "CRITICAL"]
-                    counts = [log_stats.get(level, 0) for level in levels]
+                    counts = [int(log_stats.get(level, 0) or 0) for level in levels]
 
                     if sum(counts) > 0:
                         fig = px.bar(
