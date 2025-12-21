@@ -26,7 +26,8 @@ class DataSelectionStep(PipelineStep):
             )
             removed = int(mask_remove.sum())
             if removed:
-                batch = batch[~mask_remove]
+                # CORRECTION ICI : Ajout du cast pour le filtrage
+                batch = cast(pd.DataFrame, batch[~mask_remove])
                 logging.info(
                     f"Removed {removed} rows with region == 'global' for years {sorted(target_years)} in batch {batch_id}"
                 )
@@ -48,11 +49,12 @@ class DataSelectionStep(PipelineStep):
 
         # Select only the available required columns
         temp_selection = batch[available_columns]
+        
         if not isinstance(temp_selection, pd.DataFrame):
             raise TypeError("batch[list[str]] must always return a DataFrame")
-        selected_batch = cast(pd.DataFrame, temp_selection).copy()
-        # Cast to ensure type checker understands it's a DataFrame
-        selected_batch = cast(pd.DataFrame, selected_batch)
+            
+        selected_batch = cast(pd.DataFrame, temp_selection)
+        selected_batch = selected_batch.copy()  # type: ignore[assignment]
 
         assert isinstance(
             selected_batch, pd.DataFrame

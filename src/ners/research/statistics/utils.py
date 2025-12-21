@@ -84,7 +84,9 @@ def build_letter_frequencies(series: pd.Series) -> pd.DataFrame:
 def build_transition_probabilities(names: pd.Series, alpha: float = 0.0) -> dict:
     # 1) Normalize
     names = cast(pd.Series, names.astype(str).str.lower().str.replace(rf"[^{LETTERS}]", "", regex=True))
-    names = names[names.str.len() > 0]
+    
+    # CORRECTION ICI : Ajout du cast pour le filtrage
+    names = cast(pd.Series, names[names.str.len() > 0])
 
     # 2) Prepare sequences
     sequences = (START_TOKEN + names + END_TOKEN).tolist()
@@ -254,7 +256,7 @@ def build_ngrams_count(
     where: Literal["any", "prefix", "suffix"] = "any",
 ) -> pd.DataFrame:
     # Normalize and clean to a–z
-    names = df["name"]
+    names = df["name"]  # type: ignore[assignment]
     assert isinstance(
         names, pd.Series
     ), "df['name'] must be a Series"
