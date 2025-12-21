@@ -47,10 +47,19 @@ class Dashboard:
                 with col4:
                     if "sex" in df.columns:
                         gender_dist = df["sex"].value_counts()
-                        f_count = float(gender_dist.get("f", 0))
-                        m_count = float(gender_dist.get("m", 1))
-                        ratio = f_count / max(m_count, 1.0)  # type: ignore
-                        st.metric("F/M Rate", f"{ratio:.2%}")
+                        f_count = int(gender_dist.get("f", 0) or 0)
+                        m_count = int(gender_dist.get("m", 0) or 0)
+
+                        if m_count == 0:
+                            if f_count == 0:
+                                ratio_display = "N/A (no data)"
+                            else:
+                                ratio_display = "∞ (no males)"
+                        else:
+                            ratio = f_count / m_count
+                            ratio_display = f"{ratio:.2f}"
+
+                        st.metric("F/M Rate", ratio_display)
                 with col5:
                     if "annotated" in df.columns:
                         annotated = len(df[df["annotated"] == 1])
