@@ -64,7 +64,7 @@ class TraditionalModel(BaseModel):
         try:
             # Log a small sample safely for arrays or DataFrames
             if hasattr(X_prepared, "iloc"):
-                logging.info(X_prepared.iloc[0].to_dict())
+                logging.info(X_prepared.iloc[0].to_dict())  # type: ignore
             else:
                 logging.info(X_prepared[0])
         except Exception:
@@ -83,9 +83,12 @@ class TraditionalModel(BaseModel):
     def cross_validate(
         self, X: pd.DataFrame, y: pd.Series, cv_folds: int = 5
     ) -> Dict[str, float]:
+        assert self.feature_extractor is not None
         features_df = self.feature_extractor.extract_features(X)
         X_prepared = self.prepare_features(features_df)
+        assert self.label_encoder is not None
         y_encoded = self.label_encoder.transform(y)
+        assert self.model is not None
 
         cv = StratifiedKFold(
             n_splits=cv_folds, shuffle=True, random_state=self.config.random_seed
@@ -117,7 +120,7 @@ class TraditionalModel(BaseModel):
         return results
 
     def generate_learning_curve(
-        self, X: pd.DataFrame, y: pd.Series, train_sizes: List[float] = None
+        self, X: pd.DataFrame, y: pd.Series, train_sizes: List[float] | None = None
     ) -> Dict[str, Any]:
         """Generate learning curve data for the model"""
         logging.info(f"Generating learning curve for {self.__class__.__name__}")
@@ -142,15 +145,22 @@ class TraditionalModel(BaseModel):
             y_encoded = self.label_encoder.transform(y)
 
         try:
-            train_sizes_abs, train_scores, val_scores = learning_curve(
+            learning_curve_result = learning_curve(
                 self.build_model(),
                 X_prepared,
                 y_encoded,
-                train_sizes=train_sizes,
+                train_sizes=train_sizes,  # type: ignore
                 cv=3,  # Use 3-fold CV for speed
                 scoring="accuracy",
                 random_state=self.config.random_seed,
+                return_times=True,
             )
+            # learning_curve with return_times=True returns (train_sizes, train_scores, val_scores, fit_times, score_times)
+            if len(learning_curve_result) >= 5:
+                train_sizes_abs, train_scores, val_scores, _, _ = learning_curve_result
+            else:
+                # Fallback if return format is different
+                raise ValueError("Unexpected learning_curve return format")
 
             learning_curve_data = {
                 "train_sizes": train_sizes_abs.tolist(),

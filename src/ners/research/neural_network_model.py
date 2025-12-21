@@ -11,6 +11,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
 import tensorflow as tf
+from tensorflow import keras  # type: ignore
 
 from ners.research.base_model import BaseModel
 from ners.research.experiment.feature_extractor import FeatureExtractor
@@ -49,7 +50,7 @@ class NeuralNetworkModel(BaseModel):
 
                 if enable_mixed:
                     try:
-                        tf.keras.mixed_precision.set_global_policy("mixed_float16")
+                        tf.keras.mixed_precision.set_global_policy("mixed_float16")  # type: ignore
                         logging.info("Enabled TensorFlow mixed precision (float16)")
                     except Exception as e:
                         logging.warning(f"Could not enable mixed precision: {e}")
@@ -95,7 +96,7 @@ class NeuralNetworkModel(BaseModel):
         logging.info(X_prepared[0])
         logging.info(f"Model parameters: {self.config.model_params}")
 
-        history = self.model.fit(
+        history = self.model.fit(  # type: ignore
             X_prepared,
             y_encoded,
             epochs=self.config.model_params.get("epochs", 10),
@@ -220,7 +221,7 @@ class NeuralNetworkModel(BaseModel):
                         pass
                 if enable_mixed:
                     try:
-                        tf.keras.mixed_precision.set_global_policy("mixed_float16")
+                        tf.keras.mixed_precision.set_global_policy("mixed_float16")  # type: ignore
                     except Exception:
                         pass
             else:
@@ -228,9 +229,11 @@ class NeuralNetworkModel(BaseModel):
                     logging.warning("Requested GPU for CV but none is available.")
         except Exception:
             pass
+        assert self.feature_extractor is not None
         features_df = self.feature_extractor.extract_features(X)
         X_prepared = self.prepare_features(features_df)
         X_prepared = self._sanitize_sequences(X_prepared)
+        assert self.label_encoder is not None
         y_encoded = self.label_encoder.transform(y)
 
         cv = StratifiedKFold(
@@ -286,7 +289,7 @@ class NeuralNetworkModel(BaseModel):
         }
 
     def generate_learning_curve(
-        self, X: pd.DataFrame, y: pd.Series, train_sizes: List[float] = None
+        self, X: pd.DataFrame, y: pd.Series, train_sizes: List[float] | None = None
     ) -> Dict[str, Any]:
         """Generate learning curve data for the model"""
         logging.info(f"Generating learning curve for {self.__class__.__name__}")
@@ -307,7 +310,7 @@ class NeuralNetworkModel(BaseModel):
                         pass
                 if enable_mixed:
                     try:
-                        tf.keras.mixed_precision.set_global_policy("mixed_float16")
+                        tf.keras.mixed_precision.set_global_policy("mixed_float16")  # type: ignore
                     except Exception:
                         pass
             else:
@@ -330,9 +333,11 @@ class NeuralNetworkModel(BaseModel):
         }
 
         # Prepare features and get vocabulary size
+        assert self.feature_extractor is not None
         features_df = self.feature_extractor.extract_features(X)
         X_prepared = self.prepare_features(features_df)
         X_prepared = self._sanitize_sequences(X_prepared)
+        assert self.label_encoder is not None
         y_encoded = self.label_encoder.transform(y)
 
         vocab_size = len(self.tokenizer.word_index) + 1 if self.tokenizer else 1000

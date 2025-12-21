@@ -68,9 +68,9 @@ class BiGRUModel(NeuralNetworkModel):
 
         if self.tokenizer is None:
             self.tokenizer = Tokenizer(char_level=False, lower=True, oov_token="<OOV>")
-            self.tokenizer.fit_on_texts(text_data)
+            self.tokenizer.fit_on_texts(text_data)  # type: ignore
 
-        sequences = self.tokenizer.texts_to_sequences(text_data)
+        sequences = self.tokenizer.texts_to_sequences(text_data)  # type: ignore
         max_len = self.config.model_params.get("max_len", 6)
 
         # Ensure padding and truncation are applied on the right to keep

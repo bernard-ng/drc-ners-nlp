@@ -51,7 +51,7 @@ class XGBoostModel(TraditionalModel):
 
                 if feature_type.value in ["name_length", "word_count"]:
                     # Numerical features
-                    features.append(column.fillna(0).values.reshape(-1, 1))
+                    features.append(np.array(column.fillna(0)).reshape(-1, 1))
                 elif feature_type.value in ["full_name", "native_name", "surname"]:
                     # Character-level features for names
                     feature_key = f"vectorizer_{feature_type.value}"

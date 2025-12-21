@@ -1,4 +1,5 @@
 import logging
+from typing import cast
 
 import pandas as pd
 
@@ -46,8 +47,16 @@ class DataSelectionStep(PipelineStep):
             return pd.DataFrame()  # Return empty DataFrame if no required columns exist
 
         # Select only the available required columns
-        selected_data = batch[available_columns].copy()
-        selected_batch = pd.DataFrame(selected_data)  # type: ignore
+        temp_selection = batch[available_columns]
+        if not isinstance(temp_selection, pd.DataFrame):
+            raise TypeError("batch[list[str]] must always return a DataFrame")
+        selected_batch = cast(pd.DataFrame, temp_selection).copy()
+        # Cast to ensure type checker understands it's a DataFrame
+        selected_batch = cast(pd.DataFrame, selected_batch)
+
+        assert isinstance(
+            selected_batch, pd.DataFrame
+        ), "batch[list[str]] must always return a DataFrame"
 
         logging.info(
             f"Selected {len(available_columns)} columns for batch {batch_id}: {available_columns}"

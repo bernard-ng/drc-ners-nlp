@@ -170,6 +170,8 @@ class ExperimentTracker:
                 / f"experiments_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
             )
 
+        assert output_path is not None  # Should always be set above
+
         rows = []
         for exp in self._results.values():
             row = {

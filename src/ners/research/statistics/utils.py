@@ -1,5 +1,6 @@
 import re
 import unicodedata
+from typing import cast
 
 import numpy as np
 import pandas as pd
@@ -24,11 +25,15 @@ def normalize_letters(s):
 
 
 def build_category_distribution(df: pd.DataFrame) -> pd.DataFrame:
-    return (
+    result = (
         df.groupby("province")["identified_category"]
         .value_counts(normalize=True)  # get proportions
         .unstack(fill_value=0)  # reshape into columns per word count
     )
+    assert isinstance(
+        result, pd.DataFrame
+    ), "groupby value_counts unstack must return DataFrame for multiple categories"
+    return result
 
 
 def build_words_token(df: pd.DataFrame, source: str, target: str) -> pd.DataFrame:
@@ -41,7 +46,7 @@ def build_words_token(df: pd.DataFrame, source: str, target: str) -> pd.DataFram
 
     # Drop NA/empty tokens and strip whitespace
     out[target] = out[target].astype(str).str.strip()
-    out = out[out[target].ne("")].dropna(subset=[target]).reset_index(drop=True)
+    out = out[out[target].ne("")].dropna(subset=[target]).reset_index(drop=True)  # type: ignore
 
     return out
 
@@ -59,8 +64,12 @@ def build_letter_frequencies(series: pd.Series) -> pd.DataFrame:
     chars = pd.Series(list(s))
 
     # Count letters and ensure all letters are present
+    counts = chars.value_counts(normalize=False)
+    assert isinstance(
+        counts, pd.Series
+    ), "value_counts must return Series"
     out = (
-        chars.value_counts(normalize=False)
+        counts
         .reindex(list(LETTERS), fill_value=0)
         .rename_axis("letter")
         .reset_index(name="count")
@@ -74,7 +83,7 @@ def build_letter_frequencies(series: pd.Series) -> pd.DataFrame:
 
 def build_transition_probabilities(names: pd.Series, alpha: float = 0.0) -> dict:
     # 1) Normalize
-    names = names.astype(str).str.lower().str.replace(rf"[^{LETTERS}]", "", regex=True)
+    names = cast(pd.Series, names.astype(str).str.lower().str.replace(rf"[^{LETTERS}]", "", regex=True))
     names = names[names.str.len() > 0]
 
     # 2) Prepare sequences
@@ -97,6 +106,10 @@ def build_transition_probabilities(names: pd.Series, alpha: float = 0.0) -> dict
     arr = np.frombuffer(concat, dtype=np.uint8)
     idx = lut[arr]
 
+    assert isinstance(
+        idx, np.ndarray
+    ), "lut[arr] indexing must return ndarray"
+
     # 7) Build bigram pairs; drop invalid ones (separator & OOV)
     a = idx[:-1]
     b = idx[1:]
@@ -117,8 +130,8 @@ def build_transition_probabilities(names: pd.Series, alpha: float = 0.0) -> dict
     probs = np.divide(counts, np.where(row_sums == 0, 1.0, row_sums), where=True)
 
     # 11) DataFrames
-    df_counts = pd.DataFrame(counts, index=tokens, columns=tokens)
-    df_probs = pd.DataFrame(probs, index=tokens, columns=tokens)
+    df_counts = pd.DataFrame(counts, index=pd.Index(tokens), columns=pd.Index(tokens))
+    df_probs = pd.DataFrame(probs, index=pd.Index(tokens), columns=pd.Index(tokens))
 
     return {
         "tokens": tokens,
@@ -229,7 +242,7 @@ def build_transition_comparisons(
             "jsd": [jsd_names, jsd_surnames],
             "permutation_p_value": [names_p_value, surnames_p_value],
         },
-        index=["names", "surnames"],
+        index=pd.Index(["names", "surnames"]),
     )
 
     return out
@@ -241,7 +254,11 @@ def build_ngrams_count(
     where: Literal["any", "prefix", "suffix"] = "any",
 ) -> pd.DataFrame:
     # Normalize and clean to a–z
-    names = df["name"].astype(str).str.lower().str.replace(r"[^a-z]", "", regex=True)
+    names = df["name"]
+    assert isinstance(
+        names, pd.Series
+    ), "df['name'] must be a Series"
+    names = names.astype(str).str.lower().str.replace(r"[^a-z]", "", regex=True)
 
     ngrams = []
     if where == "any":
@@ -263,7 +280,7 @@ def build_ngrams_count(
     counter = Counter(ngrams)
 
     out = (
-        pd.DataFrame(counter.items(), columns=[f"{n}-gram", "count"])
+        pd.DataFrame(counter.items(), columns=pd.Index([f"{n}-gram", "count"]))
         .sort_values("count", ascending=False, kind="mergesort")
         .reset_index(drop=True)
     )

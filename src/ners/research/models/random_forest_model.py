@@ -40,7 +40,7 @@ class RandomForestModel(TraditionalModel):
                 # Handle different feature types
                 if feature_type.value in ["name_length", "word_count"]:
                     # Numerical features
-                    features.append(column.fillna(0).values.reshape(-1, 1))
+                    features.append(np.array(column.fillna(0)).reshape(-1, 1))
                 else:
                     # Categorical features (encode them persistently)
                     feature_key = f"encoder_{feature_type.value}"
@@ -53,11 +53,11 @@ class RandomForestModel(TraditionalModel):
                     else:
                         encoder = self.label_encoders[feature_key]
                         column_clean = column.fillna("unknown").astype(str)
-                        known_classes = set(encoder.classes_)
+                        known_classes = set(encoder.classes_)  # type: ignore
                         default_class = (
                             "unknown"
                             if "unknown" in known_classes
-                            else encoder.classes_[0]
+                            else list(encoder.classes_)[0]  # type: ignore
                         )
                         column_mapped = column_clean.apply(
                             lambda value: value
@@ -66,6 +66,6 @@ class RandomForestModel(TraditionalModel):
                         )
                         encoded = encoder.transform(column_mapped)
 
-                    features.append(encoded.reshape(-1, 1))
+                    features.append(np.array(encoded).reshape(-1, 1))
 
         return np.hstack(features) if features else np.array([]).reshape(len(X), 0)

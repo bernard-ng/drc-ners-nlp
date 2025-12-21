@@ -29,7 +29,7 @@ class LightGBMModel(TraditionalModel):
 
         # Leaf-wise boosted trees excel on sparse/categorical mixes; binary objective
         # and parallelism improve training speed for this task.
-        return lgb.LGBMClassifier(
+        return lgb.LGBMClassifier(  # type: ignore
             n_estimators=params.get("n_estimators", 100),
             max_depth=params.get("max_depth", -1),
             learning_rate=params.get("learning_rate", 0.1),
@@ -56,7 +56,7 @@ class LightGBMModel(TraditionalModel):
 
                 if feature_type.value in ["name_length", "word_count"]:
                     # Numerical features
-                    arr = column.fillna(0).values.reshape(-1, 1)
+                    arr = np.array(column.fillna(0)).reshape(-1, 1)
                     features.append(arr)
                     columns.append(feature_type.value)
                 elif feature_type.value in ["full_name", "native_name", "surname"]:
@@ -119,7 +119,7 @@ class LightGBMModel(TraditionalModel):
                             column_mapped
                         )
 
-                    features.append(encoded.reshape(-1, 1))
+                    features.append(np.array(encoded).reshape(-1, 1))
                     columns.append(f"cat_{feature_type.value}")
         if not features:
             return pd.DataFrame(index=X.index)
@@ -127,4 +127,4 @@ class LightGBMModel(TraditionalModel):
         matrix = np.hstack(features)
         # Persist column order for consistency
         self.feature_columns = columns
-        return pd.DataFrame(matrix, index=X.index, columns=columns)
+        return pd.DataFrame(matrix, index=X.index, columns=pd.Index(columns))
