@@ -46,7 +46,8 @@ class DataSelectionStep(PipelineStep):
             return pd.DataFrame()  # Return empty DataFrame if no required columns exist
 
         # Select only the available required columns
-        selected_batch = pd.DataFrame(batch[available_columns].copy())  # type: ignore
+        selected_data = batch[available_columns].copy()
+        selected_batch = pd.DataFrame(selected_data)  # type: ignore
 
         logging.info(
             f"Selected {len(available_columns)} columns for batch {batch_id}: {available_columns}"

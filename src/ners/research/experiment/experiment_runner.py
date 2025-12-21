@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, cast
 
 import joblib
 import numpy as np
@@ -54,13 +54,17 @@ class ExperimentRunner:
             X = df
 
             # Split data
-            X_train, X_test, y_train, y_test = train_test_split(
+            X_train_split, X_test_split, y_train_split, y_test_split = train_test_split(
                 X,
                 y,
                 test_size=experiment_config.test_size,
                 random_state=experiment_config.random_seed,
                 stratify=y,
             )
+            X_train = cast(pd.DataFrame, X_train_split)
+            X_test = cast(pd.DataFrame, X_test_split)
+            y_train = cast(pd.Series, y_train_split)
+            y_test = cast(pd.Series, y_test_split)
 
             # Create and train model
             model = create_model(experiment_config)
@@ -72,10 +76,10 @@ class ExperimentRunner:
 
             # Calculate metrics
             train_metrics = calculate_metrics(
-                y_train, train_pred, experiment_config.metrics
+                np.asarray(y_train), train_pred, experiment_config.metrics
             )
             test_metrics = calculate_metrics(
-                y_test, test_pred, experiment_config.metrics
+                np.asarray(y_test), test_pred, experiment_config.metrics
             )
 
             # Cross-validation if requested
@@ -154,25 +158,25 @@ class ExperimentRunner:
         cls, df: pd.DataFrame, config: ExperimentConfig
     ) -> pd.DataFrame:
         """Apply data filters specified in experiment config"""
-        filtered_df = df.copy()
+        filtered_df: pd.DataFrame = df.copy()
 
         # Apply training data filters
         if config.train_data_filter:
             for column, criteria in config.train_data_filter.items():
                 if column in filtered_df.columns:
                     if isinstance(criteria, list):
-                        filtered_df = filtered_df[filtered_df[column].isin(criteria)]
+                        filtered_df = cast(pd.DataFrame, filtered_df[filtered_df[column].isin(criteria)])
                     elif isinstance(criteria, dict):
                         if "min" in criteria:
-                            filtered_df = filtered_df[
+                            filtered_df = cast(pd.DataFrame, filtered_df[
                                 filtered_df[column] >= criteria["min"]
-                            ]
+                            ])
                         if "max" in criteria:
-                            filtered_df = filtered_df[
+                            filtered_df = cast(pd.DataFrame, filtered_df[
                                 filtered_df[column] <= criteria["max"]
-                            ]
+                            ])
                     else:
-                        filtered_df = filtered_df[filtered_df[column] == criteria]
+                        filtered_df = cast(pd.DataFrame, filtered_df[filtered_df[column] == criteria])
 
         return filtered_df
 
@@ -190,10 +194,10 @@ class ExperimentRunner:
 
         # Get both correct and incorrect predictions
         correct_mask = y_test == predictions
-        incorrect_indices = X_test[~correct_mask].index[: n_examples // 2]
-        correct_indices = X_test[correct_mask].index[: n_examples // 2]
+        incorrect_indices = cast(pd.Index, X_test[~correct_mask].index[: n_examples // 2])
+        correct_indices = cast(pd.Index, X_test[correct_mask].index[: n_examples // 2])
 
-        sample_indices = list(incorrect_indices) + list(correct_indices)
+        sample_indices: List[int] = list(incorrect_indices) + list(correct_indices)
 
         for idx in sample_indices[:n_examples]:
             example = {
@@ -244,9 +248,9 @@ class ExperimentRunner:
 
                 # Restore vectorizers and encoders for models that use them (like XGBoost)
                 if "vectorizers" in model_data and hasattr(model, "vectorizers"):
-                    model.vectorizers = model_data["vectorizers"]
+                    setattr(model, "vectorizers", model_data["vectorizers"])
                 if "label_encoders" in model_data and hasattr(model, "label_encoders"):
-                    model.label_encoders = model_data["label_encoders"]
+                    setattr(model, "label_encoders", model_data["label_encoders"])
 
                 return model
 

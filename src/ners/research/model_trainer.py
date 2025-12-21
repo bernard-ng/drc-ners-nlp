@@ -1,7 +1,7 @@
 import json
 import logging
 from datetime import datetime
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, cast
 
 import pandas as pd
 
@@ -154,9 +154,8 @@ class ModelTrainer:
 
                 # Generate learning curve
                 logging.info("Generating learning curve...")
-                trained_model.generate_learning_curve(
-                    df, df[experiment.config.target_column]
-                )
+                target_series = cast(pd.Series, df[experiment.config.target_column])
+                trained_model.generate_learning_curve(df, target_series)
 
                 # Plot and save learning curve
                 learning_curve_path = model_dir / "learning_curve.png"
@@ -298,4 +297,4 @@ class ModelTrainer:
         ]
         available_columns = [col for col in display_columns if col in df.columns]
 
-        return df[available_columns].sort_values("training_date", ascending=False)
+        return df[available_columns].sort_values("training_date", ascending=False)  # type: ignore
