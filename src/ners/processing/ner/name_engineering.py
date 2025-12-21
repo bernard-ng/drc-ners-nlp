@@ -75,7 +75,7 @@ class NameEngineering:
             f"Loaded {len(ner_data)} NER-tagged records from {len(df)} total records"
         )
 
-        return ner_data
+        return ner_data  # type: ignore
 
     def compute(self) -> None:
         logging.info("Applying feature engineering transformations...")

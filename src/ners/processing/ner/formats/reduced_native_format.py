@@ -7,8 +7,8 @@ from ners.processing.ner.formats import BaseNameFormatter
 
 class ReducedNativeFormatter(BaseNameFormatter):
     def transform(self, row: pd.Series) -> Dict:
-        native_parts = self.parse_native_components(row["probable_native"])
-        surname = row["probable_surname"] if pd.notna(row["probable_surname"]) else ""
+        native_parts = self.parse_native_components(row["probable_native"])  # type: ignore
+        surname = row["probable_surname"] if pd.notna(row["probable_surname"]) else ""  # type: ignore
 
         # Keep only first native component + surname
         reduced_native = (
@@ -23,7 +23,7 @@ class ReducedNativeFormatter(BaseNameFormatter):
             "probable_surname": surname,
             "identified_surname": surname,
             "ner_entities": str(
-                self.create_ner_tags(full_name, [reduced_native], surname)
+                self.create_ner_tags(full_name, [reduced_native], surname)  # type: ignore
             ),
             "transformation_type": self.transformation_type,
             **self.compute_numeric_features(full_name),

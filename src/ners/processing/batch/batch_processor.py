@@ -50,6 +50,8 @@ class BatchProcessor:
                     step.state.processed_batches += 1
                 except Exception as e:
                     logging.error(f"Failed to process batch {batch_id}: {e}")
+                    if step.state.failed_batches is None:
+                        step.state.failed_batches = []
                     step.state.failed_batches.append(batch_id)
                     continue
 
@@ -114,6 +116,8 @@ class BatchProcessor:
                     logging.info(f"Completed batch {batch_id}")
                 except Exception as e:
                     logging.error(f"Failed to process batch {batch_id}: {e}")
+                    if step.state.failed_batches is None:
+                        step.state.failed_batches = []
                     step.state.failed_batches.append(batch_id)
 
         # Memory-efficient reassembly

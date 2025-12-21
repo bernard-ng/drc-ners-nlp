@@ -44,8 +44,8 @@ class DataSplittingStep(PipelineStep):
             eval_indices = self.determine_eval_indices(len(df))
             eval_mask = df.index.isin(eval_indices)
 
-            df_evaluation = df[eval_mask]
-            df_featured = df[~eval_mask]
+            df_evaluation = pd.DataFrame(df[eval_mask])
+            df_featured = pd.DataFrame(df[~eval_mask])
 
             self.data_loader.save_csv(
                 df_evaluation, data_dir / output_files["evaluation"]
@@ -56,14 +56,14 @@ class DataSplittingStep(PipelineStep):
 
         if self.pipeline_config.data.split_by_province:
             for province in RegionMapper.get_provinces():
-                df_region = df[df.province == province]
+                df_region = pd.DataFrame(df[df.province == province])
                 self.data_loader.save_csv(
                     df_region, data_dir / "provinces" / f"{province}.csv"
                 )
 
         if self.pipeline_config.data.split_by_gender:
-            df_males = df[df.sex == Gender.MALE.value]
-            df_females = df[df.sex == Gender.FEMALE.value]
+            df_males = pd.DataFrame(df[df.sex == Gender.MALE.value])
+            df_females = pd.DataFrame(df[df.sex == Gender.FEMALE.value])
 
             self.data_loader.save_csv(df_males, data_dir / output_files["males"])
             self.data_loader.save_csv(df_females, data_dir / output_files["females"])

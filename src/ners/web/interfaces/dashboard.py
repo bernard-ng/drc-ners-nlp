@@ -7,7 +7,7 @@ from ners.core.utils.data_loader import OPTIMIZED_DTYPES
 @st.cache_data
 def load_dataset(file_path: str) -> pd.DataFrame:
     try:
-        return pd.read_csv(file_path, dtype=OPTIMIZED_DTYPES)
+        return pd.read_csv(file_path, dtype=OPTIMIZED_DTYPES)  # type: ignore
     except Exception as e:
         st.error(f"Error loading dataset: {e}")
         return pd.DataFrame()
@@ -32,29 +32,29 @@ class Dashboard:
                 df = load_dataset(str(data_path))
 
                 with col1:
-                    st.metric("Total Names", f"{len(df):,}")
+                    st.metric("Total Names", str(len(df)))
 
                 with col2:
-                    annotated = (df.get("annotated", 0) == 1).sum()
-                    st.metric("Annotated Names", f"{annotated:,}")
+                    annotated = len(df[df["annotated"] == 1]) if "annotated" in df.columns else 0
+                    st.metric("Annotated Names", str(annotated))
 
                 with col3:
                     provinces = (
                         df["province"].nunique() if "province" in df.columns else 0
                     )
-                    st.metric("Provinces", provinces)
+                    st.metric("Provinces", str(provinces))
 
                 with col4:
                     if "sex" in df.columns:
                         gender_dist = df["sex"].value_counts()
-                        ratio = gender_dist.get("f", 0) / max(
-                            gender_dist.get("m", 1), 1
-                        )
+                        f_count = float(gender_dist.get("f", 0))
+                        m_count = float(gender_dist.get("m", 1))
+                        ratio = f_count / max(m_count, 1.0)  # type: ignore
                         st.metric("F/M Rate", f"{ratio:.2%}")
                 with col5:
                     if "annotated" in df.columns:
-                        annotated = (df.get("annotated", 0) == 1).sum()
-                        ratio = annotated / len(df) if len(df) > 0 else 0
+                        annotated = len(df[df["annotated"] == 1])
+                        ratio = float(annotated) / len(df) if len(df) > 0 else 0.0
                         st.metric("Annotation Rate", f"{ratio:.2%}")
             else:
                 st.warning("No processed data found. Please run data processing first.")

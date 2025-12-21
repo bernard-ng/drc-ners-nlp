@@ -9,7 +9,7 @@ from ners.web.interfaces.log_reader import LogReader
 @st.cache_data
 def load_dataset(file_path: str) -> pd.DataFrame:
     try:
-        return pd.read_csv(file_path, dtype=OPTIMIZED_DTYPES)
+        return pd.read_csv(file_path, dtype=OPTIMIZED_DTYPES)  # type: ignore
     except Exception as e:
         st.error(f"Error loading dataset: {e}")
         return pd.DataFrame()

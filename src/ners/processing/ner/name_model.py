@@ -31,7 +31,7 @@ class NameModel:
 
         # Prefer GPU for spaCy if available (falls back to CPU automatically)
         try:
-            if spacy.prefer_gpu():
+            if spacy.prefer_gpu():  # type: ignore
                 logging.info("spaCy GPU enabled (cupy) for NER training")
             else:
                 logging.info("spaCy running on CPU")

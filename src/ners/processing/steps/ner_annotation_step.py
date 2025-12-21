@@ -140,17 +140,17 @@ class NERAnnotationStep(PipelineStep):
         if len(unannotated_entries) == 1 or max_workers == 1:
             # Sequential processing
             for idx, row in unannotated_entries.iterrows():
-                result = self.analyze_name(row["name"])
+                result = self.analyze_name(row["name"])  # type: ignore
                 for field, value in result.items():
                     if field not in ["failed"]:
-                        batch.loc[idx, field] = value
+                        batch.loc[idx, field] = value  # type: ignore
         else:
             # Concurrent processing
             with ThreadPoolExecutor(max_workers=max_workers) as executor:
                 future_to_idx = {}
 
                 for idx, row in unannotated_entries.iterrows():
-                    future = executor.submit(self.analyze_name, row["name"])
+                    future = executor.submit(self.analyze_name, row["name"])  # type: ignore
                     future_to_idx[future] = idx
 
                 for future in as_completed(future_to_idx):
@@ -159,14 +159,14 @@ class NERAnnotationStep(PipelineStep):
                         result = future.result()
                         for field, value in result.items():
                             if field not in ["failed"]:
-                                batch.loc[idx, field] = value
+                                batch.loc[idx, field] = value  # type: ignore
                     except Exception as e:
                         logging.error(f"Failed to process row {idx}: {e}")
-                        batch.loc[idx, "annotated"] = 0
+                        batch.loc[idx, "annotated"] = 0  # type: ignore
 
         # Ensure proper data types
-        batch["annotated"] = (
-            pd.to_numeric(batch["annotated"], errors="coerce").fillna(0).astype("Int8")
-        )
+        batch["annotated"] = pd.to_numeric(batch["annotated"], errors="coerce")
+        batch["annotated"] = batch["annotated"].fillna(0)
+        batch["annotated"] = batch["annotated"].astype("Int8")
 
         return batch

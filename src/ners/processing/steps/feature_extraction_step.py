@@ -55,7 +55,7 @@ class FeatureExtractionStep(PipelineStep):
         logging.info(f"Extracting features for batch {batch_id} with {len(batch)} rows")
 
         result = batch.copy()
-        numeric_features = self._compute_numeric_features(result["name"])
+        numeric_features = self._compute_numeric_features(result["name"])  # type: ignore
         result = result.assign(**numeric_features)
 
         # Initialize features columns with optimal dtypes
@@ -65,20 +65,20 @@ class FeatureExtractionStep(PipelineStep):
         self._assign_probable_names(result)
         self._process_simple_names(result)
         result["identified_category"] = self._assign_identified_category(
-            result["words"]
+            result["words"]  # type: ignore
         )
 
         if "year" in result.columns:
-            result["year"] = pd.to_numeric(result["year"], errors="coerce").astype(
+            result["year"] = pd.to_numeric(result["year"], errors="coerce").astype(  # type: ignore
                 "Int16"
             )
 
         if "region" in result.columns:
-            result["province"] = self.region_mapper.map(result["region"]).str.lower()
+            result["province"] = self.region_mapper.map(result["region"]).str.lower()  # type: ignore
             result["province"] = result["province"].astype("category")
 
         if "sex" in result.columns:
-            result["sex"] = self._normalize_gender(result["sex"])
+            result["sex"] = self._normalize_gender(result["sex"])  # type: ignore
 
         # Apply final dtype optimizations
         result = self._optimize_dtypes(result)
@@ -145,12 +145,12 @@ class FeatureExtractionStep(PipelineStep):
         for idx, row in three_word_rows.iterrows():
             try:
                 entity = self.name_tagger.tag_name(
-                    row["name"], row["identified_name"], row["identified_surname"]
+                    str(row["name"]), str(row["identified_name"]), str(row["identified_surname"])
                 )
 
                 if entity:
-                    df.at[idx, "ner_entities"] = str(entity["entities"])
-                    df.at[idx, "ner_tagged"] = 1
+                    df.at[idx, "ner_entities"] = str(entity["entities"])  # type: ignore
+                    df.at[idx, "ner_tagged"] = 1  # type: ignore
             except Exception as e:
                 logging.warning(f"NER tagging failed for row {idx}: {e}")
 

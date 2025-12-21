@@ -8,9 +8,9 @@ from ners.processing.ner.formats import BaseNameFormatter
 
 class ExtendedSurnameFormatter(BaseNameFormatter):
     def transform(self, row: pd.Series) -> Dict:
-        native_parts = self.parse_native_components(row["probable_native"])
+        native_parts = self.parse_native_components(row["probable_native"])  # type: ignore
         original_surname = (
-            row["probable_surname"] if pd.notna(row["probable_surname"]) else ""
+            row["probable_surname"] if pd.notna(row["probable_surname"]) else ""  # type: ignore
         )
 
         # Add random additional surname

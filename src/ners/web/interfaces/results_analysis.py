@@ -126,7 +126,7 @@ class ResultsAnalysis:
                     x="name",
                     y=metric_to_plot,
                     color="model_type",
-                    title=f"{metric_to_plot.replace('_', ' ').title()} Comparison",
+                    title=f"{metric_to_plot.replace('_', ' ').title()} Comparison",  # type: ignore
                 )
                 fig.update_layout(xaxis_tickangle=-45)
                 st.plotly_chart(fig, use_container_width=True)

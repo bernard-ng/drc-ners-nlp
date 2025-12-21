@@ -8,8 +8,8 @@ from ners.processing.ner.formats import BaseNameFormatter
 
 class ConnectorFormatter(BaseNameFormatter):
     def transform(self, row: pd.Series) -> Dict:
-        native_parts = self.parse_native_components(row["probable_native"])
-        surname = row["probable_surname"] if pd.notna(row["probable_surname"]) else ""
+        native_parts = self.parse_native_components(row["probable_native"])  # type: ignore
+        surname = row["probable_surname"] if pd.notna(row["probable_surname"]) else ""  # type: ignore
         connector = random.choice(self.connectors)
 
         # Connect native parts with a random connector
@@ -28,7 +28,7 @@ class ConnectorFormatter(BaseNameFormatter):
             "identified_name": connected_native,
             "probable_surname": surname,
             "identified_surname": surname,
-            "ner_entities": str(self.create_ner_tags(full_name, native_parts, surname)),
+            "ner_entities": str(self.create_ner_tags(full_name, native_parts, surname)),  # type: ignore
             "transformation_type": self.transformation_type,
             **self.compute_numeric_features(full_name),
         }

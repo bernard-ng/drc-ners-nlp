@@ -111,7 +111,7 @@ class NERTesting:
 
     def analyze_and_display(self, text: str):
         try:
-            result = self.ner_model.predict(text)
+            result = self.ner_model.predict(text)  # type: ignore
             st.subheader("Analysis Results")
             entities = result.get("entities", [])
 

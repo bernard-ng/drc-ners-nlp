@@ -32,6 +32,6 @@ class TextCleaner:
         df = df.copy()
         columns = df.select_dtypes(include=["object", "string"]).columns
         for col in columns:
-            df[col] = self.clean_text_series(df[col])
+            df[col] = self.clean_text_series(df[col])  # type: ignore
 
         return df

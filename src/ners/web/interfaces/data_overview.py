@@ -9,7 +9,7 @@ from ners.core.utils.data_loader import OPTIMIZED_DTYPES
 @st.cache_data
 def load_dataset(file_path: str) -> pd.DataFrame:
     try:
-        return pd.read_csv(file_path, dtype=OPTIMIZED_DTYPES)
+        return pd.read_csv(file_path, dtype=OPTIMIZED_DTYPES)  # type: ignore
     except Exception as e:
         st.error(f"Error loading dataset: {e}")
         return pd.DataFrame()
@@ -49,4 +49,4 @@ class DataOverview:
             df = load_dataset(str(data_path))
             st.subheader("Featured Dataset Preview")
             st.dataframe(df.head(), use_container_width=True)
-            st.write(f"Rows: {len(df):,}")
+            st.write(f"Rows: {int(len(df)):,}")

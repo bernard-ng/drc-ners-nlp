@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Optional
 
 import pandas as pd
 
@@ -13,7 +13,7 @@ class BaseNameFormatter(ABC):
     """
 
     def __init__(
-        self, connectors: List[str] = None, additional_surnames: List[str] = None
+        self, connectors: Optional[List[str]] = None, additional_surnames: Optional[List[str]] = None
     ):
         self.connectors = connectors or ["wa", "ya", "ka", "ba"]
         self.additional_surnames = additional_surnames or [

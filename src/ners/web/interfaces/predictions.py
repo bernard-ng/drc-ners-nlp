@@ -59,7 +59,7 @@ class Predictions:
         elif prediction_mode == "Batch Upload":
             self.show_batch_prediction(selected_experiment)
         elif prediction_mode == "Dataset Prediction":
-            self.show_dataset_prediction(selected_experiment)
+            self.show_dataset_prediction(selected_experiment)  # type: ignore
 
     def show_single_prediction(self, experiment):
         """Show single name prediction interface"""
@@ -143,7 +143,7 @@ class Predictions:
         uploaded_file = st.file_uploader("Upload CSV file with names", type="csv")
         if uploaded_file is not None:
             try:
-                df = pd.read_csv(uploaded_file, dtype=OPTIMIZED_DTYPES)
+                df = pd.read_csv(uploaded_file, dtype=OPTIMIZED_DTYPES)  # type: ignore
 
                 st.write("**Uploaded Data Preview:**")
                 st.dataframe(df.head(), use_container_width=True)
@@ -202,7 +202,7 @@ class Predictions:
             predictions = model.predict(df)
             df["predicted_gender"] = predictions
             df["gender_label"] = df["predicted_gender"].map(
-                {"f": "Female", "m": "Male"}
+                {"f": "Female", "m": "Male"}  # type: ignore
             )
 
             # Try to get probabilities
