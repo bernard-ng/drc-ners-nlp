@@ -1,42 +1,183 @@
-from typing import List
+from __future__ import annotations
 
-from ners.research.base_model import BaseModel
-from ners.research.experiment import ExperimentConfig
-from ners.research.models.bigru_model import BiGRUModel
-from ners.research.models.cnn_model import CNNModel
-from ners.research.models.ensemble_model import EnsembleModel
-from ners.research.models.lightgbm_model import LightGBMModel
-from ners.research.models.logistic_regression_model import LogisticRegressionModel
-from ners.research.models.lstm_model import LSTMModel
-from ners.research.models.naive_bayes_model import NaiveBayesModel
-from ners.research.models.random_forest_model import RandomForestModel
-from ners.research.models.transformer_model import TransformerModel
-from ners.research.models.xgboost_model import XGBoostModel
+from collections.abc import Iterator, Mapping
+from dataclasses import dataclass
+from enum import StrEnum
+from functools import lru_cache
+from importlib import import_module
+from importlib.util import find_spec
+from types import MappingProxyType
+from typing import TYPE_CHECKING
 
-MODEL_REGISTRY = {
-    "bigru": BiGRUModel,
-    "cnn": CNNModel,
-    "ensemble": EnsembleModel,
-    "lightgbm": LightGBMModel,
-    "logistic_regression": LogisticRegressionModel,
-    "lstm": LSTMModel,
-    "naive_bayes": NaiveBayesModel,
-    "random_forest": RandomForestModel,
-    "transformer": TransformerModel,
-    "xgboost": XGBoostModel,
-}
+if TYPE_CHECKING:
+    from ners.config import ExperimentConfig
+    from ners.research.models.base import ResearchModel
 
 
-def create_model(config: ExperimentConfig) -> BaseModel:
-    """Factory function to create models"""
-    model_class = MODEL_REGISTRY.get(config.model_type)
+class ModelFamily(StrEnum):
+    LINEAR = "linear"
+    PROBABILISTIC = "probabilistic"
+    TREE = "tree"
+    BOOSTING = "boosting"
+    NEURAL = "neural"
+    ENSEMBLE = "ensemble"
 
-    if model_class is None:
-        raise ValueError(f"Unknown model type: {config.model_type}")
 
-    return model_class(config)
+@dataclass(frozen=True, slots=True)
+class ModelSpec:
+    """Import path and dependency status for one configured model."""
+
+    name: str
+    module: str
+    class_name: str
+    family: ModelFamily
+    dependency: str | None = None
+
+    @property
+    def available(self) -> bool:
+        return self.availability_error is None
+
+    @property
+    def availability_error(self) -> str | None:
+        if self.dependency is None:
+            return None
+        return _dependency_error(self.dependency)
 
 
-def list_available_models() -> List[str]:
-    """List all available model types"""
-    return list(MODEL_REGISTRY.keys())
+class ModelRegistry(Mapping[str, ModelSpec]):
+    """Read-only registry that lazily loads optional model dependencies."""
+
+    def __init__(self, specs: tuple[ModelSpec, ...]) -> None:
+        duplicates = {
+            spec.name for spec in specs if sum(s.name == spec.name for s in specs) > 1
+        }
+        if duplicates:
+            raise ValueError(f"Duplicate model registrations: {sorted(duplicates)}")
+        self._specs = MappingProxyType({spec.name: spec for spec in specs})
+
+    def __getitem__(self, name: str) -> ModelSpec:
+        return self._specs[name]
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self._specs)
+
+    def __len__(self) -> int:
+        return len(self._specs)
+
+    def model_class(self, name: str) -> type[ResearchModel]:
+        try:
+            spec = self[name]
+        except KeyError as error:
+            available = ", ".join(self._specs)
+            raise ValueError(f"Unknown model type '{name}'. Available: {available}") from error
+        if not spec.available:
+            raise RuntimeError(f"Model '{name}' is unavailable: {spec.availability_error}")
+        module = import_module(spec.module)
+        return getattr(module, spec.class_name)
+
+    def create(self, config: ExperimentConfig) -> ResearchModel:
+        return self.model_class(config.model_type)(config)
+
+    def names(self, *, available_only: bool = False) -> tuple[str, ...]:
+        if not available_only:
+            return tuple(self._specs)
+        return tuple(name for name, spec in self._specs.items() if spec.available)
+
+
+@lru_cache(maxsize=None)
+def _dependency_error(dependency: str) -> str | None:
+    if find_spec(dependency) is None:
+        return f"Python package '{dependency}' is not installed"
+    try:
+        import_module(dependency)
+    except Exception as error:
+        details = next(
+            (line.strip() for line in str(error).splitlines() if line.strip()),
+            "dependency could not be imported",
+        )
+        return f"{type(error).__name__}: {details}"
+    return None
+
+
+MODEL_REGISTRY = ModelRegistry(
+    (
+        ModelSpec(
+            "bigru",
+            "ners.research.models.bigru",
+            "BiGRUModel",
+            ModelFamily.NEURAL,
+            "tensorflow",
+        ),
+        ModelSpec(
+            "cnn",
+            "ners.research.models.cnn",
+            "CNNModel",
+            ModelFamily.NEURAL,
+            "tensorflow",
+        ),
+        ModelSpec(
+            "dummy",
+            "ners.research.models.dummy",
+            "DummyBaselineModel",
+            ModelFamily.PROBABILISTIC,
+        ),
+        ModelSpec(
+            "ensemble",
+            "ners.research.models.ensemble",
+            "EnsembleModel",
+            ModelFamily.ENSEMBLE,
+        ),
+        ModelSpec(
+            "lightgbm",
+            "ners.research.models.lightgbm",
+            "LightGBMModel",
+            ModelFamily.BOOSTING,
+            "lightgbm",
+        ),
+        ModelSpec(
+            "logistic_regression",
+            "ners.research.models.logistic_regression",
+            "LogisticRegressionModel",
+            ModelFamily.LINEAR,
+        ),
+        ModelSpec(
+            "lstm",
+            "ners.research.models.lstm",
+            "LSTMModel",
+            ModelFamily.NEURAL,
+            "tensorflow",
+        ),
+        ModelSpec(
+            "naive_bayes",
+            "ners.research.models.naive_bayes",
+            "NaiveBayesModel",
+            ModelFamily.PROBABILISTIC,
+        ),
+        ModelSpec(
+            "position_logistic_regression",
+            "ners.research.models.position_logistic_regression",
+            "PositionAwareLogisticRegressionModel",
+            ModelFamily.LINEAR,
+        ),
+        ModelSpec(
+            "random_forest",
+            "ners.research.models.random_forest",
+            "RandomForestModel",
+            ModelFamily.TREE,
+        ),
+        ModelSpec(
+            "transformer",
+            "ners.research.models.transformer",
+            "TransformerModel",
+            ModelFamily.NEURAL,
+            "tensorflow",
+        ),
+        ModelSpec(
+            "xgboost",
+            "ners.research.models.xgboost",
+            "XGBoostModel",
+            ModelFamily.BOOSTING,
+            "xgboost",
+        ),
+    )
+)

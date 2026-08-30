@@ -1,159 +1,237 @@
-# A Culturally-Aware NLP System for Congolese Name Analysis and Gender Inference
+# CongoNames full-name sex classification study
 
 [![audit](https://github.com/bernard-ng/drc-ners-nlp/actions/workflows/audit.yml/badge.svg)](https://github.com/bernard-ng/drc-ners-nlp/actions/workflows/audit.yml)
 [![quality](https://github.com/bernard-ng/drc-ners-nlp/actions/workflows/quality.yml/badge.svg)](https://github.com/bernard-ng/drc-ners-nlp/actions/workflows/quality.yml)
 
----
+This repository compares models that predict sex from full names in the published
+[CongoNames corpus](https://doi.org/10.5281/zenodo.19809985). Corpus acquisition,
+PDF extraction, normalization, dataset preparation, LLM annotation, and spaCy NER belong
+to the corpus project and are intentionally outside this repository.
 
-Despite the growing success of gender inference models in Natural Language Processing (NLP), these tools often
-underperform when applied to culturally diverse African contexts due to the lack of culturally-representative training
-data.
-This project introduces a comprehensive pipeline for Congolese name analysis with a large-scale dataset of over 5
-million names from the Democratic Republic of Congo (DRC) annotated with gender and demographic metadata.
+## Terminology
 
-## Getting Started
+Throughout this project, "sex" means the `m` or `f` marker recorded in the source
+examination data. It does not mean gender identity. The code and documentation use "sex"
+with this definition.
 
-### Installation & Setup
+## Dataset contract
 
-> download [the dataset](https://drive.google.com/file/d/1a5wQnOZdsRWBOeoMA_0lNtbneTvS9xqy/view?usp=drive_link), if you need access please reach us at mlec.academia@gmail.com. 
+Place the published file at:
 
-```bash
-git clone https://github.com/bernard-ng/drc-ners-nlp.git
-
-mkdir -p drc-ners-nlp/data/dataset
-cp names.csv drc-ners-nlp/data/dataset
-
-cd drc-ners-nlp
+```text
+data/dataset/names.csv
 ```
 
-**Linux**
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
+Only these columns are read:
 
+| Column | Meaning |
+| --- | --- |
+| `name` | Normalized full candidate name |
+| `sex` | Source-record sex, `m` or `f` |
+
+The published provenance columns may remain in the CSV; training ignores them. The loader
+skips empty names in memory because they have no usable model input. It rejects labels
+outside `m`/`f`, does not write a cleaned dataset, and leaves the source file untracked.
+
+## Research architecture
+
+```mermaid
+flowchart LR
+    A[Published names.csv] --> B[Streaming Polars schema reader]
+    B --> C[Normalized three-token cohort]
+    C --> D[Deterministic native-name group split]
+    D --> E1[Linear and probabilistic]
+    D --> E2[Tree and boosting]
+    D --> E3[CNN, LSTM, BiGRU, Transformer]
+    D --> E4[Voting ensemble]
+    E1 --> F[Experiment tracker]
+    E2 --> F
+    E3 --> F
+    E4 --> F
+    F --> G[Models, metrics, and comparison table]
+```
+
+The study compares these models:
+
+| Family | Models |
+| --- | --- |
+| Control | Majority-class dummy |
+| Linear/probabilistic | Logistic regression, position-aware logistic regression, multinomial Naive Bayes |
+| Tree/boosting | Random forest, LightGBM, XGBoost |
+| Neural sequence | CNN, bidirectional LSTM, bidirectional GRU, Transformer |
+| Ensemble | Soft-voting logistic regression, random forest, and Naive Bayes |
+
+`ners.research` loads experiment templates, creates registered models, saves artifacts,
+and compares metrics. Every model receives only the published `name` and `sex` columns.
+
+The controlled surname ablation keeps model comparisons consistent:
+
+- Polars streams projected CSV columns in bounded batches.
+- It selects exactly three-token names, defines the first two tokens as the native view,
+  and compares that sequence with the surname-included three-token sequence.
+- A stable hash assigns every occurrence of the same first-two-token native name to one
+  split. Different full names that collapse to the same native-only input therefore cannot
+  leak between training and evaluation.
+- `ExperimentDatasetStore` builds train and test partitions in one CSV pass, then reuses
+  the same in-memory split for every model in the suite.
+- Every architecture receives the same deterministic sample and held-out groups.
+- Logistic regression max-absolute-scales sparse character counts so SAGA converges without
+  densifying the feature matrix.
+- Classical models keep character matrices sparse. The boosting and forest templates cap
+  TF-IDF at 4,096 features instead of integer-encoding unique names.
+- All neural models operate on characters with a 32-position limit. This avoids an
+  extremely large long-tail word vocabulary and generalizes to unseen name tokens.
+- Neural validation and optional cross-validation group by the first two tokens. Neural
+  fits use class weights, early stopping, and best-weight restoration.
+- Cross-validation is off by default because it repeats training for each fold. When
+  enabled, it refits preprocessing within stratified native-name groups.
+- The loader does not write sampled or prepared CSV files.
+
+## Setup and training
+
+`uv sync` creates the local environment. The project has no Docker files.
+
+```bash
 uv sync
 ```
 
-**Macos & windows**
-```bash
-docker compose build
-docker compose exec app bash
-```
-
-## Data Processing
-
-This project includes a robust data processing pipeline designed to handle large datasets efficiently with batching,
-checkpointing, and parallel processing capabilities.
-
-**Pipeline Configuration**
-
-```yaml
-stages:
-  - "data_cleaning"
-  - "data_selection"
-  - "feature_extraction"
-  - "data_splitting"
-```
-
-**Running the Pipeline**
+List the configured models and their local dependency status:
 
 ```bash
-uv run ners pipeline run --env="production"
+uv run ners research list
 ```
 
-## Experiments
-
-This project provides a modular experiment (model training and evaluation) framework for systematic model comparison and
-research iteration. you can define model features, training parameters, and evaluation metrics in the `config/research_templates.yaml` file.
-
-**Running Experiments**
+Run one architecture on the deterministic one-percent study sample:
 
 ```bash
-# bigru
-uv run ners research train --name="bigru" --type="baseline" --env="production"
-uv run ners research train --name="bigru_native" --type="baseline" --env="production"
-uv run ners research train --name="bigru_surname" --type="baseline" --env="production"
+uv run ners research train --name logistic_regression --sample-fraction 0.01
 ```
+
+Run every locally available architecture on exactly the same sample and split:
 
 ```bash
-# cnn
-uv run ners research train --name="cnn" --type="baseline" --env="production"
-uv run ners research train --name="cnn_native" --type="baseline" --env="production"
-uv run ners research train --name="cnn_surname" --type="baseline" --env="production"
+uv run ners research suite --sample-fraction 0.01
 ```
+
+Run the primary full-versus-native comparison for the strongest linear candidates:
 
 ```bash
-# lightgbm
-uv run ners research train --name="lightgbm" --type="baseline" --env="production"
-uv run ners research train --name="lightgbm_native" --type="baseline" --env="production"
-uv run ners research train --name="lightgbm_surname" --type="baseline" --env="production"
+uv run ners research compare-views \
+  --name logistic_regression \
+  --name position_logistic_regression \
+  --sample-fraction 0.01
 ```
+
+Omit `--name` to compare every locally available architecture. The command reports the
+full-minus-native metric deltas as `surname_gain` and records the view, three-token cohort,
+and native grouping key with every model artifact.
+
+### Initial one-percent result
+
+On 46,193 training and 12,207 held-out three-token records, position-aware logistic
+regression reached 0.9205 macro-F1 with the surname included and 0.6400 with native tokens
+only. Standard character logistic regression reached 0.9088 and 0.6236. The resulting
+macro-F1 gains of 0.2804 and 0.2853 strongly support the surname-influence hypothesis on
+this development sample. The majority-class control achieved 0.3712 macro-F1, so the
+native-only models still learn meaningful signal. See [MODEL.md](MODEL.md) for the full
+metric table, corpus audit, and experimental contract.
+
+Across all locally available classical models, position-aware logistic regression is best
+in both views. LightGBM is the nearest full-name alternative at 0.9093 macro-F1 and Naive
+Bayes is the nearest native-only baseline at 0.6293. Random forest, XGBoost, and the voting
+ensemble add compute without improving on the position-aware linear model.
+
+### Local experiment interface
+
+Launch the local research app:
 
 ```bash
-# logistic regression
-uv run ners research train --name="logistic_regression" --type="baseline" --env="production"
-uv run ners research train --name="logistic_regression_native" --type="baseline" --env="production"
-uv run ners research train --name="logistic_regression_surname" --type="baseline" --env="production"
+uv run ners web
 ```
+
+The Experiments tab compares tracked metrics and reports missing model dependencies. Run
+experiment trains one template at a time. Results shows metrics, confusion matrices, and
+the feature score recorded by each estimator. Dataset reads `names.csv` without changing
+it and shows schema checks, sex counts, and an optional 20-row preview. The app has no
+acquisition, annotation, normalization, preparation, editing, or dataset export actions.
+Close the local server with `Ctrl+C`.
+
+`config/research_templates.yaml` defines the experiments. The tracker writes results and
+models under:
+
+```text
+data/outputs/experiments/
+data/models/experiments/
+```
+
+`uv sync` installs TensorFlow only on Linux x86_64, as specified in `pyproject.toml`. On
+other systems, the registry still lists the neural models and reports that TensorFlow is
+missing. The suite skips those models. LightGBM and XGBoost need an OpenMP runtime. Install
+it on macOS with `brew install libomp`; the registry checks the native library before a run.
+
+To train a full-corpus linear baseline without holding the complete feature matrix in
+memory, run:
 
 ```bash
-# lstm
-uv run ners research train --name="lstm" --type="baseline" --env="production"
-uv run ners research train --name="lstm_native" --type="baseline" --env="production"
-uv run ners research train --name="lstm_surname" --type="baseline" --env="production"
+uv run ners train
 ```
+
+It uses hashed character n-grams and `SGDClassifier.partial_fit`, producing the default
+`data/models/reported-sex-classifier.joblib` artifact.
+
+## Code organization and public API
+
+Import configuration from `ners.config` and shared hashing, JSON, runtime, and name helpers
+from `ners.utils`. `ners.research` contains dataset loading, experiment tracking, model
+registration, model classes, and reporting. Import only the package APIs shown below;
+internal module paths may change.
+
+Application code uses these imports:
+
+```python
+from ners import NameDataset, NameSexClassifier, train_model
+from ners.config import ExperimentConfig, ResearchConfig, TrainingConfig
+from ners.research import (
+    MODEL_REGISTRY,
+    ExperimentBuilder,
+    ExperimentRunner,
+)
+```
+
+`MODEL_REGISTRY` imports TensorFlow, LightGBM, or XGBoost only when a run selects that
+model. Experiment comparisons and exports return Polars dataframes. Estimators receive
+NumPy arrays or sparse matrices only where their libraries require them.
+
+## Evaluation and prediction
+
+Re-run evaluation with the split stored in the model artifact:
 
 ```bash
-# random forest
-uv run ners research train --name="random_forest" --type="baseline" --env="production"
-uv run ners research train --name="random_forest_native" --type="baseline" --env="production"
-uv run ners research train --name="random_forest_surname" --type="baseline" --env="production"
+uv run ners evaluate
 ```
+
+Predict one or more quoted full names:
 
 ```bash
-# naive bayes
-uv run ners research train --name="naive_bayes" --type="baseline" --env="production"
-uv run ners research train --name="naive_bayes_native" --type="baseline" --env="production"
-uv run ners research train --name="naive_bayes_surname" --type="baseline" --env="production"
+uv run ners predict "ilunga ngoy jean" "kavira mapendo esther"
 ```
+
+The command prints JSON with `sex` and `confidence` fields. Treat both as estimates of the
+source dataset label.
+
+## Quality checks
 
 ```bash
-# transformer
-uv run ners research train --name="transformer" --type="baseline" --env="production"
-uv run ners research train --name="transformer_native" --type="baseline" --env="production"
-uv run ners research train --name="transformer_surname" --type="baseline" --env="production"
+uv run pytest
+uv run ruff check .
+uv run ruff format --check .
+uv run pyright
 ```
 
-```bash
-# xgboost
-uv run ners research train --name="xgboost" --type="baseline" --env="production"
-uv run ners research train --name="xgboost_native" --type="baseline" --env="production"
-uv run ners research train --name="xgboost_surname" --type="baseline" --env="production"
-```
+## Responsible use
 
-## Web Interface
-
-This project includes a user-friendly web interface built with Streamlit, allowing non-technical users to run
-experiments and make predictions without needing to understand the underlying code.
-
-### Running the Web Interface
-
-![web](./assets/web.png)
-
-```bash
-uv run ners web run --env="production"
-```
-
-```bash
-docker compose run --rm --service-ports app ners web run --env=production
-```
-
-then open : http://localhost:8501/
-
-## Contributors
-
-<a href="https://github.com/bernard-ng/drc-ners-nlp/graphs/contributors" title="show all contributors">
-  <img src="https://contrib.rocks/image?repo=bernard-ng/drc-ners-nlp" alt="contributors"/>
-</a>
-
-## Acknowledgements
-- Map Visualization: [https://data.humdata.org/dataset/anciennes-provinces-rdc-old-provinces-drc](https://data.humdata.org/dataset/anciennes-provinces-rdc-old-provinces-drc)
+The corpus represents secondary-school examination candidates and has coverage,
+demographic, temporal, and extraction biases. Do not use this model to determine gender
+identity, profile people, reconstruct identities, or make eligibility, employment, credit,
+health, surveillance, or other consequential decisions. Research reports should state that
+sex comes from the source records and should document uncertainty and subgroup limitations.

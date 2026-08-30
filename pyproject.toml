@@ -1,30 +1,21 @@
 [project]
 name = "ners"
-version = "0.1.0"
-description = "Add your description here"
+version = "0.2.0"
+description = "Comparative full-name sex classification study for the CongoNames corpus"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "geopandas>=1.1.1",
     "joblib>=1.5.2",
     "lightgbm>=4.6.0",
     "matplotlib>=3.10.6",
     "numpy>=2.3.3",
-    "ollama>=0.6.0",
-    "pandas>=2.3.3",
-    "plotly>=6.3.1",
-    "psutil>=7.1.0",
-    "pydantic>=2.11.10",
+    "polars>=1.37.0",
     "pyyaml>=6.0.3",
     "scikit-learn>=1.7.2",
-    "seaborn>=0.13.2",
-    "spacy>=3.8.7",
-    "streamlit>=1.50.0",
-    "tqdm>=4.67.1",
-    "typer>=0.19.2",
+    "streamlit>=1.62.0",
     "tensorflow==2.20.0; sys_platform == 'linux' and platform_machine == 'x86_64'",
+    "typer>=0.19.2",
     "xgboost>=3.0.5",
-    "networkx>=3.5",
 ]
 
 [project.scripts]
@@ -36,7 +27,7 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
-    "ipykernel>=6.30.1",
+    "bandit>=1.8.6",
     "pyright>=1.1.406",
     "pytest>=8.4.2",
     "ruff>=0.13.3",
@@ -48,10 +39,12 @@ typeCheckingMode = "basic"
 reportMissingImports = "none"
 reportMissingModuleSource = "none"
 useLibraryCodeForTypes = true
-include = ["src"]
+include = ["src", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
 
 [tool.ruff]
-# Keep defaults and additionally ignore notebooks
-extend-exclude = [
-    "**/*.ipynb",
-]
+target-version = "py311"
+line-length = 96
+extend-exclude = ["**/*.ipynb"]

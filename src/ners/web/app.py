@@ -1,67 +1,66 @@
-#!.venv/bin/python3
-import os
+"""Entrypoint for the local experiment app."""
+
+from __future__ import annotations
 
 import streamlit as st
 
-from ners.core.config import setup_config, PipelineConfig
-from ners.core.utils.data_loader import DataLoader
-from ners.processing.monitoring.pipeline_monitor import PipelineMonitor
-from ners.research.experiment.experiment_runner import ExperimentRunner
-from ners.research.experiment.experiment_tracker import ExperimentTracker
-
-# Page configuration
-st.set_page_config(
-    page_title="DRC NERS Platform",
-    page_icon="🇨🇩",
-    layout="wide",
-    initial_sidebar_state="expanded",
+from ners.config import ResearchConfig
+from ners.web.components import (
+    render_dataset,
+    render_experiment_launcher,
+    render_overview,
+    render_results,
 )
 
 
-def initialize_session_state(config: PipelineConfig):
-    """Initialize session state variables"""
-    if "config" not in st.session_state:
-        st.session_state.config = config
-    if "data_loader" not in st.session_state:
-        st.session_state.data_loader = DataLoader(config)
-    if "experiment_tracker" not in st.session_state:
-        st.session_state.experiment_tracker = ExperimentTracker(config)
-    if "experiment_runner" not in st.session_state:
-        st.session_state.experiment_runner = ExperimentRunner(config)
-    if "pipeline_monitor" not in st.session_state:
-        st.session_state.pipeline_monitor = PipelineMonitor()
-    if "current_experiment" not in st.session_state:
-        st.session_state.current_experiment = None
-    if "experiment_results" not in st.session_state:
-        st.session_state.experiment_results = {}
+def render_app() -> None:
+    """Render the experiment, result, and dataset tabs."""
 
+    st.set_page_config(
+        page_title="CongoNames model study",
+        layout="wide",
+        initial_sidebar_state="expanded",
+    )
+    config = ResearchConfig()
 
-class StreamlitApp:
-    def __init__(self, config: PipelineConfig):
-        self.config = config
-        initialize_session_state(config)
+    st.title("CongoNames model study")
+    st.caption("Run model templates and compare held-out metrics from names.csv.")
+    st.info(
+        "In this project, sex means the f or m marker in the source records, not gender "
+        "identity."
+    )
 
-    @classmethod
-    def run(cls):
-        st.title("🇨🇩 DRC NERS Platform")
-        st.markdown(
-            "A Culturally-Aware NLP System for Congolese Name Analysis and Gender Inference"
-        )
-        st.markdown(
-            """
-            ## Overview
-            Despite the growing success of gender inference models in Natural Language Processing (NLP), these tools often
-            underperform when applied to culturally diverse African contexts due to the lack of culturally-representative training
-            data.
-            This project introduces a comprehensive pipeline for Congolese name analysis with a large-scale dataset of over 5
-            million names from the Democratic Republic of Congo (DRC) annotated with gender and demographic metadata.
-            """
+    with st.sidebar:
+        st.header("Project paths")
+        st.write("Dataset", config.dataset_path)
+        st.write("Templates", config.templates_path)
+        st.write("Results", config.experiments_dir)
+        st.write("Models", config.experiment_models_dir)
+        st.divider()
+        st.caption(
+            "Paths and defaults come from ners.config. This interface never writes a "
+            "derived dataset."
         )
 
+    overview_tab, run_tab, results_tab, dataset_tab = st.tabs(
+        ["Experiments", "Run experiment", "Results", "Dataset"],
+        default="Experiments",
+        key="research_tabs",
+        on_change="rerun",
+    )
+    if overview_tab.open:
+        with overview_tab:
+            render_overview(config)
+    elif run_tab.open:
+        with run_tab:
+            render_experiment_launcher(config)
+    elif results_tab.open:
+        with results_tab:
+            render_results(config)
+    elif dataset_tab.open:
+        with dataset_tab:
+            render_dataset(config)
 
-# Initialize app using environment variables when launched via Typer
-_config_path = os.environ.get("NERS_CONFIG")
-_env = os.environ.get("NERS_ENV", "development")
-_cfg = setup_config(_config_path, env=_env)
-_app = StreamlitApp(_cfg)
-_app.run()
+
+if __name__ == "__main__":  # pragma: no cover
+    render_app()
