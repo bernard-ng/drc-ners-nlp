@@ -5,6 +5,7 @@ from typing import Any
 import numpy as np
 import polars as pl
 import tensorflow as tf
+from keras import ops
 from tensorflow.keras.layers import (
     Input,
     Embedding,
@@ -29,8 +30,8 @@ class TransformerModel(NeuralNetworkModel):
         max_len = int(params.get("max_len", 32))
 
         inputs = Input(shape=(max_len,))
-        padding_mask = tf.keras.ops.not_equal(inputs, 0)
-        attention_mask = tf.keras.ops.expand_dims(padding_mask, axis=1)
+        padding_mask = ops.not_equal(inputs, 0)
+        attention_mask = ops.expand_dims(padding_mask, axis=1)
         x = Embedding(
             input_dim=vocab_size,
             output_dim=params.get("embedding_dim", 64),

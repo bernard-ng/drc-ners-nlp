@@ -8,7 +8,6 @@ from typing import Any
 
 import numpy as np
 import polars as pl
-from sklearn.base import BaseEstimator
 from sklearn.model_selection import StratifiedGroupKFold, learning_curve
 from sklearn.preprocessing import LabelEncoder
 
@@ -25,7 +24,7 @@ class SklearnModel(ResearchModel):
         return "sklearn"
 
     @abstractmethod
-    def build_model(self) -> BaseEstimator:
+    def build_model(self) -> Any:
         """Create an unfitted estimator."""
         pass
 

@@ -8,13 +8,13 @@ from typing import Any
 
 import numpy as np
 import polars as pl
+from keras.callbacks import EarlyStopping, ReduceLROnPlateau
+from keras.utils import set_random_seed
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import StratifiedGroupKFold
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils.class_weight import compute_class_weight
-
-import tensorflow as tf
 
 from ners.research.experiment.metrics import calculate_metrics
 from ners.research.models.base import ResearchModel
@@ -97,12 +97,12 @@ class NeuralNetworkModel(ResearchModel):
             for label, weight in zip(encoded_classes, weights, strict=True)
         }
         callbacks = [
-            tf.keras.callbacks.EarlyStopping(
+            EarlyStopping(
                 monitor="val_loss",
                 patience=int(self.config.model_params.get("early_stopping_patience", 2)),
                 restore_best_weights=True,
             ),
-            tf.keras.callbacks.ReduceLROnPlateau(
+            ReduceLROnPlateau(
                 monitor="val_loss",
                 factor=0.5,
                 patience=1,
@@ -202,7 +202,7 @@ class NeuralNetworkModel(ResearchModel):
         fold_metrics: dict[str, list[float]] = {metric: [] for metric in self.config.metrics}
 
         for fold, (train_idx, val_idx) in enumerate(cv.split(X, labels, groups)):
-            tf.keras.utils.set_random_seed(self.config.random_seed + fold)
+            set_random_seed(self.config.random_seed + fold)
             fold_model = self.__class__(self.config)
             fold_model.fit(X[train_idx], y[train_idx])
             y_pred = fold_model.predict(X[val_idx])
@@ -274,7 +274,7 @@ class NeuralNetworkModel(ResearchModel):
             val_scores = []
 
             for seed in range(3):
-                tf.keras.utils.set_random_seed(self.config.random_seed + seed)
+                set_random_seed(self.config.random_seed + seed)
                 model = self.build_model(vocab_size=vocab_size, **self.config.model_params)
 
                 if hasattr(model, "fit"):
