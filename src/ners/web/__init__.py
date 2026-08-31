@@ -1,4 +1,4 @@
-"""Public data views used by the local research app."""
+"""Public data views used by the local experiment app."""
 
 from ners.web.dataset import DatasetSnapshot, inspect_dataset
 from ners.web.view_models import (

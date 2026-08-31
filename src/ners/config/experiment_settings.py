@@ -5,20 +5,20 @@ from pathlib import Path
 
 from ners.config.defaults import (
     DEFAULT_DATASET_PATH,
-    DEFAULT_RESEARCH_MODELS_DIR,
-    DEFAULT_RESEARCH_OUTPUTS_DIR,
-    DEFAULT_RESEARCH_TEMPLATES_PATH,
+    DEFAULT_EXPERIMENT_MODELS_DIR,
+    DEFAULT_EXPERIMENT_OUTPUTS_DIR,
+    DEFAULT_EXPERIMENT_TEMPLATES_PATH,
 )
 
 
 @dataclass(frozen=True, slots=True)
-class ResearchConfig:
+class ExperimentSettings:
     """Shared inputs and artifact locations for comparable model experiments."""
 
     dataset_path: Path = DEFAULT_DATASET_PATH
-    templates_path: Path = DEFAULT_RESEARCH_TEMPLATES_PATH
-    models_dir: Path = DEFAULT_RESEARCH_MODELS_DIR
-    outputs_dir: Path = DEFAULT_RESEARCH_OUTPUTS_DIR
+    templates_path: Path = DEFAULT_EXPERIMENT_TEMPLATES_PATH
+    models_dir: Path = DEFAULT_EXPERIMENT_MODELS_DIR
+    outputs_dir: Path = DEFAULT_EXPERIMENT_OUTPUTS_DIR
     chunk_size: int = 100_000
     sample_fraction: float = 0.01
     test_fraction: float = 0.2

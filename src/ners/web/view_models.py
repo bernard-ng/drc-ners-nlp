@@ -1,4 +1,4 @@
-"""Polars tables shared by the Streamlit research app."""
+"""Polars tables shared by the Streamlit experiment app."""
 
 from __future__ import annotations
 
@@ -7,7 +7,8 @@ from datetime import datetime
 
 import polars as pl
 
-from ners.research import ExperimentResult, ModelSpec
+from ners.experiments import ExperimentResult
+from ners.models import ModelSpec
 
 
 _METRIC_NAMES = (

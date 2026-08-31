@@ -7,7 +7,7 @@ import polars as pl
 from sklearn.base import BaseEstimator
 from sklearn.dummy import DummyClassifier
 
-from ners.research.models.sklearn import SklearnModel
+from ners.models.sklearn import SklearnModel
 
 
 class DummyBaselineModel(SklearnModel):

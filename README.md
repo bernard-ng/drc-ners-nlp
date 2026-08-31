@@ -1,7 +1,7 @@
 # CongoNames name-classification experiments
 
 Run experiments that predict the `m` or `f` value recorded in the CongoNames source data
-from a person's name. This is a research tool: the recorded value is not gender identity
+from a person's name. This is a study tool: the recorded value is not gender identity
 and must not be used to profile people or make decisions about them.
 
 ## Before you start
@@ -35,7 +35,7 @@ This command runs every available model in both settings:
 - native names only: the first two parts of the name
 
 ```bash
-uv run ners research compare-views
+uv run ners experiments compare-views
 ```
 
 The default uses a small one-percent sample. To run the full dataset, add
@@ -49,73 +49,73 @@ with native names only. The result shows the two scores and the difference betwe
 ### Control
 
 ```bash
-uv run ners research compare-views --name dummy
+uv run ners experiments compare-views --name dummy
 ```
 
 ### Logistic regression
 
 ```bash
-uv run ners research compare-views --name logistic_regression
+uv run ners experiments compare-views --name logistic_regression
 ```
 
 ### Position-aware logistic regression
 
 ```bash
-uv run ners research compare-views --name position_logistic_regression
+uv run ners experiments compare-views --name position_logistic_regression
 ```
 
 ### Naive Bayes
 
 ```bash
-uv run ners research compare-views --name naive_bayes
+uv run ners experiments compare-views --name naive_bayes
 ```
 
 ### Random forest
 
 ```bash
-uv run ners research compare-views --name random_forest
+uv run ners experiments compare-views --name random_forest
 ```
 
 ### LightGBM
 
 ```bash
-uv run ners research compare-views --name lightgbm
+uv run ners experiments compare-views --name lightgbm
 ```
 
 ### XGBoost
 
 ```bash
-uv run ners research compare-views --name xgboost
+uv run ners experiments compare-views --name xgboost
 ```
 
 ### CNN
 
 ```bash
-uv run ners research compare-views --name cnn
+uv run ners experiments compare-views --name cnn
 ```
 
 ### LSTM
 
 ```bash
-uv run ners research compare-views --name lstm
+uv run ners experiments compare-views --name lstm
 ```
 
 ### BiGRU
 
 ```bash
-uv run ners research compare-views --name bigru
+uv run ners experiments compare-views --name bigru
 ```
 
 ### Transformer
 
 ```bash
-uv run ners research compare-views --name transformer
+uv run ners experiments compare-views --name transformer
 ```
 
 ### Ensemble
 
 ```bash
-uv run ners research compare-views --name ensemble
+uv run ners experiments compare-views --name ensemble
 ```
 
 ## Responsible use

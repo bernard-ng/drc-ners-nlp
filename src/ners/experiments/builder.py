@@ -6,7 +6,7 @@ from typing import Any
 
 import yaml
 
-from ners.config import ExperimentConfig, ResearchConfig
+from ners.config import ExperimentConfig, ExperimentSettings
 from ners.utils import NameView
 
 
@@ -21,7 +21,7 @@ _SECTIONS = {
 class ExperimentBuilder:
     """Load and validate reproducible model definitions."""
 
-    def __init__(self, config: ResearchConfig) -> None:
+    def __init__(self, config: ExperimentSettings) -> None:
         self.config = config
 
     def load_templates(self, templates: str | Path | None = None) -> dict[str, Any]:

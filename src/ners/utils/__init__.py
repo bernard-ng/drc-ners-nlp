@@ -1,4 +1,4 @@
-"""Small reusable utilities shared across training and research modules."""
+"""Small reusable utilities shared across experiment modules."""
 
 from ners.utils.io import read_json, write_json
 from ners.utils.hashing import stable_text_buckets

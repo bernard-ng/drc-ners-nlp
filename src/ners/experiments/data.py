@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import polars as pl
 
-from ners.config import ResearchConfig
+from ners.config import ExperimentSettings
 from ners.dataset import NameDataset
 from ners.utils import NameView
 
@@ -17,9 +17,9 @@ class ExperimentDataset:
 
 
 class ExperimentDatasetStore:
-    """Load and cache deterministic dataset splits for one research session."""
+    """Load and cache deterministic dataset splits for one experiment session."""
 
-    def __init__(self, config: ResearchConfig) -> None:
+    def __init__(self, config: ExperimentSettings) -> None:
         self.config = config
         self._cache: dict[tuple[float, float, int | None, str], ExperimentDataset] = {}
 

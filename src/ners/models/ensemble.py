@@ -9,7 +9,7 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
 
 from ners.config import ExperimentConfig
-from ners.research.models.sklearn import SklearnModel
+from ners.models.sklearn import SklearnModel
 from ners.utils import full_name_array
 
 

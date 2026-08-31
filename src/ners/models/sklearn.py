@@ -11,12 +11,12 @@ import polars as pl
 from sklearn.model_selection import StratifiedGroupKFold
 from sklearn.preprocessing import LabelEncoder
 
-from ners.research.experiment.metrics import calculate_metrics
-from ners.research.models.base import ResearchModel
+from ners.experiments.metrics import calculate_metrics
+from ners.models.base import ExperimentModel
 from ners.utils import native_group_array
 
 
-class SklearnModel(ResearchModel):
+class SklearnModel(ExperimentModel):
     """Shared lifecycle for scikit-learn compatible models."""
 
     @abstractmethod
@@ -24,7 +24,7 @@ class SklearnModel(ResearchModel):
         """Create an unfitted estimator."""
         pass
 
-    def fit(self, X: pl.DataFrame, y: pl.Series) -> ResearchModel:
+    def fit(self, X: pl.DataFrame, y: pl.Series) -> ExperimentModel:
         """Fit the estimator and its label encoder."""
         logging.info("Training %s", self.__class__.__name__)
 

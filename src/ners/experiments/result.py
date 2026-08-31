@@ -9,7 +9,7 @@ from ners.config import ExperimentConfig
 
 
 class ExperimentStatus(StrEnum):
-    """Lifecycle state persisted for a research run."""
+    """Lifecycle state persisted for an experiment run."""
 
     PENDING = "pending"
     RUNNING = "running"

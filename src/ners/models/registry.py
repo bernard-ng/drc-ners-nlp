@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ners.config import ExperimentConfig
-    from ners.research.models.base import ResearchModel
+    from ners.models.base import ExperimentModel
 
 
 class ModelFamily(StrEnum):
@@ -64,7 +64,7 @@ class ModelRegistry(Mapping[str, ModelSpec]):
     def __len__(self) -> int:
         return len(self._specs)
 
-    def model_class(self, name: str) -> type[ResearchModel]:
+    def model_class(self, name: str) -> type[ExperimentModel]:
         try:
             spec = self[name]
         except KeyError as error:
@@ -75,7 +75,7 @@ class ModelRegistry(Mapping[str, ModelSpec]):
         module = import_module(spec.module)
         return getattr(module, spec.class_name)
 
-    def create(self, config: ExperimentConfig) -> ResearchModel:
+    def create(self, config: ExperimentConfig) -> ExperimentModel:
         return self.model_class(config.model_type)(config)
 
     def names(self, *, available_only: bool = False) -> tuple[str, ...]:
@@ -103,78 +103,78 @@ MODEL_REGISTRY = ModelRegistry(
     (
         ModelSpec(
             "bigru",
-            "ners.research.models.bigru",
+            "ners.models.bigru",
             "BiGRUModel",
             ModelFamily.NEURAL,
             "tensorflow",
         ),
         ModelSpec(
             "cnn",
-            "ners.research.models.cnn",
+            "ners.models.cnn",
             "CNNModel",
             ModelFamily.NEURAL,
             "tensorflow",
         ),
         ModelSpec(
             "dummy",
-            "ners.research.models.dummy",
+            "ners.models.dummy",
             "DummyBaselineModel",
             ModelFamily.PROBABILISTIC,
         ),
         ModelSpec(
             "ensemble",
-            "ners.research.models.ensemble",
+            "ners.models.ensemble",
             "EnsembleModel",
             ModelFamily.ENSEMBLE,
         ),
         ModelSpec(
             "lightgbm",
-            "ners.research.models.lightgbm",
+            "ners.models.lightgbm",
             "LightGBMModel",
             ModelFamily.BOOSTING,
             "lightgbm",
         ),
         ModelSpec(
             "logistic_regression",
-            "ners.research.models.logistic_regression",
+            "ners.models.logistic_regression",
             "LogisticRegressionModel",
             ModelFamily.LINEAR,
         ),
         ModelSpec(
             "lstm",
-            "ners.research.models.lstm",
+            "ners.models.lstm",
             "LSTMModel",
             ModelFamily.NEURAL,
             "tensorflow",
         ),
         ModelSpec(
             "naive_bayes",
-            "ners.research.models.naive_bayes",
+            "ners.models.naive_bayes",
             "NaiveBayesModel",
             ModelFamily.PROBABILISTIC,
         ),
         ModelSpec(
             "position_logistic_regression",
-            "ners.research.models.position_logistic_regression",
+            "ners.models.position_logistic_regression",
             "PositionAwareLogisticRegressionModel",
             ModelFamily.LINEAR,
         ),
         ModelSpec(
             "random_forest",
-            "ners.research.models.random_forest",
+            "ners.models.random_forest",
             "RandomForestModel",
             ModelFamily.TREE,
         ),
         ModelSpec(
             "transformer",
-            "ners.research.models.transformer",
+            "ners.models.transformer",
             "TransformerModel",
             ModelFamily.NEURAL,
             "tensorflow",
         ),
         ModelSpec(
             "xgboost",
-            "ners.research.models.xgboost",
+            "ners.models.xgboost",
             "XGBoostModel",
             ModelFamily.BOOSTING,
             "xgboost",

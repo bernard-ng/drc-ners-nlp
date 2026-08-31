@@ -17,11 +17,11 @@ if TYPE_CHECKING:
     from sklearn.preprocessing import LabelEncoder
 
 
-RESEARCH_MODEL_FORMAT_VERSION = 1
+EXPERIMENT_MODEL_FORMAT_VERSION = 1
 
 
-class ResearchModel(ABC):
-    """Interface for trainable research models and their saved artifacts."""
+class ExperimentModel(ABC):
+    """Interface for trainable experiment models and their saved artifacts."""
 
     def __init__(self, config: ExperimentConfig):
         self.config = config
@@ -36,7 +36,7 @@ class ResearchModel(ABC):
         pass
 
     @abstractmethod
-    def fit(self, X: pl.DataFrame, y: pl.Series) -> ResearchModel:
+    def fit(self, X: pl.DataFrame, y: pl.Series) -> ExperimentModel:
         """Fit the estimator to full names and sex labels."""
         pass
 
@@ -149,7 +149,7 @@ class ResearchModel(ABC):
         destination = Path(path)
         destination.parent.mkdir(parents=True, exist_ok=True)
         model_data = {
-            "format_version": RESEARCH_MODEL_FORMAT_VERSION,
+            "format_version": EXPERIMENT_MODEL_FORMAT_VERSION,
             "model": self.model,
             "label_encoder": self.label_encoder,
             "tokenizer": self.tokenizer,
@@ -163,13 +163,13 @@ class ResearchModel(ABC):
         return destination
 
     @classmethod
-    def load(cls, path: str | Path) -> ResearchModel:
+    def load(cls, path: str | Path) -> ExperimentModel:
         """Restore an artifact written by `save`."""
         model_data = joblib.load(Path(path))
         if not isinstance(model_data, dict):
             raise ValueError("Research model artifact must contain a dictionary")
-        if model_data.get("format_version") != RESEARCH_MODEL_FORMAT_VERSION:
-            raise ValueError("Unsupported research model artifact version")
+        if model_data.get("format_version") != EXPERIMENT_MODEL_FORMAT_VERSION:
+            raise ValueError("Unsupported experiment model artifact version")
 
         config = ExperimentConfig.from_dict(model_data["config"])
         instance = cls(config)

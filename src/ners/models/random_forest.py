@@ -6,8 +6,8 @@ import polars as pl
 from sklearn.base import BaseEstimator
 from sklearn.ensemble import RandomForestClassifier
 
-from ners.research.models.features import SparseTextFeatures
-from ners.research.models.sklearn import SklearnModel
+from ners.models.features import SparseTextFeatures
+from ners.models.sklearn import SklearnModel
 
 
 class RandomForestModel(SparseTextFeatures, SklearnModel):

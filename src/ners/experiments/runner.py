@@ -7,13 +7,12 @@ from pathlib import Path
 import polars as pl
 from sklearn.metrics import confusion_matrix
 
-from ners.config import ExperimentConfig, ResearchConfig
-from ners.research.data import ExperimentDatasetStore
-from ners.research.experiment.metrics import calculate_metrics
-from ners.research.experiment.result import ExperimentStatus
-from ners.research.experiment.tracker import ExperimentTracker
-from ners.research.model_registry import MODEL_REGISTRY, ModelRegistry
-from ners.research.models.base import ResearchModel
+from ners.config import ExperimentConfig, ExperimentSettings
+from ners.experiments.data import ExperimentDatasetStore
+from ners.experiments.metrics import calculate_metrics
+from ners.experiments.result import ExperimentStatus
+from ners.experiments.tracker import ExperimentTracker
+from ners.models import MODEL_REGISTRY, ExperimentModel, ModelRegistry
 
 
 class ExperimentRunner:
@@ -21,7 +20,7 @@ class ExperimentRunner:
 
     def __init__(
         self,
-        config: ResearchConfig,
+        config: ExperimentSettings,
         *,
         registry: ModelRegistry = MODEL_REGISTRY,
         tracker: ExperimentTracker | None = None,
@@ -111,7 +110,7 @@ class ExperimentRunner:
                 logging.exception("Experiment failed: %s", config.name)
         return experiment_ids
 
-    def load_model(self, experiment_id: str) -> ResearchModel | None:
+    def load_model(self, experiment_id: str) -> ExperimentModel | None:
         experiment = self.tracker.get(experiment_id)
         if experiment is None or experiment.model_path is None:
             return None
@@ -125,7 +124,7 @@ class ExperimentRunner:
             return comparison.sort(column, descending=True)
         return comparison
 
-    def _save_model(self, model: ResearchModel, experiment_id: str) -> Path:
+    def _save_model(self, model: ExperimentModel, experiment_id: str) -> Path:
         model_dir = self.config.experiment_models_dir / experiment_id
         model_dir.mkdir(parents=True, exist_ok=True)
         return Path(model.save(str(model_dir / "model.joblib")))

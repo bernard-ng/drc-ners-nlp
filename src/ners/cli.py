@@ -11,7 +11,7 @@ import typer
 
 from ners.config import (
     DEFAULT_DATASET_PATH,
-    ResearchConfig,
+    ExperimentSettings,
 )
 
 
@@ -20,8 +20,8 @@ app = typer.Typer(
     no_args_is_help=True,
 )
 
-research_app = typer.Typer(help="Run and compare the study's model architectures.")
-app.add_typer(research_app, name="research")
+experiments_app = typer.Typer(help="Run and compare the study's model architectures.")
+app.add_typer(experiments_app, name="experiments")
 
 
 @app.command("web")
@@ -51,11 +51,11 @@ def web_command(
         raise typer.Exit(result.returncode)
 
 
-@research_app.command("list")
-def research_list() -> None:
+@experiments_app.command("list")
+def experiments_list() -> None:
     """List each configured model and its local dependency status."""
 
-    from ners.research import MODEL_REGISTRY
+    from ners.models import MODEL_REGISTRY
 
     rows = [
         {
@@ -70,8 +70,8 @@ def research_list() -> None:
     typer.echo(json.dumps(rows, indent=2))
 
 
-@research_app.command("train")
-def research_train(
+@experiments_app.command("train")
+def experiments_train(
     name: Annotated[str, typer.Option(help="Experiment name from the template file.")],
     experiment_type: Annotated[
         str,
@@ -82,8 +82,8 @@ def research_train(
     ),
     templates: Annotated[
         Path,
-        typer.Option(help="Research experiment definitions."),
-    ] = Path("config/research_templates.yaml"),
+        typer.Option(help="Experiment definitions."),
+    ] = Path("config/experiment_templates.yaml"),
     sample_fraction: Annotated[
         float,
         typer.Option(min=0.0001, max=1.0, help="Shared deterministic study sample."),
@@ -96,11 +96,11 @@ def research_train(
 ) -> None:
     """Train one model from the experiment templates."""
 
-    from ners.research import ExperimentBuilder, ExperimentRunner
+    from ners.experiments import ExperimentBuilder, ExperimentRunner
 
     _configure_logging()
     try:
-        config = ResearchConfig(
+        config = ExperimentSettings(
             dataset_path=dataset,
             templates_path=templates,
             sample_fraction=sample_fraction,
@@ -118,18 +118,18 @@ def research_train(
         experiment_id = runner.run(experiment)
         result = runner.tracker.get(experiment_id)
     except (FileNotFoundError, RuntimeError, ValueError) as error:
-        typer.secho(f"Research training failed: {error}", fg=typer.colors.RED, err=True)
+        typer.secho(f"Experiment run failed: {error}", fg=typer.colors.RED, err=True)
         raise typer.Exit(1) from error
 
     typer.echo(json.dumps(result.to_dict() if result else {}, indent=2))
 
 
-@research_app.command("suite")
-def research_suite(
+@experiments_app.command("suite")
+def experiments_suite(
     dataset: Annotated[Path, typer.Option(help="Published names.csv input.")] = (
         DEFAULT_DATASET_PATH
     ),
-    templates: Annotated[Path, typer.Option()] = Path("config/research_templates.yaml"),
+    templates: Annotated[Path, typer.Option()] = Path("config/experiment_templates.yaml"),
     sample_fraction: Annotated[
         float,
         typer.Option(min=0.0001, max=1.0, help="Shared deterministic study sample."),
@@ -142,14 +142,14 @@ def research_suite(
 ) -> None:
     """Run all locally available baseline architectures on the same split."""
 
-    from ners.research import (
-        MODEL_REGISTRY,
+    from ners.experiments import (
         ExperimentBuilder,
         ExperimentRunner,
     )
+    from ners.models import MODEL_REGISTRY
 
     _configure_logging()
-    config = ResearchConfig(
+    config = ExperimentSettings(
         dataset_path=dataset,
         templates_path=templates,
         sample_fraction=sample_fraction,
@@ -189,8 +189,8 @@ def research_suite(
     typer.echo(json.dumps(output, indent=2, default=str))
 
 
-@research_app.command("compare-views")
-def research_compare_views(
+@experiments_app.command("compare-views")
+def experiments_compare_views(
     names: Annotated[
         list[str] | None,
         typer.Option(
@@ -201,7 +201,7 @@ def research_compare_views(
     dataset: Annotated[Path, typer.Option(help="Published names.csv input.")] = (
         DEFAULT_DATASET_PATH
     ),
-    templates: Annotated[Path, typer.Option()] = Path("config/research_templates.yaml"),
+    templates: Annotated[Path, typer.Option()] = Path("config/experiment_templates.yaml"),
     sample_fraction: Annotated[
         float,
         typer.Option(min=0.0001, max=1.0, help="Shared deterministic study sample."),
@@ -214,10 +214,11 @@ def research_compare_views(
 ) -> None:
     """Compare surname-included and native-only views on identical held-out groups."""
 
-    from ners.research import MODEL_REGISTRY, ExperimentBuilder, ExperimentRunner
+    from ners.experiments import ExperimentBuilder, ExperimentRunner
+    from ners.models import MODEL_REGISTRY
 
     _configure_logging()
-    config = ResearchConfig(
+    config = ExperimentSettings(
         dataset_path=dataset,
         templates_path=templates,
         sample_fraction=sample_fraction,

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from ners.config import ResearchConfig
+from ners.config import ExperimentSettings
 from ners.web.components import (
     render_dataset,
     render_experiment_launcher,
@@ -21,7 +21,7 @@ def render_app() -> None:
         layout="wide",
         initial_sidebar_state="expanded",
     )
-    config = ResearchConfig()
+    config = ExperimentSettings()
 
     st.title("CongoNames model study")
     st.caption("Run model templates and compare held-out metrics from names.csv.")
@@ -45,7 +45,7 @@ def render_app() -> None:
     overview_tab, run_tab, results_tab, dataset_tab = st.tabs(
         ["Experiments", "Run experiment", "Results", "Dataset"],
         default="Experiments",
-        key="research_tabs",
+        key="experiment_tabs",
         on_change="rerun",
     )
     if overview_tab.open:

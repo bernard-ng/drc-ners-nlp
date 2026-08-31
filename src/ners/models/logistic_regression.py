@@ -6,7 +6,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MaxAbsScaler
 
-from ners.research.models.sklearn import SklearnModel
+from ners.models.sklearn import SklearnModel
 from ners.utils import full_name_array
 
 

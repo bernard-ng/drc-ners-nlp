@@ -7,7 +7,8 @@ def test_cli_exposes_experiment_workflows_only() -> None:
     result = CliRunner().invoke(app, ["--help"])
 
     assert result.exit_code == 0
-    assert "research" in result.stdout
+    assert "experiments" in result.stdout
+    assert "research" not in result.stdout
     assert "web" in result.stdout
     assert "evaluate" not in result.stdout
     assert "predict" not in result.stdout

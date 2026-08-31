@@ -7,7 +7,8 @@ import polars as pl
 from streamlit.testing.v1 import AppTest
 
 from ners.config import ExperimentConfig
-from ners.research import MODEL_REGISTRY, ExperimentResult, ExperimentStatus
+from ners.experiments import ExperimentResult, ExperimentStatus
+from ners.models import MODEL_REGISTRY
 from ners.web import (
     confusion_matrix_frame,
     experiment_results_frame,

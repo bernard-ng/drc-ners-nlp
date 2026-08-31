@@ -1,4 +1,4 @@
-"""Shared TensorFlow research model lifecycle."""
+"""Shared TensorFlow experiment model lifecycle."""
 
 from __future__ import annotations
 
@@ -14,8 +14,8 @@ from sklearn.model_selection import StratifiedGroupKFold
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils.class_weight import compute_class_weight
 
-from ners.research.experiment.metrics import calculate_metrics
-from ners.research.models.base import ResearchModel
+from ners.experiments.metrics import calculate_metrics
+from ners.models.base import ExperimentModel
 from ners.utils import (
     configure_tensorflow,
     full_name_series,
@@ -24,7 +24,7 @@ from ners.utils import (
 )
 
 
-class NeuralNetworkModel(ResearchModel):
+class NeuralNetworkModel(ExperimentModel):
     """Shared TensorFlow lifecycle for the neural models."""
 
     @abstractmethod
@@ -32,7 +32,7 @@ class NeuralNetworkModel(ResearchModel):
         """Create an untrained Keras model for the fitted vocabulary."""
         pass
 
-    def fit(self, X: pl.DataFrame, y: pl.Series) -> ResearchModel:
+    def fit(self, X: pl.DataFrame, y: pl.Series) -> ExperimentModel:
         """Fit the tokenizer, label encoder, and Keras model."""
         logging.info("Training %s", self.__class__.__name__)
         configure_tensorflow(

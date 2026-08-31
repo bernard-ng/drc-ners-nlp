@@ -8,15 +8,15 @@ from typing import Any
 import polars as pl
 import streamlit as st
 
-from ners.config import ResearchConfig
-from ners.research import (
-    MODEL_REGISTRY,
+from ners.config import ExperimentSettings
+from ners.experiments import (
     ExperimentBuilder,
     ExperimentResult,
     ExperimentRunner,
     ExperimentStatus,
     ExperimentTracker,
 )
+from ners.models import MODEL_REGISTRY
 from ners.web.dataset import DatasetSnapshot, inspect_dataset
 from ners.web.view_models import (
     confusion_matrix_frame,
@@ -30,7 +30,7 @@ from ners.web.view_models import (
 _EXPERIMENT_TYPES = ("baseline", "advanced", "feature_study", "tuning")
 
 
-def render_overview(config: ResearchConfig) -> None:
+def render_overview(config: ExperimentSettings) -> None:
     """Render model availability and comparable tracked results."""
 
     st.header("Experiment comparison")
@@ -126,7 +126,7 @@ def render_overview(config: ResearchConfig) -> None:
     )
 
 
-def render_dataset(config: ResearchConfig) -> None:
+def render_dataset(config: ExperimentSettings) -> None:
     """Show counts, schema, and a bounded preview from names.csv."""
 
     st.header("Published dataset")
@@ -196,7 +196,7 @@ def render_dataset(config: ResearchConfig) -> None:
         st.dataframe(snapshot.preview, hide_index=True, width="stretch", height=440)
 
 
-def render_experiment_launcher(config: ResearchConfig) -> None:
+def render_experiment_launcher(config: ExperimentSettings) -> None:
     """Render a single-template experiment launcher."""
 
     st.header("Run an experiment")
@@ -224,7 +224,7 @@ def render_experiment_launcher(config: ResearchConfig) -> None:
 
     available_types = [key for key, templates in templates_by_type.items() if templates]
     if not available_types:
-        st.info("config/research_templates.yaml has no experiment templates.")
+        st.info("config/experiment_templates.yaml has no experiment templates.")
         return
 
     experiment_type = st.selectbox(
@@ -287,7 +287,7 @@ def render_experiment_launcher(config: ResearchConfig) -> None:
     if not submitted:
         return
 
-    run_config = ResearchConfig(
+    run_config = ExperimentSettings(
         dataset_path=config.dataset_path,
         templates_path=config.templates_path,
         models_dir=config.models_dir,
@@ -315,7 +315,7 @@ def render_experiment_launcher(config: ResearchConfig) -> None:
         render_result(result, compact=True)
 
 
-def render_results(config: ResearchConfig) -> None:
+def render_results(config: ExperimentSettings) -> None:
     """Render the metrics and artifacts of one tracked experiment."""
 
     st.header("Result explorer")

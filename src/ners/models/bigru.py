@@ -4,47 +4,41 @@ from typing import Any
 
 import numpy as np
 import polars as pl
-from tensorflow.keras.layers import (
-    Embedding,
-    Conv1D,
-    MaxPooling1D,
-    GlobalMaxPooling1D,
-    Dense,
-    Dropout,
-    SpatialDropout1D,
-)
+from tensorflow.keras.layers import Embedding, Bidirectional, GRU, Dense, Dropout
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.preprocessing.text import Tokenizer
 
-from ners.research.models.neural import NeuralNetworkModel
+from ners.models.neural import NeuralNetworkModel
 
 
-class CNNModel(NeuralNetworkModel):
-    """One-dimensional convolutional full-name classifier."""
+class BiGRUModel(NeuralNetworkModel):
+    """Bidirectional GRU full-name classifier."""
 
     def build_model(self, vocab_size: int, **kwargs) -> Any:
-        """Create the untrained character CNN."""
-
         params = kwargs
         model = Sequential(
             [
-                Embedding(input_dim=vocab_size, output_dim=params.get("embedding_dim", 64)),
-                SpatialDropout1D(rate=params.get("embedding_dropout", 0.1)),
-                Conv1D(
-                    filters=params.get("filters", 64),
-                    kernel_size=params.get("kernel_size", 3),
-                    activation="relu",
-                    padding="same",
+                Embedding(
+                    input_dim=vocab_size,
+                    output_dim=params.get("embedding_dim", 64),
+                    mask_zero=True,
                 ),
-                MaxPooling1D(pool_size=2),
-                Conv1D(
-                    filters=params.get("filters", 64),
-                    kernel_size=params.get("kernel_size", 3),
-                    activation="relu",
-                    padding="same",
+                Bidirectional(
+                    GRU(
+                        params.get("gru_units", 32),
+                        return_sequences=True,
+                        dropout=params.get("dropout", 0.2),
+                        recurrent_dropout=params.get("recurrent_dropout", 0.1),
+                    )
                 ),
-                GlobalMaxPooling1D(),
+                Bidirectional(
+                    GRU(
+                        params.get("gru_units", 32),
+                        dropout=params.get("dropout", 0.2),
+                        recurrent_dropout=params.get("recurrent_dropout", 0.1),
+                    )
+                ),
                 Dense(64, activation="relu"),
                 Dropout(params.get("dropout", 0.5)),
                 Dense(2, activation="softmax", dtype="float32"),
@@ -59,8 +53,6 @@ class CNNModel(NeuralNetworkModel):
         return model
 
     def prepare_features(self, X: pl.DataFrame) -> np.ndarray:
-        """Tokenize the name column as characters and pad each sequence."""
-
         text_data = self._collect_text_corpus(X)
 
         if self.tokenizer is None:

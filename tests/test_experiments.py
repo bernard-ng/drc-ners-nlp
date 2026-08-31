@@ -9,12 +9,12 @@ from sklearn.exceptions import ConvergenceWarning
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MaxAbsScaler
 
-from ners.config import ExperimentConfig, ResearchConfig
-from ners.research import (
-    MODEL_REGISTRY,
+from ners.config import ExperimentConfig, ExperimentSettings
+from ners.experiments import (
     ExperimentBuilder,
     ExperimentRunner,
 )
+from ners.models import MODEL_REGISTRY
 
 
 EXPECTED_MODELS = {
@@ -34,7 +34,7 @@ EXPECTED_MODELS = {
 
 
 def test_all_study_architectures_are_registered_and_templated() -> None:
-    config = ResearchConfig(sample_fraction=0.1)
+    config = ExperimentSettings(sample_fraction=0.1)
     templates = ExperimentBuilder(config).load_templates()
     template_models = {template["model_type"] for template in templates["baseline_experiments"]}
 
@@ -57,7 +57,7 @@ def test_experiment_runner_reuses_split_and_persists_models(tmp_path: Path) -> N
         )
     pl.DataFrame(rows).write_csv(dataset_path)
 
-    config = ResearchConfig(
+    config = ExperimentSettings(
         dataset_path=dataset_path,
         models_dir=tmp_path / "models",
         outputs_dir=tmp_path / "outputs",
@@ -154,7 +154,7 @@ def test_public_experiment_config_round_trip() -> None:
 
 
 def test_builder_creates_controlled_name_view_pair() -> None:
-    builder = ExperimentBuilder(ResearchConfig(sample_fraction=0.1))
+    builder = ExperimentBuilder(ExperimentSettings(sample_fraction=0.1))
     template = next(
         value
         for value in builder.templates("baseline")

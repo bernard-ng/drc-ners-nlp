@@ -8,16 +8,16 @@ from typing import Any
 
 import polars as pl
 
-from ners.config import ExperimentConfig, ResearchConfig
-from ners.research.experiment.result import ExperimentResult, ExperimentStatus
+from ners.config import ExperimentConfig, ExperimentSettings
+from ners.experiments.result import ExperimentResult, ExperimentStatus
 from ners.utils import read_json, write_json
 
 
 class ExperimentTracker:
     """Persist, query, compare, and export experiment results."""
 
-    def __init__(self, config: ResearchConfig | None = None) -> None:
-        self.config = config or ResearchConfig()
+    def __init__(self, config: ExperimentSettings | None = None) -> None:
+        self.config = config or ExperimentSettings()
         self.experiments_dir = self.config.experiments_dir
         self.experiments_dir.mkdir(parents=True, exist_ok=True)
         self.results_path = self.experiments_dir / "experiments.json"

@@ -1,21 +1,21 @@
-"""Central configuration API for training and comparative research."""
+"""Central configuration API for the model experiments."""
 
 from ners.config.defaults import (
     DEFAULT_DATASET_PATH,
     DEFAULT_METRICS,
-    DEFAULT_RESEARCH_MODELS_DIR,
-    DEFAULT_RESEARCH_OUTPUTS_DIR,
-    DEFAULT_RESEARCH_TEMPLATES_PATH,
+    DEFAULT_EXPERIMENT_MODELS_DIR,
+    DEFAULT_EXPERIMENT_OUTPUTS_DIR,
+    DEFAULT_EXPERIMENT_TEMPLATES_PATH,
 )
 from ners.config.experiment import ExperimentConfig
-from ners.config.research import ResearchConfig
+from ners.config.experiment_settings import ExperimentSettings
 
 __all__ = [
     "DEFAULT_DATASET_PATH",
     "DEFAULT_METRICS",
-    "DEFAULT_RESEARCH_MODELS_DIR",
-    "DEFAULT_RESEARCH_OUTPUTS_DIR",
-    "DEFAULT_RESEARCH_TEMPLATES_PATH",
+    "DEFAULT_EXPERIMENT_MODELS_DIR",
+    "DEFAULT_EXPERIMENT_OUTPUTS_DIR",
+    "DEFAULT_EXPERIMENT_TEMPLATES_PATH",
     "ExperimentConfig",
-    "ResearchConfig",
+    "ExperimentSettings",
 ]
