@@ -29,14 +29,6 @@ class ResearchModel(ABC):
         self.label_encoder: "LabelEncoder | None" = None
         self.tokenizer: Any | None = None  # For neural models
         self.is_fitted: bool = False
-        self.training_history: dict[str, Any] = {}
-        self.learning_curve_data: dict[str, Any] = {}
-
-    @property
-    @abstractmethod
-    def architecture(self) -> str:
-        """Return `sklearn`, `neural_network`, or `ensemble`."""
-        pass
 
     @abstractmethod
     def prepare_features(self, X: pl.DataFrame) -> Any:
@@ -55,16 +47,6 @@ class ResearchModel(ABC):
         """Return mean cross-validation scores for the configured metrics."""
         pass
 
-    @abstractmethod
-    def generate_learning_curve(
-        self,
-        X: pl.DataFrame,
-        y: pl.Series,
-        train_sizes: list[float] | None = None,
-    ) -> dict[str, Any]:
-        """Measure training and validation scores at several training sizes."""
-        pass
-
     def predict(self, X: pl.DataFrame) -> np.ndarray:
         """Predict sex for each full name."""
         if not self.is_fitted:
@@ -81,29 +63,6 @@ class ResearchModel(ABC):
             predictions = predictions.argmax(axis=1)
 
         return self.label_encoder.inverse_transform(predictions)
-
-    def predict_proba(self, X: pl.DataFrame) -> np.ndarray:
-        """Return class probabilities when the estimator supports them."""
-        if not self.is_fitted:
-            raise ValueError("Train the model before making predictions")
-
-        if self.model is None:
-            raise ValueError("Model is not fully initialized for prediction")
-
-        X_prepared = self.prepare_features(self.select_input_view(X))
-
-        if hasattr(self.model, "predict_proba"):
-            return self.model.predict_proba(X_prepared)
-        elif hasattr(self.model, "predict"):
-            probabilities = self.model.predict(X_prepared)
-            if (
-                hasattr(probabilities, "shape")
-                and len(probabilities.shape) == 2
-                and probabilities.shape[1] > 1
-            ):
-                return probabilities
-
-        raise NotImplementedError("Model does not support probability predictions")
 
     def get_feature_importance(self) -> dict[str, float] | None:
         """Return estimator-specific feature scores when available."""
@@ -196,8 +155,6 @@ class ResearchModel(ABC):
             "tokenizer": self.tokenizer,
             "config": self.config.to_dict(),
             "is_fitted": self.is_fitted,
-            "training_history": self.training_history,
-            "learning_curve_data": self.learning_curve_data,
         }
         for attribute in ("vectorizer",):
             if hasattr(self, attribute):
@@ -221,8 +178,6 @@ class ResearchModel(ABC):
         instance.label_encoder = model_data["label_encoder"]
         instance.tokenizer = model_data.get("tokenizer")
         instance.is_fitted = model_data["is_fitted"]
-        instance.training_history = model_data.get("training_history", {})
-        instance.learning_curve_data = model_data.get("learning_curve_data", {})
         for attribute in ("vectorizer",):
             if attribute in model_data:
                 setattr(instance, attribute, model_data[attribute])

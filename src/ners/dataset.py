@@ -4,7 +4,6 @@ import logging
 from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
 
 import numpy as np
 import polars as pl
@@ -33,9 +32,6 @@ class DatasetBatch:
     names: np.ndarray
     labels: np.ndarray
 
-    def __len__(self) -> int:
-        return len(self.labels)
-
 
 @dataclass(frozen=True, slots=True)
 class DatasetPartition:
@@ -57,7 +53,6 @@ class NameDataset:
         sample_fraction: float = 1.0,
         name_column: str = "name",
         target_column: str = "sex",
-        input_view: str | NameView = NameView.FULL,
         split_group_view: str | NameView = NameView.FULL,
         required_token_count: int | None = None,
     ) -> None:
@@ -67,7 +62,6 @@ class NameDataset:
         self.sample_fraction = sample_fraction
         self.name_column = name_column
         self.target_column = target_column
-        self.input_view = coerce_name_view(input_view)
         self.split_group_view = coerce_name_view(split_group_view)
         self.required_token_count = required_token_count
 
@@ -89,14 +83,6 @@ class NameDataset:
         if missing:
             missing_text = ", ".join(sorted(missing))
             raise DatasetSchemaError(f"names.csv is missing columns: {missing_text}")
-
-    def iter_split(self, split: Literal["train", "test"]) -> Iterator[DatasetBatch]:
-        """Yield deterministic batches for one side of a full-name-grouped split."""
-
-        for partition in self.iter_partitions():
-            batch = partition.test if split == "test" else partition.train
-            if batch is not None:
-                yield batch
 
     def iter_partitions(self) -> Iterator[DatasetPartition]:
         """Yield train and test rows together while scanning the CSV only once."""
@@ -132,14 +118,6 @@ class NameDataset:
                 train=self._to_batch(frame.filter(pl.Series(~is_test))),
                 test=self._to_batch(frame.filter(pl.Series(is_test))),
             )
-
-    def count_labels(self, split: Literal["train", "test"]) -> dict[str, int]:
-        counts = {label: 0 for label in LABELS}
-        for batch in self.iter_split(split):
-            labels, frequencies = np.unique(batch.labels, return_counts=True)
-            for label, frequency in zip(labels, frequencies, strict=True):
-                counts[str(label)] += int(frequency)
-        return counts
 
     def _iter_frames(self) -> Iterator[pl.DataFrame]:
         lazy_frame = pl.scan_csv(
@@ -191,8 +169,6 @@ class NameDataset:
         if frame.is_empty():
             return None
         return DatasetBatch(
-            names=name_view_series(
-                frame.get_column(self.name_column), self.input_view
-            ).to_numpy(),
+            names=frame.get_column(self.name_column).to_numpy(),
             labels=frame.get_column(self.target_column).to_numpy(),
         )

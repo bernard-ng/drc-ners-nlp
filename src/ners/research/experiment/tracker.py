@@ -4,7 +4,6 @@ import hashlib
 import json
 import logging
 from datetime import datetime
-from pathlib import Path
 from typing import Any
 
 import polars as pl
@@ -109,16 +108,6 @@ class ExperimentTracker:
             row.update({f"cv_{key}": value for key, value in result.cv_metrics.items()})
             rows.append(row)
         return pl.DataFrame(rows) if rows else pl.DataFrame()
-
-    def export(self, output_path: Path | None = None) -> Path:
-        destination = output_path or (
-            self.experiments_dir
-            / f"experiments_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-        )
-        frame = self.compare([result.experiment_id for result in self.list()])
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        frame.write_csv(destination)
-        return destination
 
     def _load_results(self) -> None:
         if not self.results_path.exists():

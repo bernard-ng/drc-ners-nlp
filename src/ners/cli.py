@@ -9,22 +9,14 @@ from typing import Annotated
 
 import typer
 
-from ners import (
-    NameDataset,
-    NameSexClassifier,
-    evaluate_model,
-    train_model,
-)
 from ners.config import (
     DEFAULT_DATASET_PATH,
-    DEFAULT_MODEL_PATH,
     ResearchConfig,
-    TrainingConfig,
 )
 
 
 app = typer.Typer(
-    help=("Train and evaluate models that estimate sex in CongoNames from a full name."),
+    help="Run controlled CongoNames full-name classification experiments.",
     no_args_is_help=True,
 )
 
@@ -57,156 +49,6 @@ def web_command(
     result = subprocess.run(command, check=False)
     if result.returncode:
         raise typer.Exit(result.returncode)
-
-
-@app.command("train")
-def train_command(
-    dataset: Annotated[
-        Path,
-        typer.Option(help="Published names.csv input file."),
-    ] = DEFAULT_DATASET_PATH,
-    model: Annotated[
-        Path,
-        typer.Option(help="Destination for the trained model artifact."),
-    ] = DEFAULT_MODEL_PATH,
-    metrics: Annotated[
-        Path | None,
-        typer.Option(help="Metrics JSON path; defaults beside the model."),
-    ] = None,
-    chunk_size: Annotated[
-        int,
-        typer.Option(min=1, help="Rows read and transformed at a time."),
-    ] = 100_000,
-    test_fraction: Annotated[
-        float,
-        typer.Option(min=0.001, max=0.999, help="Held-out full-name groups."),
-    ] = 0.2,
-    sample_fraction: Annotated[
-        float,
-        typer.Option(
-            min=0.0001,
-            max=1.0,
-            help="Deterministic fraction for faster experiments.",
-        ),
-    ] = 1.0,
-    epochs: Annotated[
-        int,
-        typer.Option(min=1, help="Streaming passes over training rows."),
-    ] = 1,
-    n_features: Annotated[
-        int,
-        typer.Option(min=1024, help="Hashing-vectorizer feature dimension."),
-    ] = 2**20,
-    ngram_min: Annotated[int, typer.Option(min=1)] = 2,
-    ngram_max: Annotated[int, typer.Option(min=1)] = 5,
-    alpha: Annotated[
-        float,
-        typer.Option(min=1e-12, help="L2 regularization strength."),
-    ] = 1e-6,
-    balanced: Annotated[
-        bool,
-        typer.Option(help="Use inverse-frequency training weights."),
-    ] = False,
-    random_seed: Annotated[int, typer.Option()] = 42,
-) -> None:
-    """Train directly from names.csv and write a model plus held-out metrics."""
-
-    _configure_logging()
-    try:
-        config = TrainingConfig(
-            dataset_path=dataset,
-            model_path=model,
-            metrics_path=metrics,
-            chunk_size=chunk_size,
-            test_fraction=test_fraction,
-            sample_fraction=sample_fraction,
-            epochs=epochs,
-            n_features=n_features,
-            ngram_min=ngram_min,
-            ngram_max=ngram_max,
-            alpha=alpha,
-            balanced=balanced,
-            random_seed=random_seed,
-        )
-        result = train_model(config)
-    except (FileNotFoundError, ValueError) as error:
-        typer.secho(f"Training failed: {error}", fg=typer.colors.RED, err=True)
-        raise typer.Exit(1) from error
-
-    typer.echo(json.dumps(result.to_dict(), indent=2))
-    typer.echo(f"Model: {config.model_path}")
-    typer.echo(f"Metrics: {config.resolved_metrics_path}")
-
-
-@app.command("evaluate")
-def evaluate_command(
-    model: Annotated[Path, typer.Option(help="Trained model artifact.")] = (DEFAULT_MODEL_PATH),
-    dataset: Annotated[Path | None, typer.Option(help="Override names.csv path.")] = (None),
-    chunk_size: Annotated[int | None, typer.Option(min=1)] = None,
-) -> None:
-    """Re-evaluate a model on its deterministic held-out full-name groups."""
-
-    _configure_logging()
-    try:
-        classifier = NameSexClassifier.load(model)
-        stored = classifier.metadata.get("training_config", {})
-        if not isinstance(stored, dict):
-            raise ValueError("Model artifact has no training configuration")
-
-        source = dataset or Path(str(stored.get("dataset_path", DEFAULT_DATASET_PATH)))
-        source_chunk_size = chunk_size or int(stored.get("chunk_size", 100_000))
-        name_dataset = NameDataset(
-            source,
-            chunk_size=source_chunk_size,
-            test_fraction=float(stored.get("test_fraction", 0.2)),
-            sample_fraction=float(stored.get("sample_fraction", 1.0)),
-            name_column=str(stored.get("name_column", "name")),
-            target_column=str(stored.get("target_column", "sex")),
-        )
-        result = evaluate_model(classifier, name_dataset)
-    except (FileNotFoundError, ValueError) as error:
-        typer.secho(f"Evaluation failed: {error}", fg=typer.colors.RED, err=True)
-        raise typer.Exit(1) from error
-
-    typer.echo(json.dumps(result.to_dict(), indent=2))
-
-
-@app.command("predict")
-def predict_command(
-    names: Annotated[
-        list[str],
-        typer.Argument(help="One or more quoted full names."),
-    ],
-    model: Annotated[Path, typer.Option(help="Trained model artifact.")] = (DEFAULT_MODEL_PATH),
-) -> None:
-    """Estimate sex for one or more full names."""
-
-    try:
-        classifier = NameSexClassifier.load(model)
-        probabilities = classifier.predict_proba(names)
-        predictions = classifier.predict(names)
-    except (FileNotFoundError, ValueError) as error:
-        typer.secho(f"Prediction failed: {error}", fg=typer.colors.RED, err=True)
-        raise typer.Exit(1) from error
-
-    class_indices = {label: index for index, label in enumerate(classifier.classes)}
-    records = []
-    for name, prediction, row in zip(names, predictions, probabilities, strict=True):
-        label = str(prediction)
-        records.append(
-            {
-                "name": name,
-                "sex": label,
-                "confidence": float(row[class_indices[label]]),
-            }
-        )
-
-    output = {
-        "target": "sex",
-        "predictions": records,
-        "notice": ("Sex means the f or m marker in the source records, not gender identity."),
-    }
-    typer.echo(json.dumps(output, indent=2, ensure_ascii=False))
 
 
 @research_app.command("list")

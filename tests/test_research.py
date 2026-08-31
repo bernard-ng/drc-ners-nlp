@@ -4,7 +4,6 @@ from pathlib import Path
 from typing import cast
 import warnings
 
-import numpy as np
 import polars as pl
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.pipeline import Pipeline
@@ -109,7 +108,7 @@ def test_registry_loads_available_model_without_importing_tensorflow() -> None:
     config = ExperimentConfig(name="test", model_type="logistic_regression")
     model = MODEL_REGISTRY.create(config)
 
-    assert model.architecture == "sklearn"
+    assert not model.is_fitted
 
 
 def test_logistic_regression_scales_sparse_counts_and_converges() -> None:
@@ -226,7 +225,7 @@ def test_saved_input_view_is_enforced_during_prediction() -> None:
     )
     model.fit(frame.drop("sex"), frame.get_column("sex"))
 
-    probabilities = model.predict_proba(
+    predictions = model.predict(
         pl.DataFrame(
             {
                 "name": [
@@ -237,4 +236,4 @@ def test_saved_input_view_is_enforced_during_prediction() -> None:
         )
     )
 
-    assert np.allclose(probabilities[0], probabilities[1])
+    assert predictions[0] == predictions[1]

@@ -197,10 +197,3 @@ p(y=c\mid N)=\frac{1}{J}\sum_{j=1}^{J}p_j(y=c\mid N).
 
 The ensemble combines logistic regression, random forest, and Naive Bayes to test
 whether their complementary inductive biases improve held-out performance.
-
-## Full-corpus online baseline
-
-The online baseline hashes character n-grams into a fixed dimension. It reads `names.csv`
-in batches and updates an averaged stochastic logistic classifier with `partial_fit`, so it
-never stores the full feature matrix. This baseline does not replace the comparative models
-above.

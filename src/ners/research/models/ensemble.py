@@ -16,11 +16,6 @@ from ners.utils import full_name_array
 class EnsembleModel(SklearnModel):
     """Voting ensemble combining complementary full-name models."""
 
-    @property
-    def architecture(self) -> str:
-        """Return the architecture type"""
-        return "ensemble"
-
     def __init__(self, config: ExperimentConfig):
         super().__init__(config)
         self.base_models = []

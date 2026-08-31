@@ -169,28 +169,18 @@ other systems, the registry still lists the neural models and reports that Tenso
 missing. The suite skips those models. LightGBM and XGBoost need an OpenMP runtime. Install
 it on macOS with `brew install libomp`; the registry checks the native library before a run.
 
-To train a full-corpus linear baseline without holding the complete feature matrix in
-memory, run:
-
-```bash
-uv run ners train
-```
-
-It uses hashed character n-grams and `SGDClassifier.partial_fit`, producing the default
-`data/models/reported-sex-classifier.joblib` artifact.
-
 ## Code organization and public API
 
 Import configuration from `ners.config` and shared hashing, JSON, runtime, and name helpers
 from `ners.utils`. `ners.research` contains dataset loading, experiment tracking, model
-registration, model classes, and reporting. Import only the package APIs shown below;
+registration and model classes. Import only the package APIs shown below;
 internal module paths may change.
 
 Application code uses these imports:
 
 ```python
-from ners import NameDataset, NameSexClassifier, train_model
-from ners.config import ExperimentConfig, ResearchConfig, TrainingConfig
+from ners import NameDataset
+from ners.config import ExperimentConfig, ResearchConfig
 from ners.research import (
     MODEL_REGISTRY,
     ExperimentBuilder,
@@ -199,25 +189,15 @@ from ners.research import (
 ```
 
 `MODEL_REGISTRY` imports TensorFlow, LightGBM, or XGBoost only when a run selects that
-model. Experiment comparisons and exports return Polars dataframes. Estimators receive
+model. Experiment comparisons return Polars dataframes. Estimators receive
 NumPy arrays or sparse matrices only where their libraries require them.
 
-## Evaluation and prediction
+## Experiment artifacts
 
-Re-run evaluation with the split stored in the model artifact:
-
-```bash
-uv run ners evaluate
-```
-
-Predict one or more quoted full names:
-
-```bash
-uv run ners predict "ilunga ngoy jean" "kavira mapendo esther"
-```
-
-The command prints JSON with `sex` and `confidence` fields. Treat both as estimates of the
-source dataset label.
+Each `ners research train`, `suite`, or `compare-views` run evaluates its held-out split
+before saving the model artifact. The tracker stores the experiment configuration, metrics,
+confusion matrix, model path, and feature interpretation together; there is no separate
+untracked training or prediction path.
 
 ## Quality checks
 

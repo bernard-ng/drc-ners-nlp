@@ -10,9 +10,7 @@ import numpy as np
 import polars as pl
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from keras.utils import set_random_seed
-from sklearn.metrics import accuracy_score
 from sklearn.model_selection import StratifiedGroupKFold
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils.class_weight import compute_class_weight
 
@@ -28,10 +26,6 @@ from ners.utils import (
 
 class NeuralNetworkModel(ResearchModel):
     """Shared TensorFlow lifecycle for the neural models."""
-
-    @property
-    def architecture(self) -> str:
-        return "neural_network"
 
     @abstractmethod
     def build_model(self, vocab_size: int, **kwargs) -> Any:
@@ -109,7 +103,7 @@ class NeuralNetworkModel(ResearchModel):
                 min_lr=1e-5,
             ),
         ]
-        history = model.fit(
+        model.fit(
             X_prepared[training_mask],
             y_encoded[training_mask],
             epochs=self.config.model_params.get("epochs", 10),
@@ -119,13 +113,6 @@ class NeuralNetworkModel(ResearchModel):
             callbacks=callbacks,
             verbose=2,
         )
-
-        self.training_history = {
-            "accuracy": history.history["accuracy"],
-            "loss": history.history["loss"],
-            "val_accuracy": history.history.get("val_accuracy", []),
-            "val_loss": history.history.get("val_loss", []),
-        }
 
         self.is_fitted = True
         return self
@@ -220,87 +207,3 @@ class NeuralNetworkModel(ResearchModel):
             results[metric] = float(np.mean(values))
             results[f"{metric}_std"] = float(np.std(values))
         return results
-
-    def generate_learning_curve(
-        self,
-        X: pl.DataFrame,
-        y: pl.Series,
-        train_sizes: list[float] | None = None,
-    ) -> dict[str, Any]:
-        """Measure accuracy at several training sizes with three repeated fits."""
-        if self.label_encoder is None:
-            raise ValueError("Train the model before generating a learning curve")
-        logging.info("Generating learning curve for %s", self.__class__.__name__)
-        configure_tensorflow(
-            self.config.model_params,
-            random_seed=self.config.random_seed,
-        )
-
-        if train_sizes is None:
-            train_sizes = [0.1, 0.3, 0.5, 0.7, 1.0]
-
-        learning_curve_data = {
-            "train_sizes": [],
-            "train_scores": [],
-            "val_scores": [],
-            "train_scores_std": [],
-            "val_scores_std": [],
-        }
-
-        X_prepared = self.prepare_features(self.select_input_view(X))
-        X_prepared = self._sanitize_sequences(X_prepared)
-        y_encoded = self.label_encoder.transform(y.to_numpy())
-
-        vocab_size = len(self.tokenizer.word_index) + 1 if self.tokenizer else 1000
-        X_train_full, X_val, y_train_full, y_val = train_test_split(
-            X_prepared,
-            y_encoded,
-            test_size=0.2,
-            random_state=self.config.random_seed,
-            stratify=y_encoded,
-        )
-
-        rng = np.random.default_rng(self.config.random_seed)
-        for size in train_sizes:
-            train_size = int(len(X_train_full) * size)
-            if train_size < 10:
-                continue
-
-            indices = rng.choice(len(X_train_full), train_size, replace=False)
-            X_train_subset = X_train_full[indices]
-            y_train_subset = y_train_full[indices]
-
-            train_scores = []
-            val_scores = []
-
-            for seed in range(3):
-                set_random_seed(self.config.random_seed + seed)
-                model = self.build_model(vocab_size=vocab_size, **self.config.model_params)
-
-                if hasattr(model, "fit"):
-                    model.fit(
-                        X_train_subset,
-                        y_train_subset,
-                        epochs=self.config.model_params.get("epochs", 10),
-                        batch_size=self.config.model_params.get("batch_size", 32),
-                        validation_data=(X_val, y_val),
-                        verbose=0,
-                    )
-
-                train_pred = model.predict(X_train_subset)
-                val_pred = model.predict(X_val)
-
-                train_acc = accuracy_score(y_train_subset, train_pred.argmax(axis=1))
-                val_acc = accuracy_score(y_val, val_pred.argmax(axis=1))
-
-                train_scores.append(train_acc)
-                val_scores.append(val_acc)
-
-            learning_curve_data["train_sizes"].append(train_size)
-            learning_curve_data["train_scores"].append(np.mean(train_scores))
-            learning_curve_data["val_scores"].append(np.mean(val_scores))
-            learning_curve_data["train_scores_std"].append(np.std(train_scores))
-            learning_curve_data["val_scores_std"].append(np.std(val_scores))
-
-        self.learning_curve_data = learning_curve_data
-        return learning_curve_data

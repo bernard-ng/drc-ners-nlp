@@ -13,7 +13,6 @@ from ners.research.model_registry import (
     ModelSpec,
 )
 from ners.research.models.base import ResearchModel
-from ners.research.reporting import plot_learning_curve, plot_training_history
 
 __all__ = [
     "MODEL_REGISTRY",
@@ -29,6 +28,4 @@ __all__ = [
     "ModelSpec",
     "ResearchModel",
     "calculate_metrics",
-    "plot_learning_curve",
-    "plot_training_history",
 ]
