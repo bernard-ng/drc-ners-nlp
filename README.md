@@ -46,76 +46,29 @@ The default uses a small one-percent sample. To run the full dataset, add
 Each command below runs the named model twice: once with the surname included and once
 with native names only. The result shows the two scores and the difference between them.
 
-### Control
-
+#### Control
 ```bash
 uv run ners experiments compare-views --name dummy
 ```
 
-### Logistic regression
-
+#### Full dataset training for every model
 ```bash
-uv run ners experiments compare-views --name logistic_regression
+uv run ners experiments compare-views --sample-fraction=1
 ```
 
-### Position-aware logistic regression
-
+#### Full dataset training for specific models
 ```bash
-uv run ners experiments compare-views --name position_logistic_regression
-```
-
-### Naive Bayes
-
-```bash
-uv run ners experiments compare-views --name naive_bayes
-```
-
-### Random forest
-
-```bash
-uv run ners experiments compare-views --name random_forest
-```
-
-### LightGBM
-
-```bash
-uv run ners experiments compare-views --name lightgbm
-```
-
-### XGBoost
-
-```bash
-uv run ners experiments compare-views --name xgboost
-```
-
-### CNN
-
-```bash
-uv run ners experiments compare-views --name cnn
-```
-
-### LSTM
-
-```bash
-uv run ners experiments compare-views --name lstm
-```
-
-### BiGRU
-
-```bash
-uv run ners experiments compare-views --name bigru
-```
-
-### Transformer
-
-```bash
-uv run ners experiments compare-views --name transformer
-```
-
-### Ensemble
-
-```bash
-uv run ners experiments compare-views --name ensemble
+uv run ners experiments compare-views --name logistic_regression --sample-fraction=1
+uv run ners experiments compare-views --name position_logistic_regression --sample-fraction=1
+uv run ners experiments compare-views --name naive_bayes --sample-fraction=1
+uv run ners experiments compare-views --name random_forest --sample-fraction=1
+uv run ners experiments compare-views --name lightgbm --sample-fraction=1
+uv run ners experiments compare-views --name xgboost --sample-fraction=1
+uv run ners experiments compare-views --name cnn --sample-fraction=1
+uv run ners experiments compare-views --name lstm --sample-fraction=1
+uv run ners experiments compare-views --name bigru --sample-fraction=1
+uv run ners experiments compare-views --name transformer --sample-fraction=1
+uv run ners experiments compare-views --name ensemble --sample-fraction=1
 ```
 
 ## Responsible use
