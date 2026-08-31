@@ -669,7 +669,7 @@ wheels = [
 ]
 
 [[package]]
-name = "ners"
+name = "drc-names-classifier"
 version = "0.2.0"
 source = { editable = "." }
 dependencies = [

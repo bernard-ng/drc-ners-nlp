@@ -1,6 +1,6 @@
 from typer.testing import CliRunner
 
-from ners.cli import app
+from drc_names_classifier.cli import app
 
 
 def test_cli_exposes_experiment_workflows_only() -> None:

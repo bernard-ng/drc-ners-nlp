@@ -1,7 +1,7 @@
 [project]
-name = "ners"
+name = "drc-names-classifier"
 version = "0.2.0"
-description = "Comparative full-name sex classification study for the CongoNames corpus"
+description = "Controlled sex-predictability experiments for Congolese names"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -18,7 +18,7 @@ dependencies = [
 ]
 
 [project.scripts]
-ners = "ners.cli:app"
+drc-names-classifier = "drc_names_classifier.cli:app"
 
 [build-system]
 requires = ["uv_build>=0.8.12,<0.9.0"]
@@ -35,6 +35,8 @@ dev = [
 [tool.pyright]
 pythonVersion = "3.11"
 typeCheckingMode = "basic"
+venvPath = "."
+venv = ".venv"
 reportMissingImports = "none"
 reportMissingModuleSource = "none"
 useLibraryCodeForTypes = true

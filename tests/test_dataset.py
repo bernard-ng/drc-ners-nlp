@@ -5,7 +5,7 @@ from pathlib import Path
 import polars as pl
 import pytest
 
-from ners.dataset import DatasetSchemaError, NameDataset
+from drc_names_classifier.dataset import DatasetSchemaError, NameDataset
 
 
 def _write_dataset(path: Path, rows: list[dict[str, str]]) -> None:

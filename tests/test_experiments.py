@@ -9,12 +9,12 @@ from sklearn.exceptions import ConvergenceWarning
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MaxAbsScaler
 
-from ners.config import ExperimentConfig, ExperimentSettings
-from ners.experiments import (
+from drc_names_classifier.config import ExperimentConfig, ExperimentSettings
+from drc_names_classifier.experiments import (
     ExperimentBuilder,
     ExperimentRunner,
 )
-from ners.models import MODEL_REGISTRY
+from drc_names_classifier.models import MODEL_REGISTRY
 
 
 EXPECTED_MODELS = {

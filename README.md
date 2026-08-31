@@ -1,33 +1,41 @@
-# CongoNames name-classification experiments
+# Measuring Sex Predictability in Congolese Names: A Controlled Comparison of Native-Only and Full-Name Models
 
-Run experiments that predict the `m` or `f` value recorded in the CongoNames source data
-from a person's name. This is a study tool: the recorded value is not gender identity
-and must not be used to profile people or make decisions about them.
+> work in progress
 
-## Before you start
+[![audit](https://github.com/bernard-ng/drc-names-classifier/actions/workflows/audit.yml/badge.svg)](https://github.com/bernard-ng/drc-names-classifier/actions/workflows/audit.yml)
+[![quality](https://github.com/bernard-ng/drc-names-classifier/actions/workflows/quality.yml/badge.svg)](https://github.com/bernard-ng/drc-names-classifier/actions/workflows/quality.yml)
 
-Place the published dataset here:
+---
 
-```text
-data/dataset/names.csv
+## Abstract
+
+This study investigates whether Congolese names are reliable indicators of recorded sex. Using a large corpus of names labeled with administrative F/M markers, we compare classifiers under two controlled input settings: native Congolese name components only and the complete name with the third name component included. The performance difference quantifies how much predictive information is contributed by that additional component and provides empirical evidence about the relative sex neutrality of native Congolese names.
+
+## How to cite this work
+
+```bib
+to be provided after publication
 ```
 
-Then install the project once:
+## Workflows
+
+Clone the repository and sync dependencies:
 
 ```bash
+git clone https://github.com/bernard-ng/drc-names-classifier.git
+cd drc-names-classifier
 uv sync
 ```
 
-## Open the web app
+Place the published [dataset](https://doi.org/10.5281/zenodo.19809985) in `data/dataset/names.csv`
+
+Launch the local experiment interface with:
 
 ```bash
-uv run ners web
+uv run drc-names-classifier web
 ```
 
-Use the app to start experiments and view their results. Stop it with `Ctrl+C` when you
-are finished.
-
-## Run all models
+## Training
 
 This command runs every available model in both settings:
 
@@ -35,7 +43,7 @@ This command runs every available model in both settings:
 - native names only: the first two parts of the name
 
 ```bash
-uv run ners experiments compare-views
+uv run drc-names-classifier experiments compare-views
 ```
 
 The default uses a small one-percent sample. To run the full dataset, add
@@ -46,29 +54,22 @@ The default uses a small one-percent sample. To run the full dataset, add
 Each command below runs the named model twice: once with the surname included and once
 with native names only. The result shows the two scores and the difference between them.
 
-#### Control
 ```bash
-uv run ners experiments compare-views --name dummy
+uv run drc-names-classifier experiments compare-views --name dummy
 ```
 
-#### Full dataset training for every model
 ```bash
-uv run ners experiments compare-views --sample-fraction=1
-```
-
-#### Full dataset training for specific models
-```bash
-uv run ners experiments compare-views --name logistic_regression --sample-fraction=1
-uv run ners experiments compare-views --name position_logistic_regression --sample-fraction=1
-uv run ners experiments compare-views --name naive_bayes --sample-fraction=1
-uv run ners experiments compare-views --name random_forest --sample-fraction=1
-uv run ners experiments compare-views --name lightgbm --sample-fraction=1
-uv run ners experiments compare-views --name xgboost --sample-fraction=1
-uv run ners experiments compare-views --name cnn --sample-fraction=1
-uv run ners experiments compare-views --name lstm --sample-fraction=1
-uv run ners experiments compare-views --name bigru --sample-fraction=1
-uv run ners experiments compare-views --name transformer --sample-fraction=1
-uv run ners experiments compare-views --name ensemble --sample-fraction=1
+uv run drc-names-classifier experiments compare-views --name logistic_regression --sample-fraction=1
+uv run drc-names-classifier experiments compare-views --name position_logistic_regression --sample-fraction=1
+uv run drc-names-classifier experiments compare-views --name naive_bayes --sample-fraction=1
+uv run drc-names-classifier experiments compare-views --name random_forest --sample-fraction=1
+uv run drc-names-classifier experiments compare-views --name lightgbm --sample-fraction=1
+uv run drc-names-classifier experiments compare-views --name xgboost --sample-fraction=1
+uv run drc-names-classifier experiments compare-views --name cnn --sample-fraction=1
+uv run drc-names-classifier experiments compare-views --name lstm --sample-fraction=1
+uv run drc-names-classifier experiments compare-views --name bigru --sample-fraction=1
+uv run drc-names-classifier experiments compare-views --name transformer --sample-fraction=1
+uv run drc-names-classifier experiments compare-views --name ensemble --sample-fraction=1
 ```
 
 ## Responsible use

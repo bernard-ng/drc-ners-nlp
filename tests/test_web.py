@@ -6,10 +6,10 @@ from pathlib import Path
 import polars as pl
 from streamlit.testing.v1 import AppTest
 
-from ners.config import ExperimentConfig
-from ners.experiments import ExperimentResult, ExperimentStatus
-from ners.models import MODEL_REGISTRY
-from ners.web import (
+from drc_names_classifier.config import ExperimentConfig
+from drc_names_classifier.experiments import ExperimentResult, ExperimentStatus
+from drc_names_classifier.models import MODEL_REGISTRY
+from drc_names_classifier.web import (
     confusion_matrix_frame,
     experiment_results_frame,
     inspect_dataset,
@@ -67,12 +67,12 @@ def test_experiment_view_models_have_stable_schemas() -> None:
 
 
 def test_streamlit_entrypoint_renders_without_exceptions() -> None:
-    entrypoint = Path(__file__).parents[1] / "src" / "ners" / "web" / "app.py"
+    entrypoint = Path(__file__).parents[1] / "src" / "drc_names_classifier" / "web" / "app.py"
 
     app = AppTest.from_file(entrypoint, default_timeout=15).run()
 
     assert not app.exception
-    assert app.title[0].value == "CongoNames model study"
+    assert app.title[0].value == "DRC Names Classifier"
     assert [tab.label for tab in app.tabs] == [
         "Experiments",
         "Run experiment",
